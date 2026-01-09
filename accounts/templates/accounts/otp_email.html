@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PowerPayAfrica OTP</title>
+</head>
+<body style="margin:0; padding:10px; background:#f3f4f6;">
+
+  <div style="
+      max-width:600px;
+      margin:40px auto;
+      background:white;
+      border-radius:20px;
+      box-shadow:0 8px 25px rgba(0,0,0,0.08);
+      overflow:hidden;
+    ">
+    
+    <!-- Header -->
+    <div style="background:white; padding:30px 20px; text-align:center;">
+      <img src="https://appliatrix.com/static/css/pplogo.png"
+           alt="PowerPayShop Logo"
+           style="
+             width:260px;
+             height:auto;
+             border-radius:14px;
+             padding:10px;
+             background:white;
+             box-shadow:0 4px 10px rgba(0,0,0,0.05);
+           ">
+    </div>
+
+    <!-- Body -->
+    <div style="padding:40px 35px; text-align:center;">
+      <h2 style="
+          color:#16a34a;
+          font-size:22px;
+          margin-bottom:14px;
+          font-weight:700;
+        ">
+        Your OTP Code
+      </h2>
+
+      <p style="font-size:16px; color:#374151; margin-bottom:28px;">
+        Hello <strong>{{ user.username }}</strong>,<br>
+        use the verification code below to log in to your account.
+      </p>
+
+      <!-- OTP BOX -->
+      <div style="
+          background:#fef2e8;
+          border:2px solid #fdba74;
+          border-radius:14px;
+          width:220px;
+          margin:0 auto 32px auto;
+          padding:18px 0;
+          font-size:32px;
+          font-weight:bold;
+          letter-spacing:6px;
+          color:#ea580c;
+          text-align:center;
+        ">
+        {{ otp }}
+      </div>
+
+      <p style="font-size:14px; color:#6b7280; margin-bottom:10px;">
+        This OTP is valid for <strong>5 minutes</strong>.
+      </p>
+      <p style="font-size:14px; color:#6b7280;">
+        Please do not share this code with anyone.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div style="
+        background:#f8fafc;
+        padding:18px;
+        text-align:center;
+        font-size:12px;
+        color:#9ca3af;
+      ">
+      &copy; 2025 Powerpay Africa. All rights reserved.
+    </div>
+
+  </div>
+
+</body>
+</html>

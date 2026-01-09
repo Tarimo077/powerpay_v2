@@ -1,0 +1,114 @@
+{% load humanize %}
+<tr id="device-{{ deviceid }}">
+    <td>{{ deviceid }}</td>
+
+    <td class="flex items-center gap-4">
+        <!-- Status badge -->
+        <span class="badge text-white {% if active %}badge-success{% else %}badge-error{% endif %}">
+            {{ active|yesno:"On,Off" }}
+        </span>
+
+        <!-- Toggle switch -->
+        <label class="flex items-center cursor-pointer">
+            <input
+                type="checkbox"
+                class="status-switch toggle transition-all duration-200
+                       bg-red-500 border-red-600 text-gray-300
+                       checked:bg-green-500 checked:border-green-600 checked:text-white
+                       disabled:opacity-50 disabled:cursor-not-allowed"
+                data-deviceid="{{ deviceid }}"
+                {% if active %}checked{% endif %}
+                hx-post="{% url 'change_device_status' %}"
+                hx-trigger="change"
+                hx-target="#device-{{ deviceid }}"
+                hx-swap="outerHTML transition:true"
+                hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'
+                hx-vals='{"deviceid":"{{ deviceid }}","active":"{{ active|yesno:"false,true" }}"}'
+            />
+        </label>
+    </td>
+
+    <td>
+        {% if last_seen %}
+            {{ last_seen|naturaltime }}
+        {% else %}
+            -
+        {% endif %}
+    </td>
+
+    <td>
+        {{ kwh_today|floatformat:3|default:"-" }}
+    </td>
+
+    <td>
+        <a href="{% url 'device_detail' deviceid %}" class="btn btn-sm btn-primary">View</a>
+    </td>
+</tr>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.body.addEventListener('htmx:confirm', function(event) {
+    const target = event.target;
+
+    if (!target.classList.contains("status-switch")) return;
+
+    event.preventDefault(); // Stop HTMX request until confirmation
+
+    const deviceID = target.dataset.deviceid;
+    const isChecked = target.checked;
+    const action = isChecked ? "activate" : "deactivate";
+
+    Swal.fire({
+        title: `Confirm Action`,
+        text: `Are you sure you want to ${action} ${deviceID}?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: `Yes`,
+        cancelButtonText: "Cancel",
+        customClass: {
+            confirmButton: "swal-confirm-btn",
+            cancelButton: "swal-cancel-btn"
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            if (event.detail && typeof event.detail.issueRequest === "function") {
+                event.detail.issueRequest(); // 🔥 Resume HTMX request
+            }
+        } else {
+            target.checked = !isChecked; // Revert toggle if cancelled
+        }
+    });
+});
+</script>
+
+<style>
+/* Customizing the SweetAlert buttons */
+.swal-confirm-btn {
+    background-color: #28a745 !important;
+    color: white !important;
+    border-radius: 5px !important;
+    padding: 10px 20px !important;
+}
+
+.swal-cancel-btn {
+    background-color: #dc3545 !important;
+    color: white !important;
+    border-radius: 5px !important;
+    padding: 10px 20px !important;
+}
+
+.swal-text {
+    font-size: 16px !important;
+    color: #333 !important;
+    font-family: "Poppins", sans-serif !important;
+}
+
+.swal-title {
+    font-size: 20px !important;
+    font-weight: bold !important;
+    color: #444 !important;
+    font-family: "Poppins", sans-serif !important;
+}
+
+</style>

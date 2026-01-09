@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+/* source: the files where Tailwind looks for classes */
+@source "./**/*.{html,py,js}";
+
+/* include daisyUI plugin */
+@plugin "./daisyui.mjs";
+
+/* optional custom theme override */
+@plugin "./daisyui-theme.mjs" {
+  /* example custom theme configuration here if needed */
+}

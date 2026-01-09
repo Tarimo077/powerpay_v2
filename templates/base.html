@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en" data-theme="light">  <!-- enables DaisyUI themes -->
+<head>
+    <script src="https://kit.fontawesome.com/69d2af506e.js" crossorigin="anonymous"></script>
+    <link rel="icon" href="{% static 'images/pp_no_bgcropped.png' %}">
+    
+    <meta charset="UTF-8">
+    <title>{% block title %}PowerPay Africa{% endblock %}</title>
+
+    <!-- Tailwind + DaisyUI CSS -->
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
+</head>
+
+<body class="min-h-screen bg-base-200">
+ 
+    <main class="w-full">
+        {% block content %}
+        
+        {% endblock %}
+    </main>
+
+<style>
+  body {
+    font-family: "Saira";
+}
+@view-transition {
+    navigation: auto; /* smooth transitions on DOM updates */
+}
+</style>
+
+  
+</body>
+</html>

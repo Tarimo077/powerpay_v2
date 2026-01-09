@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="relative flex justify-center items-center min-h-screen overflow-hidden">
+
+  <!-- Animated Floating Shapes 
+  <div class="absolute w-64 h-64 bg-green-300 rounded-full opacity-40 animate-bounce -top-32 -left-32"></div>
+  <div class="absolute w-72 h-72 bg-orange-300 rounded-full opacity-30 animate-bounce -bottom-36 -right-36"></div>
+  <div class="absolute w-48 h-48 bg-green-400 rounded-full opacity-20 animate-bounce top-1/4 right-1/4"></div> -->
+
+  <div class="absolute w-64 h-64 bg-green-300 rounded-full opacity-40 animate-none -top-32 -left-32"></div>
+  <div class="absolute w-72 h-72 bg-orange-300 rounded-full opacity-30 animate-none -bottom-36 -right-36"></div>
+
+  <!-- Login Card -->
+  <div class="card w-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 transform transition duration-500 z-10">
+
+    <!-- Logo / Image -->
+    <div class="flex justify-center mb-4">
+      <img src="{% static 'images/pplogo.png' %}" alt="PowerPayShop Logo" class="w-2/3 h-2/3 object-contain">
+    </div>
+
+    <!-- Tagline -->
+    <p class="text-center text-lg font-bold text-green-700 dark:text-green-400 mb-6">
+      Appliances for the next billion
+    </p>
+
+    <!-- Login Form -->
+    <form method="POST" class="space-y-5">
+      {% csrf_token %}
+
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text font-semibold text-gray-700 dark:text-gray-200">Email</span>
+        </label>
+        <input type="text" name="email" placeholder="Enter email" 
+               class="input input-bordered w-full border-green-300 focus:border-green-500 focus:ring focus:ring-green-200 rounded-lg transition" required>
+      </div>
+
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text font-semibold text-gray-700 dark:text-gray-200">Password</span>
+        </label>
+        <input type="password" name="password" placeholder="Enter password"
+               class="input input-bordered w-full border-green-300 focus:border-green-500 focus:ring focus:ring-green-200 rounded-lg transition" required>
+      </div>
+
+      <div class="flex justify-center">
+        <button type="submit" 
+                class="btn bg-green-500 text-white font-bold w-1/2 hover:bg-green-700 rounded-lg shadow-lg">
+            <i class="fa-solid fa-right-to-bracket m-2"></i> Sign In
+        </button>
+      </div>
+
+    </form>
+
+    <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-300">
+      Forgot your password? 
+      <a href="{% url 'password_reset' %}" class="text-green-600 dark:text-green-400 hover:text-orange-500 font-semibold">Reset here</a>
+    </p>
+
+  </div>
+</div>
+{% endblock %}

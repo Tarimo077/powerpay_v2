@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="relative flex justify-center items-center min-h-screen overflow-hidden">
+
+  <!-- Animated Floating Shapes -->
+  <div class="absolute w-64 h-64 bg-green-300 rounded-full opacity-40 animate-none -top-32 -left-32"></div>
+  <div class="absolute w-72 h-72 bg-orange-300 rounded-full opacity-30 animate-none -bottom-36 -right-36"></div>
+
+  <!-- OTP Card -->
+  <div class="card w-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 transform transition duration-500 z-10">
+
+    <!-- Logo -->
+    <div class="flex justify-center mb-4">
+      <img src="{% static 'images/pplogo.png' %}" alt="PowerPayShop Logo" class="w-2/3 h-2/3 object-contain">
+    </div>
+
+    <!-- Tagline -->
+    <p class="text-center text-lg font-bold text-green-700 dark:text-green-400 mb-6">
+      Appliances for the next billion
+    </p>
+
+    <!-- OTP Form -->
+    <form method="POST" class="space-y-5">
+      {% csrf_token %}
+
+      <p class="text-center text-gray-700 dark:text-gray-200 mb-2">
+        We sent a 6-digit code to <span class="font-semibold text-orange-500">{{ email }}</span><br> Enter it below:
+      </p>
+
+      <!-- SIX OTP BOXES -->
+      <div class="flex justify-between gap-2 mb-4">
+        <input type="text" maxlength="1" class="otp-box input input-bordered w-12 h-12 text-center text-xl rounded-lg font-bold border-green-300 focus:border-green-500 focus:ring focus:ring-green-200" />
+        <input type="text" maxlength="1" class="otp-box input input-bordered w-12 h-12 text-center text-xl rounded-lg font-bold border-green-300 focus:border-green-500 focus:ring focus:ring-green-200" />
+        <input type="text" maxlength="1" class="otp-box input input-bordered w-12 h-12 text-center text-xl rounded-lg font-bold border-green-300 focus:border-green-500 focus:ring focus:ring-green-200" />
+        <input type="text" maxlength="1" class="otp-box input input-bordered w-12 h-12 text-center text-xl rounded-lg font-bold border-green-300 focus:border-green-500 focus:ring focus:ring-green-200" />
+        <input type="text" maxlength="1" class="otp-box input input-bordered w-12 h-12 text-center text-xl rounded-lg font-bold border-green-300 focus:border-green-500 focus:ring focus:ring-green-200" />
+        <input type="text" maxlength="1" class="otp-box input input-bordered w-12 h-12 text-center text-xl rounded-lg font-bold border-green-300 focus:border-green-500 focus:ring focus:ring-green-200" />
+      </div>
+
+      <!-- Hidden field (final OTP string) -->
+      <input type="hidden" name="otp" id="otpCombined">
+
+      <div class="flex justify-center">
+        <button type="submit" 
+                class="btn bg-green-500 hover:bg-green-700 text-white font-bold w-1/2 rounded-lg shadow-lg">
+          <i class="fa-solid fa-lock fa-flip m-2"></i> Verify OTP
+        </button>
+      </div>
+
+    </form>
+
+    <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-300">
+        Didn't receive the code? 
+        <a href="{% url 'resend_otp' %}" class="text-green-600 dark:text-green-400 hover:text-orange-500 font-semibold">Resend OTP</a>
+    </p>
+
+  </div>
+</div>
+
+<!-- OTP SCRIPT -->
+<script>
+  const inputs = document.querySelectorAll('.otp-box');
+  const hiddenOtp = document.getElementById('otpCombined');
+  const form = document.querySelector("form");
+
+  inputs.forEach((input, index) => {
+
+      input.addEventListener('input', () => {
+          input.value = input.value.replace(/[^0-9]/g, ''); // digits only
+
+          // Move to next input
+          if (input.value && index < inputs.length - 1) {
+              inputs[index + 1].focus();
+          }
+
+          updateOTP();
+
+          // AUTO-SUBMIT when all 6 boxes are filled
+          if (index === inputs.length - 1 && input.value) {
+              if (hiddenOtp.value.length === 6) {
+                  form.submit();
+              }
+          }
+      });
+
+      // Backspace behavior
+      input.addEventListener('keydown', (e) => {
+          if (e.key === "Backspace" && !input.value && index > 0) {
+              inputs[index - 1].focus();
+          }
+      });
+  });
+
+  function updateOTP() {
+      let otp = "";
+      inputs.forEach(i => otp += i.value);
+      hiddenOtp.value = otp;
+  }
+</script>
+
+{% endblock %}
