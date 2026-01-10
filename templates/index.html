@@ -1,11 +1,19 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>My Django App</title>
-    {% load static %}
-    <link href="{% static 'css/output.css' %}" rel="stylesheet" type="text/css" />
-</head>
-<body>
-    <button class="btn btn-primary">Hello daisyUI</button>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}
+
+{% endblock %}
+
+{% block content %}
+
+<div class="flex min-h-screen overflow-hidden bg-base-200">
+
+
+    <!-- Sidebar -->
+    {% include "partials/sidebar.html" %}
+
+<div>
+    MAIN
+</div>
+
+{% endblock %}

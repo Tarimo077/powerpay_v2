@@ -1,0 +1,70 @@
+{% load static %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+
+<!-- Sidebar -->
+<nav id="sidebar" class="fixed top-0 left-0 h-full bg-base-100 shadow-sm flex flex-col transition-all duration-300 w-64">
+
+    <!-- Logo / Header -->
+    <div class="flex items-center justify-center p-4 space-x-2">
+        <img src="{% static 'images/pp_no_bgcropped.png' %}" class="h-8 w-8" alt="PowerPay Logo">
+        <span id="sidebar-text" class="font-bold text-green-800 text-xl">PowerPay Africa</span>
+    </div>
+
+    <!-- Navigation Links -->
+    <div class="flex flex-col mt-4 space-y-2 flex-1 overflow-y-auto">
+        <a href="#" class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
+            <i class="fas fa-chart-line w-5"></i>
+            <span class="link-text">Dashboard</span>
+        </a>
+
+        <a href="{% url 'device_list' %}" class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
+            <i class="fas fa-plug w-5"></i>
+            <span class="link-text">Devices</span>
+        </a>
+
+        <a href="#" class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
+            <i class="fas fa-money-bill-wave w-5"></i>
+            <span class="link-text">Sales</span>
+        </a>
+
+        <a href="#" class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
+            <i class="fas fa-credit-card w-5"></i>
+            <span class="link-text">Transactions</span>
+        </a>
+
+        <a href="#" class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
+            <i class="fas fa-gear w-5"></i>
+            <span class="link-text">Settings</span>
+        </a>
+
+        <a href="{% url 'logout' %}" class="flex items-center gap-4 p-4 mx-3 text-error hover:text-red-800 rounded-lg mt-auto transition">
+            <i class="fas fa-right-from-bracket w-5"></i>
+            <span class="link-text">Logout</span>
+        </a>
+    </div>
+
+    <!-- Toggle Button (vertically centered, at sidebar right edge) -->
+    <button id="sidebar-toggle" class="absolute top-1/2 -right-4 transform -translate-y-1/2 bg-base-100 border border-gray-300 rounded-full p-2 shadow-md text-gray-600 hover:bg-gray-100 transition">
+        <i class="fas fa-chevron-left transition-transform"></i>
+    </button>
+</nav>
+
+<script>
+const sidebar = document.getElementById('sidebar');
+const toggleBtn = document.getElementById('sidebar-toggle');
+const sidebarText = document.getElementById('sidebar-text');
+const chevron = toggleBtn.querySelector('i');
+
+toggleBtn.addEventListener('click', () => {
+    sidebar.classList.toggle('w-64');
+    sidebar.classList.toggle('w-20');
+
+    // Show/hide text
+    document.querySelectorAll('.link-text').forEach(el => el.classList.toggle('hidden'));
+    sidebarText.classList.toggle('hidden');
+
+    // Toggle chevron direction
+    chevron.classList.toggle('fa-chevron-left');
+    chevron.classList.toggle('fa-chevron-right');
+});
+</script>

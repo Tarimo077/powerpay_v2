@@ -1,7 +1,15 @@
 @import "tailwindcss";
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import "flowbite/src/themes/default";
+
 /* source: the files where Tailwind looks for classes */
 @source "./**/*.{html,py,js}";
+
+@source "../../node_modules/flowbite";
+
+
+@plugin "flowbite/plugin";
 
 /* include daisyUI plugin */
 @plugin "./daisyui.mjs";
