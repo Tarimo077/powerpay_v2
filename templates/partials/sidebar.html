@@ -2,7 +2,7 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
 
 <!-- Sidebar -->
-<nav id="sidebar" class="fixed top-0 left-0 h-full bg-base-100 shadow-sm flex flex-col transition-all duration-300 w-64">
+<nav id="sidebar" class="fixed top-0 left-0 h-full bg-base-100 shadow-sm flex flex-col transition-all duration-300 w-64 z-50">
 
     <!-- Logo / Header -->
     <div class="flex items-center justify-center p-4 space-x-2">
@@ -37,10 +37,15 @@
             <span class="link-text">Settings</span>
         </a>
 
-        <a href="{% url 'logout' %}" class="flex items-center gap-4 p-4 mx-3 text-error hover:text-red-800 rounded-lg mt-auto transition">
-            <i class="fas fa-right-from-bracket w-5"></i>
-            <span class="link-text">Logout</span>
-        </a>
+        <form method="post" action="{% url 'logout' %}" class="mt-auto w-full">
+            {% csrf_token %}
+            <button type="submit"
+                    class="flex w-3/4 items-center gap-4 p-4 mx-3 text-error hover:text-red-800 hover:bg-base-200 rounded-lg transition">
+                <i class="fas fa-right-from-bracket w-5"></i>
+                <span class="link-text">Logout</span>
+            </button>
+        </form>
+
     </div>
 
     <!-- Toggle Button (vertically centered, at sidebar right edge) -->

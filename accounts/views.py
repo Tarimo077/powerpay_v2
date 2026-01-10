@@ -96,7 +96,7 @@ def verify_otp(request):
             request.session.pop("otp_user_id")
             otp_obj.delete()
             messages.success(request, "Login successful!")
-            return redirect("device_list")  # Default landing page
+            return redirect("index")  # Default landing page
 
         else:
             otp_obj.attempts += 1

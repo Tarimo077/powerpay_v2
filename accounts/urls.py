@@ -6,7 +6,7 @@ from .forms import StyledPasswordResetForm, StyledSetPasswordForm
 
 urlpatterns = [
     path("login/", login_view, name="login"),
-    path("logout/", auth_views.LogoutView.as_view(next_page="/"), name="logout"),
+    path("logout/", auth_views.LogoutView.as_view(next_page="/accounts/login"), name="logout"),
     path("verify-otp/", verify_otp, name="verify_otp"),
     path("resend-otp/", resend_otp, name="resend_otp"),
     path(
