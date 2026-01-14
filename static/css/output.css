@@ -10172,6 +10172,9 @@
   .border-green-600 {
     border-color: var(--color-green-600);
   }
+  .border-info {
+    border-color: var(--color-info);
+  }
   .border-orange-200 {
     border-color: var(--color-orange-200);
   }
@@ -10181,8 +10184,14 @@
   .border-primary {
     border-color: var(--color-primary);
   }
+  .border-red-400 {
+    border-color: var(--color-red-400);
+  }
   .border-red-500 {
     border-color: var(--color-red-500);
+  }
+  .border-red-500\! {
+    border-color: var(--color-red-500) !important;
   }
   .border-red-600 {
     border-color: var(--color-red-600);
@@ -10195,6 +10204,12 @@
   }
   .border-transparent {
     border-color: transparent;
+  }
+  .border-warning {
+    border-color: var(--color-warning);
+  }
+  .border-white {
+    border-color: var(--color-white);
   }
   .border-yellow-500 {
     border-color: var(--color-yellow-500);
@@ -10509,6 +10524,9 @@
   }
   .bg-red-500 {
     background-color: var(--color-red-500);
+  }
+  .bg-red-500\! {
+    background-color: var(--color-red-500) !important;
   }
   .bg-red-600 {
     background-color: var(--color-red-600);
@@ -12874,6 +12892,21 @@
       }
     }
   }
+  .\[--handlebg\:\#ffffff\] {
+    --handlebg: #ffffff;
+  }
+  .\[--tglbg-active\:\#22c55e\] {
+    --tglbg-active: #22c55e;
+  }
+  .\[--tglbg\:\#ef4444\] {
+    --tglbg: #ef4444;
+  }
+  .\[--tglbg\:var\(--color-red-500\)\] {
+    --tglbg: var(--color-red-500);
+  }
+  .\[--tglbg\:white\] {
+    --tglbg: white;
+  }
   .\[dateof\:3\.3\.8\] {
     dateof: 3.3.8;
   }
@@ -13322,9 +13355,24 @@
       background-color: #f74c4c;
     }
   }
+  .checked\:border-green-500 {
+    &:checked {
+      border-color: var(--color-green-500);
+    }
+  }
+  .checked\:border-green-500\! {
+    &:checked {
+      border-color: var(--color-green-500) !important;
+    }
+  }
   .checked\:border-green-600 {
     &:checked {
       border-color: var(--color-green-600);
+    }
+  }
+  .checked\:border-success {
+    &:checked {
+      border-color: var(--color-success);
     }
   }
   .checked\:bg-green-500 {
@@ -13332,9 +13380,34 @@
       background-color: var(--color-green-500);
     }
   }
+  .checked\:bg-green-500\! {
+    &:checked {
+      background-color: var(--color-green-500) !important;
+    }
+  }
+  .checked\:bg-success {
+    &:checked {
+      background-color: var(--color-success);
+    }
+  }
   .checked\:text-white {
     &:checked {
       color: var(--color-white);
+    }
+  }
+  .checked\:\[--tglbg\:\#22c55e\] {
+    &:checked {
+      --tglbg: #22c55e;
+    }
+  }
+  .checked\:\[--tglbg\:var\(--color-green-500\)\] {
+    &:checked {
+      --tglbg: var(--color-green-500);
+    }
+  }
+  .checked\:\[--tglbg\:white\] {
+    &:checked {
+      --tglbg: white;
     }
   }
   .hover\:scale-110 {

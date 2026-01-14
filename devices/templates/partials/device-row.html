@@ -9,23 +9,24 @@
         </span>
 
         <!-- Toggle switch -->
-        <label class="flex items-center cursor-pointer">
-            <input
-                type="checkbox"
-                class="status-switch toggle transition-all duration-200
-                       bg-red-500 border-red-600 text-gray-300
-                       checked:bg-green-500 checked:border-green-600 checked:text-white
-                       disabled:opacity-50 disabled:cursor-not-allowed"
-                data-deviceid="{{ deviceid }}"
-                {% if active %}checked{% endif %}
-                hx-post="{% url 'change_device_status' %}"
-                hx-trigger="change"
-                hx-target="#device-{{ deviceid }}"
-                hx-swap="outerHTML transition:true"
-                hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'
-                hx-vals='{"deviceid":"{{ deviceid }}","active":"{{ active|yesno:"false,true" }}"}'
-            />
-        </label>
+        <input
+            type="checkbox"
+            class="toggle status-switch
+            {% if active %} toggle-success {% else %} toggle-error{% endif %}"
+            {% if active %}checked{% endif %}
+
+            data-deviceid="{{ deviceid }}"
+            hx-post="{% url 'change_device_status' %}"
+            hx-trigger="change"
+            hx-target="#device-{{ deviceid }}"
+            hx-swap="outerHTML transition:true"
+            hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'
+            hx-vals='{
+                "deviceid":"{{ deviceid }}",
+                "active":"{{ active|yesno:"false,true" }}"
+            }'
+        />
+
     </td>
 
     <td>
@@ -111,4 +112,11 @@ document.body.addEventListener('htmx:confirm', function(event) {
     font-family: "Poppins", sans-serif !important;
 }
 
+/* Ensure the 'off' state also has a white circle against the red */
+.toggle.toggle-error:not(:checked) {
+    background-color: #ef4444 !important; /* The Red BG */
+    border-color: #ef4444 !important;
+    color: white !important;
+    --tglbg: white !important;
+}
 </style>

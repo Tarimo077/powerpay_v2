@@ -12,7 +12,7 @@
 
     <!-- Navigation Links -->
     <div class="flex flex-col mt-4 space-y-2 flex-1 overflow-y-auto">
-        <a href="#" class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
+        <a href="{% url 'index' %}" class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
             <i class="fas fa-chart-line w-5"></i>
             <span class="link-text">Dashboard</span>
         </a>
@@ -27,7 +27,7 @@
             <span class="link-text">Sales</span>
         </a>
 
-        <a href="#" class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
+        <a href="{% url 'transactions_page' %}" class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
             <i class="fas fa-credit-card w-5"></i>
             <span class="link-text">Transactions</span>
         </a>

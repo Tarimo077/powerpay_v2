@@ -10,3 +10,7 @@ class Organization(models.Model):
 
     def __str__(self):
         return self.name
+    
+    class Meta:
+        managed = False  # read-only
+        db_table = "organization"

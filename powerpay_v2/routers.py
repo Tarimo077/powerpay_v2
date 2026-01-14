@@ -28,7 +28,7 @@ class PowerpayRouter:
 
 
 class CoordsRouter:
-    route_app_labels = {'devices'}
+    route_app_labels = {'devices', 'organizations', 'transactions'}
 
     def db_for_read(self, model, **hints):
         if model._meta.app_label in self.route_app_labels:
