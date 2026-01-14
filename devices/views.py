@@ -3,9 +3,6 @@ from django.utils.timezone import now, make_aware, is_naive
 from .models import DeviceInfo
 from .services.energy import (
     kwh_for_device,
-    kwh_for_devices,
-    kwh_for_organization,
-    kwh_per_device_for_organization,
     last_energy_timestamp
 )
 from django.core.paginator import Paginator
@@ -140,20 +137,3 @@ def change_device_status(request):
     except Exception as e:
         return HttpResponse(f"Unexpected error: {e}", status=500)
 
-# ------------------------------
-# Organization Dashboard
-# ------------------------------
-def organization_dashboard(request, org_id):
-    from organizations.models import Organization
-    organization = get_object_or_404(Organization, id=org_id)
-
-    # kWh per device and total
-    per_device = kwh_per_device_for_organization(organization, now().replace(hour=0, minute=0, second=0, microsecond=0), now())
-    total_kwh = sum(per_device.values())
-
-    context = {
-        "organization": organization,
-        "per_device": per_device,
-        "total_kwh": total_kwh,
-    }
-    return render(request, "devices/org_dashboard.html", context)

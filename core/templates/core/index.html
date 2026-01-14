@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen overflow-hidden bg-base-200">
+
+    <!-- Sidebar -->
+    {% include "partials/sidebar.html" %}
+
+    <!-- Main Content -->
+    <div id="page-content"
+         class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 ml-64">
+
+        <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
+
+        <!-- SUMMARY CARDS -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+
+            {% if is_superadmin %}
+            <div class="card bg-base-100 shadow border-l-4 border-secondary h-36">
+                <div class="card-body flex flex-col justify-center">
+                    <p class="text-sm uppercase text-gray-500">Organizations</p>
+                    <p class="text-3xl font-bold text-secondary">{{ org_count }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card bg-base-100 shadow border-l-4 border-primary h-36">
+                <div class="card-body flex flex-col justify-center">
+                    <p class="text-sm uppercase text-gray-500">Devices</p>
+                    <p class="text-3xl font-bold text-primary">{{ device_count }}</p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-l-4 border-success h-36">
+                <div class="card-body flex flex-col justify-center">
+                    <p class="text-sm uppercase text-gray-500">kWh Today</p>
+                    <p class="text-3xl font-bold text-success">{{ kwh_today|floatformat:2 }}</p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-l-4 border-accent h-36">
+                <div class="card-body flex flex-col justify-center">
+                    <p class="text-sm uppercase text-gray-500">kWh This Month</p>
+                    <p class="text-3xl font-bold text-accent">{{ kwh_month|floatformat:2 }}</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- CHARTS SECTION -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+
+            <!-- Device Status Pie Chart -->
+            <div class="card bg-base-100 shadow p-4 flex flex-col">
+                <h3 class="text-lg font-semibold mb-2">Device Status</h3>
+                <div class="flex-1">
+                    <canvas id="deviceStatusChart" class="w-full h-full"></canvas>
+                </div>
+            </div>
+
+            <!-- kWh Line Chart -->
+            <div class="card bg-base-100 shadow p-4 flex flex-col">
+                <h3 class="text-lg font-semibold mb-2">kWh Usage (Last 7 Days)</h3>
+                <div class="flex-1">
+                    <canvas id="kwhLineChart" class="w-full h-full"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- Chart.js + datalabels plugin -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+<script>
+    Chart.defaults.font.family = "'Saira', sans-serif";
+    Chart.defaults.font.size = 12;
+    // -------- Device Status Pie Chart --------
+    const deviceStatusCtx = document.getElementById('deviceStatusChart').getContext('2d');
+    new Chart(deviceStatusCtx, {
+        type: 'pie',
+        data: {
+            labels: ['ON', 'OFF'],
+            datasets: [{
+                data: [{{ device_status_counts.ON }}, {{ device_status_counts.OFF }}],
+                backgroundColor: ['#22c55e', '#ef4444'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' },
+                datalabels: {
+                    color: '#fff',
+                    formatter: (value, ctx) => {
+                        const sum = ctx.chart.data.datasets[0].data.reduce((a,b) => a+b, 0);
+                        const percent = ((value / sum) * 100).toFixed(1);
+                        return `${value} devices (${percent}%)`;
+                    },
+                    font: { weight: 'bold', size: 14 }
+                }
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
+
+   // -------- kWh Line Chart --------
+    const kwhLineCtx = document.getElementById('kwhLineChart').getContext('2d');
+    const lineDatasets = [];
+
+    {% for device_id, kwh_values in line_chart_data.items %}
+        (function() {
+            // Define the color once so it's consistent
+            const color = `hsl(${ ({{ forloop.counter0 }} * 137) % 360 }, 70%, 50%)`;
+            
+            lineDatasets.push({
+                label: "{{ device_id }}",
+                data: {{ kwh_values|safe }},
+                borderColor: color,
+                backgroundColor: color, // <--- Changed from 'transparent' to solid color
+                pointBackgroundColor: color, // Ensures the points on the line are solid
+                tension: 0.3,
+                fill: false, // This keeps the area under the line empty
+                pointRadius: 4,
+                pointHoverRadius: 6
+            });
+        })();
+    {% endfor %}
+
+    new Chart(kwhLineCtx, {
+        type: 'line',
+        data: {
+            labels: {{ line_chart_labels|safe }},
+            datasets: lineDatasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { 
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true, // This makes the legend icons circles/squares instead of lines
+                        pointStyle: 'rectRounded', // Matches the "box" feel of the pie chart
+                        padding: 20
+                    }
+                },
+                tooltip: { 
+                    mode: 'index', 
+                    intersect: false,
+                    usePointStyle: true // Makes tooltip icons solid circles/squares
+                }
+            },
+            scales: {
+                y: { title: { display: true, text: 'kWh' }, beginAtZero: true },
+                x: { title: { display: true, text: 'Day' } }
+            }
+        }
+    });
+</script>
+
+<!-- Sidebar sync -->
+<script>
+document.addEventListener('click', function (e) {
+    if (!e.target.closest('#sidebar-toggle')) return;
+
+    const sidebar = document.getElementById('sidebar');
+    const content = document.getElementById('page-content');
+
+    setTimeout(() => {
+        if (sidebar.classList.contains('w-20')) {
+            content.classList.remove('ml-64');
+            content.classList.add('ml-20');
+        } else {
+            content.classList.remove('ml-20');
+            content.classList.add('ml-64');
+        }
+    }, 10);
+});
+</script>
+
+{% endblock %}

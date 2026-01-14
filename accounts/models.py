@@ -16,6 +16,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
 
     ROLE_CHOICES = [
+        ("superadmin", "Super Admin"),
         ("admin", "Admin"),
         ("staff", "Staff"),
         ("support", "Support"),
