@@ -1,53 +1,46 @@
-{% load humanize %}
-<tr id="device-{{ deviceid }}">
-    <td>{{ deviceid }}</td>
+<div class="card-body" id="device-{{ device.deviceid }}">
+    <p class="text-sm text-gray-500">Status</p>
 
-    <td class="flex items-center gap-4">
+    <div class="flex items-center justify-between gap-3">
         <!-- Status badge -->
-        <span class="badge text-white {% if active %}badge-success{% else %}badge-error{% endif %}">
-            {{ active|yesno:"ON,OFF" }}
+        <span class="badge text-white {% if device.active %}badge-success{% else %}badge-error{% endif %}">
+            {{ device.active|yesno:"ON,OFF" }}
         </span>
 
-        <!-- Toggle switch -->
-        <input
-            type="checkbox"
-            class="toggle status-switch
-            {% if active %} toggle-success {% else %} toggle-error{% endif %}"
-            {% if active %}checked{% endif %}
+        <div class="flex items-center gap-3">
 
-            data-deviceid="{{ deviceid }}"
-            hx-post="{% url 'change_device_status' %}"
-            hx-trigger="change"
-            hx-target="#device-{{ deviceid }}"
-            hx-swap="outerHTML transition:true"
-            hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'
-            hx-vals='{
-                "deviceid":"{{ deviceid }}",
-                "active":"{{ active|yesno:"false,true" }}"
-            }'
-        />
+            <!-- Toggle -->
+            <input
+                type="checkbox"
+                class="toggle status-switch {% if device.active %}toggle-success{% else %}toggle-error{% endif %}"
+                {% if device.active %}checked{% endif %}
 
-    </td>
+                data-deviceid="{{ device.deviceid }}"
 
-    <td>
-        {% if last_seen %}
-            {{ last_seen|naturaltime }}
-        {% else %}
-            -
-        {% endif %}
-    </td>
+                hx-post="{% url 'change_device_status_partial' %}"
+                hx-trigger="change"
+                hx-disabled-elt="this"
+                hx-target="#device-{{ device.deviceid }}"
+                hx-swap="outerHTML transition:true"
+                hx-indicator="#spinner-{{ device.deviceid }}"
+                hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'
+                hx-vals='{
+                    "deviceid": "{{ device.deviceid }}",
+                    "active": "{{ device.active|yesno:"false,true" }}"
+                }'
+            />
 
-    <td>
-        {{ kwh_today|floatformat:3|default:"-" }}
-    </td>
+             <!-- Spinner -->
+            <span
+                class="htmx-indicator loading loading-spinner loading-sm text-primary"
+                id="spinner-{{ device.deviceid }}"
+            ></span>
+        </div>
+    </div>
+</div>
 
-    <td>
-        <a href="{% url 'device_detail' deviceid %}" class="btn btn-sm btn-primary">View</a>
-    </td>
-</tr>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <script>
 document.body.addEventListener('htmx:confirm', function(event) {
     const target = event.target;
@@ -84,7 +77,7 @@ document.body.addEventListener('htmx:confirm', function(event) {
 </script>
 
 <style>
-/* Customizing the SweetAlert buttons */
+/* SweetAlert buttons */
 .swal-confirm-btn {
     background-color: #28a745 !important;
     color: white !important;
@@ -112,11 +105,22 @@ document.body.addEventListener('htmx:confirm', function(event) {
     font-family: "Poppins", sans-serif !important;
 }
 
-/* Ensure the 'off' state also has a white circle against the red */
+/* Ensure the 'off' toggle looks correct */
 .toggle.toggle-error:not(:checked) {
-    background-color: #ef4444 !important; /* The Red BG */
+    background-color: #ef4444 !important;
     border-color: #ef4444 !important;
     color: white !important;
     --tglbg: white !important;
 }
+
+.htmx-indicator {
+    display: none;
+}
+
+/* ONLY show spinner when the TOGGLE is making a request */
+.status-switch.htmx-request + .htmx-indicator,
+.status-switch.htmx-request ~ .htmx-indicator {
+    display: inline-flex;
+}
+
 </style>

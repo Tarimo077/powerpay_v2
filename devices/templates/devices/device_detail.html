@@ -1,42 +1,280 @@
 {% extends "base.html" %}
+{% load humanize %}
+{% load math_filters %}
 {% block content %}
-<div class="container mx-auto mt-4">
-    <h2 class="text-2xl font-bold mb-4">{{ device.deviceid }} Details</h2>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="card p-4 bg-base-200 shadow">
-            <h3 class="font-semibold mb-2">Device Info</h3>
-            <p>Status: {{ device.active|yesno:"On,Off" }}</p>
-            <p>Active: {{ device.is_active|yesno:"Yes,No" }}</p>
-            <p>Last Seen: {{ last_seen|default:"-" }}</p>
-            <p>kWh Today: {{ kwh_today }}</p>
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+
+    <!-- Sidebar -->
+    {% include "partials/sidebar.html" %}
+
+    <!-- Main Content -->
+    <div id="page-content"
+         class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 ml-64">
+
+        <h1 class="text-2xl font-bold mb-6">
+            Device {{ device.deviceid }}
+        </h1>
+
+        <!-- SUMMARY CARDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 mb-6">
+
+            <div class="card bg-base-100 shadow border-l-4 border-primary">
+                {% include "partials/device_status_partial.html" %}
+            </div>
+
+            <div class="card bg-base-100 shadow border-l-4 border-fg-pink">
+                <div class="card-body">
+                    <p class="text-sm text-gray-500">Total Energy</p>
+                    <p class="text-2xl font-bold">{{ total_kwh|floatformat:2|intcomma }} kWh</p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-l-4 border-success">
+                <div class="card-body">
+                    <p class="text-sm text-gray-500">Total Cooking Events</p>
+                    <p class="text-2xl font-bold">{{ cooking_events_today|intcomma }}</p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-l-4 border-fg-purple">
+                <div class="card-body">
+                    <p class="text-sm text-gray-500">Total Cooking Time</p>
+                    <p class="text-2xl font-bold">{{ total_cooking_time|divide:60|floatformat:1|intcomma }} hrs</p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-l-4 border-fg-danger-strong">
+                <div class="card-body">
+                    <p class="text-sm text-gray-500">Estimated Energy Cost</p>
+                    <p class="text-2xl font-bold">Ksh. {{ total_kwh|multiply:14.32|floatformat:1|intcomma }}</p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-l-4 border-warning">
+                <div class="card-body">
+                    <p class="text-sm text-gray-500">Last Seen</p>
+                    <div class="flex flex-row">
+                        <p class="font-bold"> {{ last_seen|naturaltime }} </p>
+                        <p class="text-2xs">({{ last_seen|date:"j M Y h:i:s A"|default:"-" }})</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-l-4 border-info">
+                <div class="card-body">
+                    <p class="text-sm text-gray-500">Energy (7 Days)</p>
+                    <p class="text-2xl font-bold">{{ total_kwh_7d|floatformat:2|intcomma }} kWh</p>
+                </div>
+            </div>
+
+
+            <div class="card bg-base-100 shadow border-l-4 border-accent">
+                <div class="card-body">
+                    <p class="text-sm text-gray-500">Cooking Events (7 Days)</p>
+                    <p class="text-2xl font-bold">{{ cooking_events_7d|intcomma }}</p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-l-4 border-fg-cyan">
+                <div class="card-body">
+                    <p class="text-sm text-gray-500">Cooking Time (7 Days)</p>
+                    <p class="text-2xl font-bold">{{ cooking_time_7d|divide:60|floatformat:1|intcomma }} hrs</p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-l-4 border-fg-indigo">
+                <div class="card-body">
+                    <p class="text-sm text-gray-500">Estimated Energy Cost (7 Days)</p>
+                    <p class="text-2xl font-bold">Ksh. {{ total_kwh_7d|multiply:14.32|floatformat:1|intcomma }}</p>
+                </div>
+            </div>
+
         </div>
 
-        <div class="card p-4 bg-base-200 shadow">
-            <h3 class="font-semibold mb-2">Energy Chart (Today)</h3>
-            <canvas id="energyChart"></canvas>
+        <!-- CHARTS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <div class="card bg-base-100 shadow p-4 flex flex-col">
+                <h3 class="text-lg font-semibold mb-2">Energy Usage (7 Days)</h3>
+                <div class="flex-1">
+                    <canvas id="energyChart" class="w-full h-full"></canvas>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow p-4 flex flex-col">
+                <h3 class="font-semibold mb-2">Cooking Events (Last 7 Days)</h3>
+                <div class="flex-1">
+                    <canvas id="eventsChart"></canvas>
+                </div>
+            </div>
+
         </div>
+
+        <!-- COOKING EVENTS TABLE -->
+        <div class="card bg-base-100 shadow mt-6">
+            <div class="card-body">
+                <h3 class="text-lg font-semibold mb-4">
+                    Cooking Events
+                </h3>
+
+                <div class="bg-base-100 rounded-lg shadow-sm overflow-x-auto">
+                    <table class="table w-full">
+                        <thead class="bg-success uppercase">
+                            <tr>
+                                
+                                <th class="text-white rounded-tl-lg">Start Time</th>
+                                <th class="text-white">End Time</th>
+                                <th class="text-white">Duration (min)</th>
+                                <th class="text-white">Energy (kWh)</th>
+                                <th class="text-white rounded-tr-lg">Estimated Cost (Ksh.)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for e in cooking_event_rows %}
+                            <tr>
+                                
+                                <td>{{ e.start|date:"j M Y h:i:s A" }}</td>
+                                <td>{{ e.end|date:"j M Y h:i:s A" }}</td>
+                                <td>{{ e.duration }}</td>
+                                <td>{{ e.energy }}</td>
+                                <td>{{ e.energy|multiply:14.32|floatformat:1 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-gray-500">
+                                    No cooking events detected
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination -->
+                    {% if cooking_event_rows.has_other_pages %}
+                    <div class="flex justify-between mt-4 items-center mb-4">
+                        {% if cooking_event_rows.has_previous %}
+                            <a href="?page={{ cooking_event_rows.previous_page_number }}"
+                            class="btn btn-soft btn-accent hover:text-white">
+                                <i class="fa-solid fa-backward-step mr-2"></i>
+                                Previous
+                            </a>
+                        {% else %}
+                            <span class="btn btn-outline btn-disabled">Previous</span>
+                        {% endif %}
+
+                        <span class="font-medium">
+                            Page {{ cooking_event_rows.number }} of {{ cooking_event_rows.paginator.num_pages }}
+                        </span>
+
+                        {% if cooking_event_rows.has_next %}
+                            <a href="?page={{ cooking_event_rows.next_page_number }}"
+                            class="btn btn-soft btn-success hover:text-white">
+                                Next
+                                <i class="fa-solid fa-forward-step ml-2"></i>
+                            </a>
+                        {% else %}
+                            <span class="btn btn-outline btn-disabled">Next</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+            </div>
+        </div>
+
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-const ctx = document.getElementById('energyChart').getContext('2d');
-const energyChart = new Chart(ctx, {
+Chart.defaults.font.family = "'Saira', sans-serif";
+Chart.defaults.font.size = 12;
+
+new Chart(document.getElementById('energyChart'), {
     type: 'line',
     data: {
-        labels: [], // you can populate with times
+        labels: {{ energy_labels|safe }},
         datasets: [{
             label: 'kWh',
-            data: [], // populate with kWh readings
-            borderColor: 'rgb(34,197,94)',
-            backgroundColor: 'rgba(34,197,94,0.3)',
+            data: {{ energy_data|safe }},
+            borderColor: '#22c55e',
+            backgroundColor: 'rgba(34,197,94,0.2)',
+            tension: 0.3,
+            fill: true,
+            pointRadius: 4,
+            pointHoverRadius: 6
         }]
     },
     options: {
         responsive: true,
-        maintainAspectRatio: false
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { 
+                position: 'bottom',
+                labels: { usePointStyle: true, pointStyle: 'rectRounded', padding: 20 }
+            },
+            tooltip: { mode: 'index', intersect: false, usePointStyle: true }
+        },
+        scales: {
+            y: { title: { display: true, text: 'Energy' }, beginAtZero: true },
+            x: { title: { display: true, text: 'Day' } }
+        }
     }
+});
+
+new Chart(document.getElementById('eventsChart'), {
+    type: 'line',
+    data: {
+        labels: {{ cooking_event_labels|safe }},
+        datasets: [{
+            label: 'Cooking Events',
+            data: {{ cooking_event_data|safe }},
+            borderColor: '#3b82f6', 
+            backgroundColor: 'rgba(59, 130, 246, 0.2)', 
+            tension: 0.3,
+            fill: true,
+            pointRadius: 4,
+            pointHoverRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { 
+                position: 'bottom',
+                labels: { usePointStyle: true, pointStyle: 'rectRounded', padding: 20 }
+            },
+            tooltip: { mode: 'index', intersect: false, usePointStyle: true }
+        },
+        scales: {
+            y: { title: { display: true, text: 'Cooking Events' }, beginAtZero: true },
+            x: { title: { display: true, text: 'Day' } }
+        }
+    }
+});
+</script>
+
+<!-- Sidebar sync -->
+<script>
+document.addEventListener('click', function (e) {
+    if (!e.target.closest('#sidebar-toggle')) return;
+
+    const sidebar = document.getElementById('sidebar');
+    const content = document.getElementById('page-content');
+
+    // wait for sidebar class toggle
+    setTimeout(() => {
+        if (sidebar.classList.contains('w-20')) {
+            content.classList.remove('ml-64');
+            content.classList.add('ml-20');
+        } else {
+            content.classList.remove('ml-20');
+            content.classList.add('ml-64');
+        }
+    }, 10);
 });
 </script>
 {% endblock %}
