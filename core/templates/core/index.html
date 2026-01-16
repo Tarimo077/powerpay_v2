@@ -11,7 +11,8 @@
 
     <!-- Main Content -->
     <div id="page-content"
-         class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 ml-64">
+     class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
+            lg:ml-64 ml-0">
 
         <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
 
@@ -265,24 +266,6 @@ new Chart(moneyLineCtx, {
     }
 });
 
-</script>
-
-<!-- Sidebar sync -->
-<script>
-document.addEventListener('click', function(e){
-    if(!e.target.closest('#sidebar-toggle')) return;
-    const sidebar = document.getElementById('sidebar');
-    const content = document.getElementById('page-content');
-    setTimeout(()=>{
-        if(sidebar.classList.contains('w-20')){
-            content.classList.remove('ml-64');
-            content.classList.add('ml-20');
-        } else {
-            content.classList.remove('ml-20');
-            content.classList.add('ml-64');
-        }
-    },10);
-});
 </script>
 
 {% endblock %}

@@ -10,7 +10,9 @@
     {% include "partials/sidebar.html" %}
 
     <!-- Main Content -->
-    <div id="page-content" class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 ml-64">
+    <div id="page-content"
+     class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
+            lg:ml-64 ml-0">
 
         <h1 class="text-2xl font-bold mb-6">Transactions</h1>
 
@@ -79,7 +81,7 @@
                 <tbody>
                     {% for txn in page_obj %}
                     <tr>
-                        <td>{{ txn.time|date:"Y-m-d H:i" }}</td>
+                        <td>{{ txn.time|date:"j M Y h:i:s A" }}</td>
                         <td>{{ txn.name }}</td>
                         <td>{{ txn.ref }}</td>
                         <td>{{ txn.txn_id }}</td>
@@ -212,24 +214,6 @@ new Chart(moneyLineCtx, {
             x: { title: { display: true, text: 'Day' } }
         }
     }
-});
-</script>
-
-<!-- Sidebar sync -->
-<script>
-document.addEventListener('click', function(e){
-    if(!e.target.closest('#sidebar-toggle')) return;
-    const sidebar = document.getElementById('sidebar');
-    const content = document.getElementById('page-content');
-    setTimeout(()=>{
-        if(sidebar.classList.contains('w-20')){
-            content.classList.remove('ml-64');
-            content.classList.add('ml-20');
-        } else {
-            content.classList.remove('ml-20');
-            content.classList.add('ml-64');
-        }
-    },10);
 });
 </script>
 

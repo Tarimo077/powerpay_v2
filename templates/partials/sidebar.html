@@ -1,38 +1,63 @@
 {% load static %}
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
 
-<!-- Sidebar -->
-<nav id="sidebar" class="fixed top-0 left-0 h-full bg-base-100 shadow-sm flex flex-col transition-all duration-300 w-64 z-50">
+<!-- Mobile Hamburger -->
+<button id="mobile-menu-btn"
+        class="lg:hidden fixed top-1 left-2 z-50 bg-base-100 p-2 rounded-md shadow">
+    <i class="fas fa-bars text-xl text-green-600"></i>
+</button>
 
-    <!-- Logo / Header -->
+<!-- Mobile Overlay -->
+<div id="mobile-overlay"
+     class="fixed inset-0 bg-black/40 z-40 hidden lg:hidden"></div>
+
+<!-- Sidebar -->
+<nav id="sidebar"
+     class="
+        fixed top-0 left-0 h-full bg-base-100 shadow-sm flex flex-col
+        transition-all duration-300 z-50
+        w-64
+
+        -translate-x-full lg:translate-x-0
+     ">
+
+    <!-- Logo -->
     <div class="flex items-center justify-center p-4 space-x-2">
-        <img src="{% static 'images/pp_no_bgcropped.png' %}" class="h-8 w-8" alt="PowerPay Logo">
-        <span id="sidebar-text" class="font-bold text-green-800 text-xl">PowerPay Africa</span>
+        <img src="{% static 'images/pp_no_bgcropped.png' %}" class="h-8 w-8">
+        <span id="sidebar-text" class="font-bold text-green-800 text-xl">
+            PowerPay Africa
+        </span>
     </div>
 
     <!-- Navigation Links -->
     <div class="flex flex-col mt-4 space-y-2 flex-1 overflow-y-auto">
-        <a href="{% url 'index' %}" class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
+
+        <a href="{% url 'index' %}"
+        class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
             <i class="fas fa-chart-line w-5"></i>
             <span class="link-text">Dashboard</span>
         </a>
 
-        <a href="{% url 'device_list' %}" class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
+        <a href="{% url 'device_list' %}"
+        class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
             <i class="fas fa-plug w-5"></i>
             <span class="link-text">Devices</span>
         </a>
 
-        <a href="#" class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
+        <a href="#"
+        class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
             <i class="fas fa-money-bill-wave w-5"></i>
             <span class="link-text">Sales</span>
         </a>
 
-        <a href="{% url 'transactions_page' %}" class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
+        <a href="{% url 'transactions_page' %}"
+        class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
             <i class="fas fa-credit-card w-5"></i>
             <span class="link-text">Transactions</span>
         </a>
 
-        <a href="#" class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
+        <a href="#"
+        class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
             <i class="fas fa-gear w-5"></i>
             <span class="link-text">Settings</span>
         </a>
@@ -48,28 +73,92 @@
 
     </div>
 
-    <!-- Toggle Button (vertically centered, at sidebar right edge) -->
-    <button id="sidebar-toggle" class="absolute top-1/2 -right-4 transform -translate-y-1/2 bg-base-100 border border-gray-300 rounded-full p-2 shadow-md text-gray-600 hover:bg-gray-100 transition">
-        <i class="fas fa-chevron-left transition-transform"></i>
+
+    <!-- Desktop Collapse Button -->
+    <button id="sidebar-toggle"
+            class="hidden lg:block absolute top-1/16 -right-4 -translate-y-1/2
+                   bg-base-100 border-none rounded-full p-2 shadow">
+        <i class="fas fa-chevron-left"></i>
     </button>
 </nav>
 
 <script>
-const sidebar = document.getElementById('sidebar');
-const toggleBtn = document.getElementById('sidebar-toggle');
-const sidebarText = document.getElementById('sidebar-text');
-const chevron = toggleBtn.querySelector('i');
+const SIDEBAR_KEY = 'sidebar_state';
 
-toggleBtn.addEventListener('click', () => {
-    sidebar.classList.toggle('w-64');
-    sidebar.classList.toggle('w-20');
+document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('sidebar-toggle');
+    const mobileBtn = document.getElementById('mobile-menu-btn');
+    const overlay = document.getElementById('mobile-overlay');
+    const sidebarText = document.getElementById('sidebar-text');
+    const pageContent = document.getElementById('page-content');
+    const chevron = toggleBtn?.querySelector('i');
 
-    // Show/hide text
-    document.querySelectorAll('.link-text').forEach(el => el.classList.toggle('hidden'));
-    sidebarText.classList.toggle('hidden');
+    const isDesktop = () => window.innerWidth >= 1024;
 
-    // Toggle chevron direction
-    chevron.classList.toggle('fa-chevron-left');
-    chevron.classList.toggle('fa-chevron-right');
+    /* ---------------- DESKTOP STATE ---------------- */
+    if (isDesktop()) {
+        const state = localStorage.getItem(SIDEBAR_KEY) || 'expanded';
+        state === 'collapsed' ? collapse(false) : expand(false);
+    }
+
+    toggleBtn?.addEventListener('click', () => {
+        if (!isDesktop()) return;
+        sidebar.classList.contains('w-20') ? expand(true) : collapse(true);
+    });
+
+    /* ---------------- MOBILE MENU ---------------- */
+    mobileBtn?.addEventListener('click', () => {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+    });
+
+    overlay?.addEventListener('click', closeMobile);
+
+    function closeMobile() {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+    }
+
+    /* ---------------- HELPERS ---------------- */
+    function collapse(save) {
+        sidebar.classList.replace('w-64', 'w-20');
+
+        if (isDesktop()) {
+            pageContent?.classList.remove('lg:ml-64');
+            pageContent?.classList.add('lg:ml-20');
+        }
+
+        document.querySelectorAll('.link-text').forEach(e => e.classList.add('hidden'));
+        sidebarText.classList.add('hidden');
+        chevron?.classList.replace('fa-chevron-left','fa-chevron-right');
+
+        save && localStorage.setItem(SIDEBAR_KEY, 'collapsed');
+    }
+
+    function expand(save) {
+        sidebar.classList.replace('w-20', 'w-64');
+
+        if (isDesktop()) {
+            pageContent?.classList.remove('lg:ml-20');
+            pageContent?.classList.add('lg:ml-64');
+        }
+
+        document.querySelectorAll('.link-text').forEach(e => e.classList.remove('hidden'));
+        sidebarText.classList.remove('hidden');
+        chevron?.classList.replace('fa-chevron-right','fa-chevron-left');
+
+        save && localStorage.setItem(SIDEBAR_KEY, 'expanded');
+    }
+
+
+    /* Close mobile menu on resize */
+    window.addEventListener('resize', () => {
+        if (!isDesktop()) {
+            pageContent?.classList.remove('lg:ml-64','lg:ml-20');
+            pageContent?.classList.add('ml-0');
+        }
+    });
+
 });
 </script>
