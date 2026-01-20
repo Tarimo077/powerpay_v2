@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+
+    {% include "partials/sidebar.html" %}
+
+    <div class="flex-1 p-6 space-y-6" id="page-content">
+
+        <div class="flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Sale: {{ sale.product_serial_number }}</h1>
+            <a href="{% url 'sales_page' %}" class="btn btn-ghost btn-accent hover:text-white"><i class="fa-solid fa-backward-step"></i> Back To Sales</a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-success">
+                <div class="stat-title">Product Name</div>
+                <div class="stat-value text-success">{{ sale.product_name }}</div>
+            </div>
+            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-info">
+                <div class="stat-title">Product Model</div>
+                <div class="stat-value text-info">{{ sale.product_model }}</div>
+            </div>
+            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-warning">
+                <div class="stat-title">Purchase Mode</div>
+                <div class="stat-value text-warning">{% if sale.purchase_mode == 'C' %}Cash {% elif sale.purchase_mode == 'P' %}Pay-Go {% else %} Deposit Account {% endif %}</div>
+            </div>
+            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-accent">
+                <div class="stat-title">Sales Rep</div>
+                <div class="stat-value text-accent">{{ sale.sales_rep }}</div>
+            </div>
+        </div>
+
+        <div class="bg-base-100 shadow rounded-lg p-6">
+            <h3 class="font-semibold mb-4">Customer Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                    <span class="text-gray-500">Customer</span>
+                    <div class="font-medium">{% if sale.customer %}{{ sale.customer.name }} <a href="{% url 'customer_detail' sale.customer_id %}"class="btn btn-primary text-white" title="{{ sale.customer.name|truncatewords:1|slice:"-2" }}'s data">View <i class="fa-solid fa-binoculars"></i></a>{% else %}-{% endif %}</div>
+                </div>
+                <div>
+                    <span class="text-gray-500">Location of Use</span>
+                    <div class="font-medium">{{ sale.location_of_use }}</div>
+                </div>
+                <div>
+                    <span class="text-gray-500">Metered</span>
+                    <div class="font-medium">{{ sale.metered }}</div>
+                </div>
+                <div>
+                    <span class="text-gray-500">Type of Use</span>
+                    <div class="font-medium">{{ sale.type_of_use }}</div>
+                </div>
+                <div>
+                    <span class="text-gray-500">Payment Plan</span>
+                    <div class="font-medium">{{ sale.payment_plan }}</div>
+                </div>
+                <div>
+                    <span class="text-gray-500">Organization</span>
+                    <div class="font-medium">{{ sale.organization.name }}</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

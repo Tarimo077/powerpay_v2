@@ -1,0 +1,177 @@
+{% extends "base.html" %} 
+{% load static %}
+{% load dict_extras %}
+{% load humanize %}
+
+{% block content %}
+
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen overflow-hidden bg-base-200">
+
+    <!-- Sidebar -->
+    {% include "partials/sidebar.html" %}
+
+    <!-- Main Content -->
+    <div id="page-content"
+     class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
+            lg:ml-64 ml-0">
+
+            <h1 class="text-2xl font-bold mb-6">Customers</h1>
+
+            <!-- STATS -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-success">
+                    <div class="stat-title">Total Customers</div>
+                    <div class="stat-value text-success">
+                        {{ total_customers|intcomma }}
+                    </div>
+                </div>
+
+                <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-info">
+                    <div class="stat-title">New Customers (Last 30 Days)</div>
+                    <div class="stat-value text-info">
+                        {{ new_customers_30|intcomma }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="card bg-base-100 p-4 rounded-lg shadow flex-col">
+                    <h3 class="font-semibold mb-2 text-lg">Customers by Gender</h3>
+                    <div class="flex-1">
+                        <canvas id="genderChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card bg-base-100 p-4 rounded-lg shadow flex-col">
+                    <h3 class="font-semibold mb-2 text-lg">Customer Growth</h3>
+                    <div class="flex-1">
+                        <canvas id="customerGrowthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- TABLE -->
+            {% include "partials/customers_table.html" %}
+
+    </div>
+
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+<script>
+Chart.defaults.font.family = "'Saira', sans-serif";
+Chart.defaults.font.size = 12;
+
+// 1. Define the Plugin
+const centerTotalPlugin = {
+    id: 'centerTotal',
+    afterDatasetsDraw(chart) {
+        const { ctx, data, chartArea: { top, bottom, left, right, width, height } } = chart;
+        
+        ctx.save();
+        
+        // Calculate the total sum of the data
+        const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+        
+        // Set Font Styles
+        const fontSize = 10;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const centerX = left + width / 2;
+        const centerY = top + height / 2;
+
+        // Draw "Total" Label
+        ctx.font = `${fontSize * 0.1}em 'Saira'`;
+        ctx.fillStyle = '#07783c';
+        ctx.fillText('TOTAL: ', centerX, centerY - 15);
+
+        // Draw the Sum Value
+        ctx.font = `bold ${fontSize * 0.2}em 'Saira'`;
+        ctx.fillStyle = '#07783c';
+        ctx.fillText(total.toLocaleString(), centerX, centerY + 15);
+        
+        ctx.restore();
+    }
+};
+const ctx = document.getElementById("genderChart");
+new Chart(ctx, {
+    type: "doughnut",
+    data: {
+        labels: {{ gender_labels|safe }},
+        datasets: [{
+            data: {{ gender_data|safe }},
+            backgroundColor: ['#22c55e', '#ef4444', '#3b82f6', '#facc15', '#8b5cf6'],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom' },
+            datalabels: {
+                color: '#fff',
+                formatter: (value, ctx) => {
+                    const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+                    const percent = ((value/sum)*100).toFixed(1);
+                    return value.toLocaleString() + ` (${percent}%)`;
+                },
+            }
+        }
+    },
+    plugins: [ChartDataLabels, centerTotalPlugin]
+});
+
+const growthCtx = document.getElementById("customerGrowthChart");
+
+new Chart(growthCtx, {
+    type: "line",
+    data: {
+        labels: {{ customer_growth_labels|safe }},
+        datasets: [{
+            label: "Total Customers",
+            data: {{ customer_growth_data|safe }},
+            fill: true,
+            backgroundColor: "rgba(59, 130, 246, 0.2)",
+            borderColor: "#3b82f6",
+            tension: 0.3,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { 
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    pointStyle: 'rectRounded',
+                    padding: 20
+                }
+            },
+            tooltip: { mode: 'index', intersect: false, usePointStyle: true }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { precision: 0 }
+            },
+            x: {
+                ticks: {
+                    maxTicksLimit: 12   // prevents overcrowding
+                }
+            }
+        }
+    }
+});
+</script>
+
+
+{% endblock %}

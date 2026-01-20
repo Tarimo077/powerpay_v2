@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load dict_extras %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+
+    {% include "partials/sidebar.html" %}
+
+    <div class="flex-1 p-6 space-y-6" id="page-content">
+
+        <h2 class="text-2xl font-bold">Sales</h2>
+
+        <!-- STATS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-success">
+                <div class="stat-title">Total Sales</div>
+                <div class="stat-value text-success">{{ total_sales|intcomma }}</div>
+            </div>
+
+            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-info">
+                <div class="stat-title">New Sales (Last 30 Days)</div>
+                <div class="stat-value text-info">{{ new_sales_30|intcomma }}</div>
+            </div>
+        </div>
+
+        <!-- CHARTS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <div class="bg-base-100 p-4 rounded-lg shadow">
+                <h3 class="font-semibold mb-2">Sales Growth</h3>
+                <div class="flex-1">
+                    <canvas id="salesGrowthChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-base-100 p-4 rounded-lg shadow">
+                <h3 class="font-semibold mb-2">Sales by Product</h3>
+                <div class="flex-1">
+                    <canvas id="salesProductChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- SALES TABLE -->
+        {% include "partials/sales_table.html" %}
+
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+<script>
+Chart.defaults.font.family = "'Saira', sans-serif";
+Chart.defaults.font.size = 12;
+
+// 1. Define the Plugin
+const centerTotalPlugin = {
+    id: 'centerTotal',
+    afterDatasetsDraw(chart) {
+        const { ctx, data, chartArea: { top, bottom, left, right, width, height } } = chart;
+        
+        ctx.save();
+        
+        // Calculate the total sum of the data
+        const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+        
+        // Set Font Styles
+        const fontSize = 10;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const centerX = left + width / 2;
+        const centerY = top + height / 2;
+
+        // Draw "Total" Label
+        ctx.font = `${fontSize * 0.1}em 'Saira'`;
+        ctx.fillStyle = '#07783c';
+        ctx.fillText('TOTAL: ', centerX, centerY - 15);
+
+        // Draw the Sum Value
+        ctx.font = `bold ${fontSize * 0.2}em 'Saira'`;
+        ctx.fillStyle = '#07783c';
+        ctx.fillText(total.toLocaleString(), centerX, centerY + 15);
+        
+        ctx.restore();
+    }
+};
+const ctxGrowth = document.getElementById("salesGrowthChart");
+new Chart(ctxGrowth, {
+    type: 'line',
+    data: {
+        labels: {{ monthly_labels|safe }},
+        datasets: [{
+            label: 'Sales Count',
+            data: {{ monthly_data|safe }},
+            fill: true,
+            borderColor: 'rgb(34,197,94)',
+            backgroundColor: 'rgba(34,197,94,0.2)',
+            tension: 0.3,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { 
+            legend: { 
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    pointStyle: 'rectRounded',
+                    padding: 20
+                }
+            },
+            tooltip: { mode: 'index', intersect: false, usePointStyle: true }
+
+          }
+    }
+});
+
+const ctxRep = document.getElementById("salesProductChart");
+new Chart(ctxRep, {
+    type: 'doughnut',
+    data: {
+        labels: {{ rep_labels|safe }},
+        datasets: [{
+            data: {{ rep_data|safe }},
+            backgroundColor: [
+                '#3b82f6','#10b981','#f97316','#8b5cf6','#ef4444','#facc15','#0ea5e9'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom' },
+            datalabels: {
+                color: '#fff',
+                formatter: (value, ctx) => {
+                    const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+                    const percent = ((value/sum)*100).toFixed(1);
+                    return value.toLocaleString() + ` (${percent}%)`;
+                },
+            }
+        }
+    },
+    plugins: [ChartDataLabels, centerTotalPlugin]
+});
+</script>
+
+{% endblock %}

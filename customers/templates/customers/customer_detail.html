@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200 overflow-hidden">
+
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content" class="flex-1 p-6 space-y-6">
+
+        <!-- HEADER -->
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold">
+                    {{ customer.name }}
+                </h1>
+                <p class="text-sm text-gray-500">
+                    Customer ID: {{ customer.id }}
+                </p>
+            </div>
+
+            <a href="{% url 'customers_page' %}"
+               class="btn btn-ghost btn-accent hover:text-white">
+                <i class="fa-solid fa-backward-step"></i>Back to Customers
+            </a>
+        </div>
+
+        <!-- STATS -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-primary">
+                <div class="stat-title">Household Size</div>
+                <div class="stat-value text-primary">
+                    {{ customer.household_size|default:"—" }}
+                </div>
+            </div>
+
+            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-secondary">
+                <div class="stat-title">Household Type</div>
+                <div class="stat-value text-secondary">
+                    {% if customer.household_type == "F" %}Female Headed
+                    {% elif customer.household_type == "M" %}Male Headed
+                    {% else %}Other{% endif %}
+                </div>
+            </div>
+
+            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-info">
+                <div class="stat-title">Joined</div>
+                <div class="stat-value text-info text-lg">
+                    {{ customer.date|date:"M Y" }}
+                </div>
+            </div>
+        </div>
+
+        <!-- DETAILS CARD -->
+        <div class="bg-base-100 shadow rounded-lg p-6">
+            <h3 class="font-semibold mb-4">Customer Information</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+
+                <div>
+                    <span class="text-gray-500">ID Number</span>
+                    <div class="font-medium">{{ customer.id_number|default:"—" }}</div>
+                </div>
+
+                <div>
+                    <span class="text-gray-500">Phone</span>
+                    <div class="font-medium">{{ customer.phone_number|default:"—" }}</div>
+                </div>
+
+                <div>
+                    <span class="text-gray-500">Alternate Phone</span>
+                    <div class="font-medium">{{ customer.alternate_phone_number|default:"—" }}</div>
+                </div>
+
+                <div>
+                    <span class="text-gray-500">Email</span>
+                    <div class="font-medium">{{ customer.email|default:"—" }}</div>
+                </div>
+
+                <div>
+                    <span class="text-gray-500">Gender</span>
+                    <div class="font-medium">
+                        {% if customer.gender == "F" %}Female
+                        {% elif customer.gender == "M" %}Male
+                        {% else %}Other{% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <span class="text-gray-500">Preferred Language</span>
+                    <div class="font-medium">{{ customer.preferred_language|default:"—" }}</div>
+                </div>
+
+                <div>
+                    <span class="text-gray-500">Location</span>
+                    <div class="font-medium">{{ customer.location|default:"—" }}</div>
+                </div>
+
+                <div>
+                    <span class="text-gray-500">County</span>
+                    <div class="font-medium">{{ customer.county|default:"—" }}</div>
+                </div>
+
+                <div>
+                    <span class="text-gray-500">Sub-County</span>
+                    <div class="font-medium">{{ customer.sub_county|default:"—" }}</div>
+                </div>
+
+                <div>
+                    <span class="text-gray-500">Organization</span>
+                    <div class="font-medium">
+                        {{ customer.organization.name|default:"—" }}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
