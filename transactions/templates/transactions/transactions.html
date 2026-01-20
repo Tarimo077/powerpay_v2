@@ -65,67 +65,7 @@
 
         </div>
 
-        <!-- TRANSACTIONS TABLE -->
-        <div class="bg-base-100 rounded-lg shadow-sm overflow-x-auto">
-            <table class="table w-full">
-                <thead class="bg-success text-success-content text-sm uppercase tracking-wide">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-white rounded-tl-lg">Time</th>
-                        <th class="px-4 py-3 text-left text-white">Transactor Name</th>
-                        <th class="px-4 py-3 text-left text-white">Reference</th>
-                        <th class="px-4 py-3 text-left text-white">Transaction ID</th>
-                        <th class="px-4 py-3 text-left text-white">Amount</th>
-                        {% if is_superadmin %}<th class="px-4 py-3 text-left text-white rounded-tr-lg">Organization</th>{% endif %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for txn in page_obj %}
-                    <tr>
-                        <td>{{ txn.time|date:"j M Y h:i:s A" }}</td>
-                        <td>{{ txn.name }}</td>
-                        <td>{{ txn.ref }}</td>
-                        <td>{{ txn.txn_id }}</td>
-                        <td>{{ txn.amount|intcomma }}</td>
-                        {% if is_superadmin %}<td>{{ txn.org.name }}</td>{% endif %}
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center">No transactions found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-
-        </div>
-
-         <!-- Pagination -->
-            {% if page_obj.has_other_pages %}
-            <div class="flex justify-between mt-4 items-center">
-                {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}"
-                    class="btn btn-soft btn-accent hover:text-white">
-                        <i class="fa-solid fa-backward-step mr-2"></i>
-                        Previous
-                    </a>
-                {% else %}
-                    <span class="btn btn-outline btn-disabled">Previous</span>
-                {% endif %}
-
-                <span class="font-medium">
-                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-                </span>
-
-                {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}"
-                    class="btn btn-soft btn-success hover:text-white">
-                        Next
-                        <i class="fa-solid fa-forward-step ml-2"></i>
-                    </a>
-                {% else %}
-                    <span class="btn btn-outline btn-disabled">Next</span>
-                {% endif %}
-            </div>
-            {% endif %}
+        {% include "partials/transactions_table.html" %}
 
     </div>
 </div>
@@ -137,10 +77,42 @@
 Chart.defaults.font.family = "'Saira', sans-serif";
 Chart.defaults.font.size = 12;
 
+// 1. Define the Plugin
+const centerTotalPlugin = {
+    id: 'centerTotal',
+    afterDatasetsDraw(chart) {
+        const { ctx, data, chartArea: { top, bottom, left, right, width, height } } = chart;
+        
+        ctx.save();
+        
+        // Calculate the total sum of the data
+        const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+        
+        // Set Font Styles
+        const fontSize = 10;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const centerX = left + width / 2;
+        const centerY = top + height / 2;
+
+        // Draw "Total" Label
+        ctx.font = `${fontSize * 0.1}em 'Saira'`;
+        ctx.fillStyle = '#07783c';
+        ctx.fillText('TOTAL: ', centerX, centerY - 15);
+
+        // Draw the Sum Value
+        ctx.font = `bold ${fontSize * 0.2}em 'Saira'`;
+        ctx.fillStyle = '#07783c';
+        ctx.fillText(total.toLocaleString(), centerX, centerY + 15);
+        
+        ctx.restore();
+    }
+};
+
 {% if is_superadmin %}
 const moneyByOrgCtx = document.getElementById('moneyByOrgChart').getContext('2d');
 new Chart(moneyByOrgCtx, {
-    type: 'pie',
+    type: 'doughnut',
     data: {
         labels: {{ money_by_org_labels|safe }},
         datasets: [{
@@ -164,7 +136,7 @@ new Chart(moneyByOrgCtx, {
             }
         }
     },
-    plugins: [ChartDataLabels]
+    plugins: [ChartDataLabels, centerTotalPlugin]
 });
 {% endif %}
 

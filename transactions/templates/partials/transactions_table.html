@@ -1,0 +1,119 @@
+{% load humanize %}
+
+<div id="transactions-table" class="relative mb-2 rounded-lg bg-base-100 p-4">
+
+    <!-- HTMX LOADER -->
+    <div id="htmx-loading"
+         class="absolute inset-0 bg-base-200/50 flex items-center justify-center z-10 pointer-events-none opacity-0 transition-opacity htmx-indicator">
+        <span class="loading loading-spinner loading-lg text-success"></span>
+    </div>
+
+    <!-- SEARCH + SORT BAR -->
+    <form class="mb-4 flex flex-wrap items-center gap-2"
+          hx-get="{% url 'transactions_page' %}"
+          hx-target="#transactions-table"
+          hx-push-url="true"
+          hx-indicator="#htmx-loading">
+
+        <input type="text"
+               name="q"
+               value="{{ search_query }}"
+               placeholder="Search name, reference or transaction ID..."
+               class="input input-bordered flex-1 min-w-50">
+
+        <input type="hidden" name="sort" value="{{ current_sort }}">
+        <input type="hidden" name="dir" value="{{ current_dir }}">
+
+        <button class="btn btn-success text-white flex items-center gap-1 cursor-pointer">
+            <i class="fa fa-search"></i> Search
+        </button>
+        {% if search_query %}
+            <button type="button"
+                    class="btn btn-error text-white flex items-center gap-1 cursor-pointer"
+                    hx-get="{% url 'transactions_page' %}?sort={{ current_sort }}&dir={{ current_dir }}"
+                    hx-target="#transactions-table"
+                    hx-push-url="true"
+                    hx-indicator="#htmx-loading">
+                <i class="fa fa-times"></i> Clear
+            </button>
+        {% endif %}
+    </form>
+
+    <!-- TABLE -->
+    <div class="bg-base-200 rounded-lg overflow-x-auto">
+        <table class="table w-full">
+            <thead class="bg-success text-success-content text-sm uppercase">
+                <tr>
+                    {% for field, label, next_dir in fields_with_dir %}
+                        <th class="px-4 py-3 text-left text-white">
+                            <a hx-get="{% url 'transactions_page' %}?sort={{ field }}&dir={{ next_dir }}&q={{ search_query }}"
+                               hx-target="#transactions-table"
+                               hx-push-url="true"
+                               hx-indicator="#htmx-loading"
+                               class="flex items-center gap-1 hover:underline cursor-pointer">
+                                {{ label }}
+                                {% if current_sort == field %}
+                                    {% if current_dir == "asc" %}
+                                        <i class="fa-solid fa-arrow-up"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-arrow-down"></i>
+                                    {% endif %}
+                                {% endif %}
+                            </a>
+                        </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for txn in page_obj %}
+                    <tr>
+                        <td>{{ txn.time|date:"j M Y h:i:s A" }}</td>
+                        <td>{{ txn.name }}</td>
+                        <td>{{ txn.ref }}</td>
+                        <td>{{ txn.txn_id }}</td>
+                        <td>{{ txn.amount|intcomma }}</td>
+                        {% if is_superadmin %}
+                            <td>{{ txn.org.name }}</td>
+                        {% endif %}
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-6">No transactions found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PAGINATION -->
+    {% if page_obj.has_other_pages %}
+        <div class="flex justify-between mt-4 items-center flex-wrap gap-2">
+            {% if page_obj.has_previous %}
+                <a hx-get="{% url 'transactions_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}"
+                   hx-target="#transactions-table"
+                   hx-push-url="true"
+                   hx-indicator="#htmx-loading"
+                   class="btn btn-soft btn-accent cursor-pointer hover:text-white">
+                    <i class="fa-solid fa-backward-step mr-2"></i> Previous
+                </a>
+            {% else %}
+                <span class="btn btn-disabled">Previous</span>
+            {% endif %}
+
+            <span class="font-medium">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+            {% if page_obj.has_next %}
+                <a hx-get="{% url 'transactions_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}"
+                   hx-target="#transactions-table"
+                   hx-push-url="true"
+                   hx-indicator="#htmx-loading"
+                   class="btn btn-soft btn-success cursor-pointer hover:text-white">
+                    Next <i class="fa-solid fa-forward-step ml-2"></i>
+                </a>
+            {% else %}
+                <span class="btn btn-disabled">Next</span>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
