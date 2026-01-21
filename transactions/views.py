@@ -4,10 +4,11 @@ from django.db.models.functions import TruncDate, Upper, Trim
 from django.core.paginator import Paginator
 from django.utils import timezone
 from datetime import timedelta
-from organizations.models import Organization
 from .models import Transaction
+from django.contrib.auth.decorators import login_required
 
 
+@login_required
 def transactions_page(request):
     user = request.user
     is_superadmin = user.role == "superadmin"

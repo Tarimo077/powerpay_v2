@@ -5,8 +5,9 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models.functions import TruncMonth
 from customers.models import Customer
+from django.contrib.auth.decorators import login_required
 
-
+@login_required
 def customers_page(request):
     user = request.user
     is_superadmin = user.role == "superadmin"
@@ -87,7 +88,7 @@ def customers_page(request):
                 "current_sort": sort,
                 "current_dir": direction,
                 "search_query": search_query,
-                "next_dirs": next_dirs,  # ✅ already correct
+                "next_dirs": next_dirs,
             },
         )
 
@@ -158,7 +159,7 @@ def customers_page(request):
         },
     )
 
-
+@login_required
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
 

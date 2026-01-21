@@ -19,6 +19,7 @@ COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
 # ------------------------------
 # Device List View
 # ------------------------------
+@login_required
 def device_list(request):
     devices = DeviceInfo.objects.all().order_by('deviceid')
 
@@ -127,10 +128,45 @@ def device_detail(request, deviceid):
         if timezone.localtime(e[0].time) >= seven_days_ago
     )
 
+    #------------------------------------------
+    # Sorting Logic
+    #------------------------------------------
+        # ---------------------------
+    # SORTING (Cooking Events Table)
+    # ---------------------------
+    sort = request.GET.get("sort", "start")
+    direction = request.GET.get("dir", "desc")
+
+    allowed_sorts = {
+        "start": "start",
+        "end": "end",
+        "duration": "duration",
+        "energy": "energy",
+    }
+
+    if sort not in allowed_sorts:
+        sort = "start"
+    if direction not in ("asc", "desc"):
+        direction = "desc"
+
+    reverse = direction == "desc"
+    cooking_event_rows.sort(
+        key=lambda x: x[allowed_sorts[sort]],
+        reverse=reverse,
+    )
+
+    # Next sort directions
+    next_dirs = {}
+    for key in allowed_sorts.keys():
+        if key == sort:
+            next_dirs[key] = "desc" if direction == "asc" else "asc"
+        else:
+            next_dirs[key] = "asc"
+
     # ---------------------------
     # Pagination for cooking events table
     # ---------------------------
-    paginator = Paginator(list(reversed(cooking_event_rows)), 10)  # 10 per page
+    paginator = Paginator(cooking_event_rows, 10)  # 10 per page
     page_number = request.GET.get("page")
     cooking_event_rows_paginated = paginator.get_page(page_number)
 
@@ -161,6 +197,22 @@ def device_detail(request, deviceid):
     cooking_event_labels = energy_labels
     cooking_event_data = [daily_events.get(d, 0) for d in last_7_days]
 
+    #---------------------------
+    #HTMX
+    #---------------------------
+    if request.headers.get("HX-Request") == "true":
+        return render(
+            request,
+            "partials/cooking_events_table.html",
+            {
+                "cooking_event_rows": cooking_event_rows_paginated,
+                "current_sort": sort,
+                "current_dir": direction,
+                "next_dirs": next_dirs,
+                "device": device,
+            },
+        )
+
     # ---------------------------
     # Context
     # ---------------------------
@@ -188,6 +240,12 @@ def device_detail(request, deviceid):
 
         # Table
         "cooking_event_rows": cooking_event_rows_paginated,
+
+        #Sort vars
+        "current_sort": sort,
+        "current_dir": direction,
+        "next_dirs": next_dirs,
+
     }
 
     return render(request, "devices/device_detail.html", context)

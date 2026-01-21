@@ -1,58 +1,54 @@
 {% extends "base.html" %}
-{% load humanize %}
-{% load dict_extras %}
-
 {% block content %}
 {% include "partials/navbar.html" %}
 
 <div class="flex min-h-screen bg-base-200">
-
     {% include "partials/sidebar.html" %}
 
-    <div class="flex-1 p-6 space-y-6" id="page-content">
+    <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
+            lg:ml-64 ml-0 space-y-6" id="page-content">
 
-        <h2 class="text-2xl font-bold">Sales</h2>
+        <h2 class="text-2xl font-bold">Inventory</h2>
 
         <!-- STATS -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-success">
-                <div class="stat-title">Total Sales</div>
-                <div class="stat-value text-success">{{ total_sales|intcomma }}</div>
+        <div class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+            <div class="card bg-base-100 shadow p-4 border-l-4 border-success">
+                <p class="text-sm">Total Items</p>
+                <p class="text-2xl font-bold text-success">{{ total_items }}</p>
             </div>
 
-            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-info">
-                <div class="stat-title">New Sales (Last 30 Days)</div>
-                <div class="stat-value text-info">{{ new_sales_30|intcomma }}</div>
+            <div class="card bg-base-100 shadow p-4 border-l-4 border-info">
+                <p class="text-sm">New (30 days)</p>
+                <p class="text-2xl font-bold text-info">{{ new_items_30 }}</p>
             </div>
         </div>
 
         <!-- CHARTS -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-            <div class="bg-base-100 p-4 rounded-lg shadow">
-                <h3 class="font-semibold mb-2">Sales Growth</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="card bg-base-100 shadow p-4">
+                <h3 class="font-semibold mb-2">Inventory Growth</h3>
                 <div class="flex-1">
-                    <canvas id="salesGrowthChart"></canvas>
+                    <canvas id="inventoryGrowthChart"></canvas>
                 </div>
             </div>
 
-            <div class="bg-base-100 p-4 rounded-lg shadow">
-                <h3 class="font-semibold mb-2">Sales by Purchase Mode</h3>
+            <div class="card bg-base-100 shadow p-4">
+                <h3 class="font-semibold mb-2">Items per Warehouse</h3>
                 <div class="flex-1">
-                    <canvas id="salesProductChart"></canvas>
+                    <canvas id="warehouseChart"></canvas>
                 </div>
             </div>
-
         </div>
 
 
-        <!-- SALES TABLE -->
-        {% include "partials/sales_table.html" %}
+        <!-- TABLE -->
+        
+        {% include "partials/inventory_table.html" %}
+        
 
     </div>
 </div>
 
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 <script>
@@ -90,17 +86,14 @@ const centerTotalPlugin = {
         ctx.restore();
     }
 };
-const ctxGrowth = document.getElementById("salesGrowthChart");
-new Chart(ctxGrowth, {
-    type: 'line',
+new Chart(document.getElementById("inventoryGrowthChart"), {
+    type: "line",
     data: {
-        labels: {{ monthly_labels|safe }},
+        labels: {{ growth_labels|safe }},
         datasets: [{
-            label: 'Sales Count',
-            data: {{ monthly_data|safe }},
+            label: "Total Items",
+            data: {{ growth_data|safe }},
             fill: true,
-            borderColor: 'rgb(34,197,94)',
-            backgroundColor: 'rgba(34,197,94,0.2)',
             tension: 0.3,
             pointRadius: 4,
             pointHoverRadius: 6,
@@ -108,7 +101,8 @@ new Chart(ctxGrowth, {
     },
     options: {
         responsive: true,
-        plugins: { 
+        maintainAspectRatio: false,
+        plugins: {
             legend: { 
                 position: 'bottom',
                 labels: {
@@ -118,22 +112,23 @@ new Chart(ctxGrowth, {
                 }
             },
             tooltip: { mode: 'index', intersect: false, usePointStyle: true }
-
-          }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { precision: 0 }
+            }
+        }
     }
+
 });
 
-const ctxRep = document.getElementById("salesProductChart");
-new Chart(ctxRep, {
-    type: 'doughnut',
+new Chart(document.getElementById("warehouseChart"), {
+    type: "doughnut",
     data: {
-        labels: {{ rep_labels|safe }},
+        labels: {{ warehouse_labels|safe }},
         datasets: [{
-            data: {{ rep_data|safe }},
-            backgroundColor: [
-                '#3b82f6','#10b981','#f97316','#8b5cf6','#ef4444','#facc15','#0ea5e9'
-            ],
-            borderWidth: 1
+            data: {{ warehouse_data|safe }}
         }]
     },
     options: {

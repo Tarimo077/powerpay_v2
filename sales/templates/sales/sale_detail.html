@@ -27,26 +27,37 @@
                 <div class="stat-title">Purchase Mode</div>
                 <div class="stat-value text-warning">{% if sale.purchase_mode == 'C' %}Cash {% elif sale.purchase_mode == 'P' %}Pay-Go {% else %} Deposit Account {% endif %}</div>
             </div>
-            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-accent">
+            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-secondary">
                 <div class="stat-title">Sales Rep</div>
-                <div class="stat-value text-accent">{{ sale.sales_rep }}</div>
+                <div class="stat-value text-secondary">{{ sale.sales_rep }}</div>
             </div>
         </div>
 
         <div class="bg-base-100 shadow rounded-lg p-6">
-            <h3 class="font-semibold mb-4">Customer Information</h3>
+            <h3 class="font-semibold mb-4">Sale Information</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
                     <span class="text-gray-500">Customer</span>
                     <div class="font-medium">{% if sale.customer %}{{ sale.customer.name }} <a href="{% url 'customer_detail' sale.customer_id %}"class="btn btn-primary text-white" title="{{ sale.customer.name|truncatewords:1|slice:"-2" }}'s data">View <i class="fa-solid fa-binoculars"></i></a>{% else %}-{% endif %}</div>
                 </div>
                 <div>
+                    <span class="text-gray-500">Product Type</span>
+                    <div class="font-medium">
+                        {% if sale.product_type == 'EPC' %}Electric Pressure cooker 
+                        {% elif sale.product_type == 'IC' %}Induction Cooker 
+                        {% else %}Other {% endif %}
+                    </div>
+                </div>
+                <div>
                     <span class="text-gray-500">Location of Use</span>
-                    <div class="font-medium">{{ sale.location_of_use }}</div>
+                    <div class="font-medium">{{ sale.location_of_use|default:"-" }}</div>
                 </div>
                 <div>
                     <span class="text-gray-500">Metered</span>
-                    <div class="font-medium">{{ sale.metered }}</div>
+                    <div class="font-medium">
+                        {% if sale.metered %}Yes <a href="{% url 'device_detail' sale.product_serial_number %}"class="btn btn-primary text-white" title="{{ sale.customer.name|truncatewords:1|slice:"-2" }}'s device data">View <i class="fa-solid fa-binoculars"></i></a>
+                        {% else %}No {% endif %}
+                    </div>
                 </div>
                 <div>
                     <span class="text-gray-500">Type of Use</span>
@@ -54,11 +65,20 @@
                 </div>
                 <div>
                     <span class="text-gray-500">Payment Plan</span>
-                    <div class="font-medium">{{ sale.payment_plan }}</div>
+                    <div class="flex">
+                        {% if sale.payment_plan == "Plan_1" %}<p class="font-medium mr-1">{{ sale.payment_plan }}</p><p class="text-xs mt-1">(Deposit: Ksh. 4,500; Weekly Payment: Ksh. 190; Total Weeks: 40)</p>
+                        {% elif sale.payment_plan == "Plan_2" %}<p class="font-medium mr-1">{{ sale.payment_plan }}</p><p class="text-xs mt-1">(Deposit: Ksh. 2,500; Weekly Payment: Ksh. 250; Total Weeks: 48)</p>
+                        {% elif sale.payment_plan == "Wholesale" %}<p class="font-medium mr-1">{{ sale.payment_plan }}</p><p class="text-xs mt-1">(Wholesale Ksh. 10,600)</p>
+                        {% else %}<p class="font-medium mr-1">{{ sale.payment_plan }}</p><p class="text-xs mt-1">(Retail Ksh. 12,100)</p>{% endif %}
+                    </div>
                 </div>
                 <div>
                     <span class="text-gray-500">Organization</span>
                     <div class="font-medium">{{ sale.organization.name }}</div>
+                </div>
+                <div>
+                    <span class="text-gray-500">Date of Sale</span>
+                    <div class="font-medium">{{ sale.registration_date|date:"j M Y" }}</div>
                 </div>
             </div>
         </div>

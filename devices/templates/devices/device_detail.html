@@ -114,75 +114,20 @@
 
         </div>
 
-        <!-- COOKING EVENTS TABLE -->
-        <div class="card bg-base-100 shadow mt-6">
-            <div class="card-body">
-                <h3 class="text-lg font-semibold mb-4">
-                    Cooking Events
-                </h3>
+        <div class="relative"> 
+    
+            <div id="htmx-loading"
+                class="absolute inset-0 bg-base-200/50 flex items-center justify-center
+                        z-50 pointer-events-none opacity-0 transition-opacity
+                        htmx-indicator">
+                <span class="loading loading-spinner loading-lg text-success"></span>
+            </div> 
 
-                <div class="bg-base-100 rounded-lg shadow-sm overflow-x-auto">
-                    <table class="table w-full">
-                        <thead class="bg-success uppercase">
-                            <tr>
-                                
-                                <th class="text-white rounded-tl-lg">Start Time</th>
-                                <th class="text-white">End Time</th>
-                                <th class="text-white">Duration (min)</th>
-                                <th class="text-white">Energy (kWh)</th>
-                                <th class="text-white rounded-tr-lg">Estimated Cost (Ksh.)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for e in cooking_event_rows %}
-                            <tr>
-                                
-                                <td>{{ e.start|date:"j M Y h:i:s A" }}</td>
-                                <td>{{ e.end|date:"j M Y h:i:s A" }}</td>
-                                <td>{{ e.duration }}</td>
-                                <td>{{ e.energy }}</td>
-                                <td>{{ e.energy|multiply:14.32|floatformat:1 }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="6" class="text-center text-gray-500">
-                                    No cooking events detected
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <!-- Pagination -->
-                    {% if cooking_event_rows.has_other_pages %}
-                    <div class="flex justify-between mt-4 items-center mb-4">
-                        {% if cooking_event_rows.has_previous %}
-                            <a href="?page={{ cooking_event_rows.previous_page_number }}"
-                            class="btn btn-soft btn-accent hover:text-white">
-                                <i class="fa-solid fa-backward-step mr-2"></i>
-                                Previous
-                            </a>
-                        {% else %}
-                            <span class="btn btn-outline btn-disabled">Previous</span>
-                        {% endif %}
-
-                        <span class="font-medium">
-                            Page {{ cooking_event_rows.number }} of {{ cooking_event_rows.paginator.num_pages }}
-                        </span>
-
-                        {% if cooking_event_rows.has_next %}
-                            <a href="?page={{ cooking_event_rows.next_page_number }}"
-                            class="btn btn-soft btn-success hover:text-white">
-                                Next
-                                <i class="fa-solid fa-forward-step ml-2"></i>
-                            </a>
-                        {% else %}
-                            <span class="btn btn-outline btn-disabled">Next</span>
-                        {% endif %}
-                    </div>
-                    {% endif %}
+            <div id="cooking-events-table">
+                {% include "partials/cooking_events_table.html" %}
             </div>
         </div>
+
 
     </div>
 </div>

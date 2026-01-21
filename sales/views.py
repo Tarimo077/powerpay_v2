@@ -1,11 +1,13 @@
 from django.shortcuts import render, get_object_or_404
-from django.db.models import Q, Count, Value
-from django.db.models.functions import TruncMonth, Lower, Replace
+from django.db.models import Q, Count
+from django.db.models.functions import TruncMonth
 from django.core.paginator import Paginator
 from django.utils import timezone
 from datetime import timedelta
 from .models import Sale
+from django.contrib.auth.decorators import login_required
 
+@login_required
 def sales_page(request):
     is_htmx = request.headers.get("HX-Request") == "true"
     search_query = request.GET.get("q", "").strip()
@@ -41,7 +43,7 @@ def sales_page(request):
 
     table_fields = [
         ("date", "Date"),
-        ("product_serial_number", "Serial"),
+        ("product_serial_number", "Serial Number"),
         ("product_name", "Product Name"),
         ("sales_rep", "Sales Rep"),
         ("customer", "Customer"),
@@ -79,21 +81,25 @@ def sales_page(request):
         running_total += m["total"]
         monthly_data.append(running_total)
 
-    # ---------------- SALES REP DOUGHNUT ----------------
+    # ---------------- PAYMENT OPTIONS DOUGHNUT ----------------
+    # 1. Define the mapping for your labels
+    MODE_MAPPING = {
+        "C": "Cash",
+        "P": "PayGo",
+        "DA": "Deposit Account"
+    }
+
+    # 2. Query the database
     rep_qs = (
         Sale.objects
-        .annotate(
-            # 1. Lowercase it
-            # 2. Replace ' ' (space) with '' (nothing)
-            normalized_name=Replace(Lower("product_name"), Value(" "), Value(""))
-        )
-        .values("normalized_name")
+        .values("purchase_mode")
         .annotate(total=Count("id"))
-        .order_by("normalized_name")
+        .order_by("purchase_mode")
     )
 
-    # Clean up labels for your chart (e.g., making 'pawapot' look like 'PAWAPOT')
-    rep_labels = [r["normalized_name"].upper() for r in rep_qs]
+    # 3. Create labels and data, mapping the codes to full names
+    # We use .get(code, code) so if a new code appears, it shows the raw code instead of crashing
+    rep_labels = [MODE_MAPPING.get(r["purchase_mode"], r["purchase_mode"]) for r in rep_qs]
     rep_data = [r["total"] for r in rep_qs]
 
     # ---------------- HTMX TABLE ONLY ----------------
@@ -132,7 +138,7 @@ def sales_page(request):
     )
 
 
-
+@login_required
 def sale_detail(request, pk):
     sale = get_object_or_404(Sale, pk=pk)
     return render(

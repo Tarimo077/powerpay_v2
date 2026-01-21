@@ -17,9 +17,14 @@
         fixed top-0 left-0 h-full bg-base-100 shadow-sm flex flex-col
         transition-all duration-300 z-50
         w-64
-
         -translate-x-full lg:translate-x-0
      ">
+
+    <div class="flex justify-end p-2 lg:hidden">
+        <button id="mobile-close-btn" class="btn btn-ghost btn-sm text-gray-500">
+            <i class="fas fa-xmark text-xl"></i>
+        </button>
+    </div>
 
     <!-- Logo -->
     <div class="flex items-center justify-center p-4 space-x-2">
@@ -33,31 +38,60 @@
     <div class="flex flex-col mt-4 space-y-2 flex-1 overflow-y-auto">
 
         <a href="{% url 'index' %}"
-        class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
+           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
+           {% if request.path == '/' %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
             <i class="fas fa-chart-line w-5"></i>
             <span class="link-text">Dashboard</span>
         </a>
 
         <a href="{% url 'device_list' %}"
-        class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
+           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
+           {% if 'devices' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
             <i class="fas fa-plug w-5"></i>
             <span class="link-text">Devices</span>
         </a>
 
-        <a href="#"
-        class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
-            <i class="fas fa-money-bill-wave w-5"></i>
+        <a href="{% url 'customers_page' %}"
+           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
+           {% if 'customers' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+            <i class="fas fa-users w-5"></i>
+            <span class="link-text">Customers</span>
+        </a>
+
+        <a href="{% url 'sales_page' %}"
+           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
+           {% if 'sales' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+            <i class="fa-solid fa-cash-register w-5"></i>
             <span class="link-text">Sales</span>
         </a>
 
+        <!-- Inventory (ALL USERS) -->
+        <a href="{% url 'inventory_page' %}"
+           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
+           {% if request.path == '/inventory/' %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+            <i class="fa-solid fa-boxes-stacked w-5"></i>
+            <span class="link-text">Inventory</span>
+        </a>
+
+        <!-- Warehouses (SUPERUSERS ONLY) -->
+        {% if request.user.is_superuser %}
+        <a href="{% url 'warehouses_page' %}"
+           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
+           {% if 'warehouses' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+            <i class="fa-solid fa-warehouse w-5"></i>
+            <span class="link-text">Warehouses</span>
+        </a>
+        {% endif %}
+
         <a href="{% url 'transactions_page' %}"
-        class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
+           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
+           {% if 'transactions' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
             <i class="fas fa-credit-card w-5"></i>
             <span class="link-text">Transactions</span>
         </a>
 
         <a href="#"
-        class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-lg transition">
+           class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-sm transition">
             <i class="fas fa-gear w-5"></i>
             <span class="link-text">Settings</span>
         </a>
@@ -72,7 +106,6 @@
         </form>
 
     </div>
-
 
     <!-- Desktop Collapse Button -->
     <button id="sidebar-toggle"
@@ -93,13 +126,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebarText = document.getElementById('sidebar-text');
     const pageContent = document.getElementById('page-content');
     const chevron = toggleBtn?.querySelector('i');
+    const mobileCloseBtn = document.getElementById('mobile-close-btn');
 
     const isDesktop = () => window.innerWidth >= 1024;
 
-    /* ---------------- DESKTOP STATE ---------------- */
+    /* ---------------- INITIAL STATE ---------------- */
     if (isDesktop()) {
         const state = localStorage.getItem(SIDEBAR_KEY) || 'expanded';
         state === 'collapsed' ? collapse(false) : expand(false);
+    } else {
+        // Force full view on mobile/tablet regardless of desktop's saved state
+        expand(false); 
     }
 
     toggleBtn?.addEventListener('click', () => {
@@ -109,10 +146,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* ---------------- MOBILE MENU ---------------- */
     mobileBtn?.addEventListener('click', () => {
+        // Ensure it is expanded before showing
+        expand(false); 
         sidebar.classList.remove('-translate-x-full');
         overlay.classList.remove('hidden');
     });
 
+    // NEW: Close button listener
+    mobileCloseBtn?.addEventListener('click', closeMobile);
     overlay?.addEventListener('click', closeMobile);
 
     function closeMobile() {
@@ -122,43 +163,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* ---------------- HELPERS ---------------- */
     function collapse(save) {
-        sidebar.classList.replace('w-64', 'w-20');
-
+        // ONLY collapse width if on desktop
         if (isDesktop()) {
-            pageContent?.classList.remove('lg:ml-64');
-            pageContent?.classList.add('lg:ml-20');
+            sidebar.classList.replace('w-64', 'w-20');
+            pageContent?.classList.replace('lg:ml-64', 'lg:ml-20');
+            
+            document.querySelectorAll('.link-text').forEach(e => e.classList.add('hidden'));
+            sidebarText.classList.add('hidden');
+            chevron?.classList.replace('fa-chevron-left','fa-chevron-right');
+            
+            if (save) localStorage.setItem(SIDEBAR_KEY, 'collapsed');
         }
-
-        document.querySelectorAll('.link-text').forEach(e => e.classList.add('hidden'));
-        sidebarText.classList.add('hidden');
-        chevron?.classList.replace('fa-chevron-left','fa-chevron-right');
-
-        save && localStorage.setItem(SIDEBAR_KEY, 'collapsed');
     }
 
     function expand(save) {
-        sidebar.classList.replace('w-20', 'w-64');
+        // Always w-64 on mobile, or expanding on desktop
+        sidebar.classList.remove('w-20');
+        sidebar.classList.add('w-64');
 
         if (isDesktop()) {
             pageContent?.classList.remove('lg:ml-20');
             pageContent?.classList.add('lg:ml-64');
+            if (save) localStorage.setItem(SIDEBAR_KEY, 'expanded');
         }
 
         document.querySelectorAll('.link-text').forEach(e => e.classList.remove('hidden'));
         sidebarText.classList.remove('hidden');
         chevron?.classList.replace('fa-chevron-right','fa-chevron-left');
-
-        save && localStorage.setItem(SIDEBAR_KEY, 'expanded');
     }
 
-
-    /* Close mobile menu on resize */
+    /* Close mobile menu on resize and reset state */
     window.addEventListener('resize', () => {
         if (!isDesktop()) {
-            pageContent?.classList.remove('lg:ml-64','lg:ml-20');
-            pageContent?.classList.add('ml-0');
+            closeMobile();
+            expand(false); // Reset to full width for mobile view
+        } else {
+            // Re-apply the user's desktop preference
+            const state = localStorage.getItem(SIDEBAR_KEY) || 'expanded';
+            state === 'collapsed' ? collapse(false) : expand(false);
         }
     });
-
 });
 </script>

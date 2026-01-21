@@ -42,6 +42,8 @@
                 <div class="stat-value text-secondary">
                     {% if customer.household_type == "F" %}Female Headed
                     {% elif customer.household_type == "M" %}Male Headed
+                    {% elif customer.household_type == "C" %}Child Headed
+                    {% elif customer.household_type == "P" %}Prefer not to say
                     {% else %}Other{% endif %}
                 </div>
             </div>
@@ -85,13 +87,20 @@
                     <div class="font-medium">
                         {% if customer.gender == "F" %}Female
                         {% elif customer.gender == "M" %}Male
+                        {% elif customer.gender == "P" %}Prefer not to say
                         {% else %}Other{% endif %}
                     </div>
                 </div>
 
                 <div>
                     <span class="text-gray-500">Preferred Language</span>
-                    <div class="font-medium">{{ customer.preferred_language|default:"—" }}</div>
+                    <div class="font-medium">
+                        {% if customer.preferred_language == "EN" %}English
+                        {% elif customer.preferred_language == "SW" %}Swahili
+                        {% elif customer.preferred_language == "NA" %}Native
+                        {% else %}-{% endif %}
+
+                    </div>
                 </div>
 
                 <div>

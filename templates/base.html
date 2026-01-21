@@ -14,6 +14,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
     
 
 </head>
@@ -32,6 +34,19 @@
 }
 @view-transition {
     navigation: auto; /* smooth transitions on DOM updates */
+}
+/* When the request is active, show the indicator */
+.htmx-request#htmx-loading,
+.htmx-request #htmx-loading {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Ensure the indicator is hidden by default */
+#htmx-loading {
+    display: flex; /* Keeps flex centering active */
+    opacity: 0;
+    transition: opacity 200ms ease-in-out;
 }
 </style>
 

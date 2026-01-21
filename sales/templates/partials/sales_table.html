@@ -52,7 +52,9 @@
                             hx-get="{% url 'sales_page' %}?sort={{ field }}&dir={{ next_dirs|get_item:field }}&q={{ search_query }}"
                             hx-target="#sales-table"
                             hx-push-url="true"
-                            class="flex items-center gap-1 hover:underline cursor-pointer"
+                            hx-indicator="#htmx-loading"
+                            class="flex items-center gap-1 cursor-pointer"
+                            title="Click to sort by {{ label }}"
                         >
                             {{ label }}
                             {% if current_sort == field %}
@@ -72,14 +74,14 @@
             <tbody>
                 {% for sale in page_obj %}
                 <tr>
-                    <td>{{ sale.date|date:"j M Y H:i" }}</td>
+                    <td>{{ sale.date|date:"j M Y h:i:s A" }}</td>
                     <td>{{ sale.product_serial_number }}</td>
                     <td>{{ sale.product_name }}</td>
                     <td>{{ sale.sales_rep }}</td>
                     <td>{% if sale.customer %} {{ sale.customer.name }} {% else %} - {% endif %} </td>
                     <td>
                         <a href="{% url 'sale_detail' sale.id %}"
-                        class="btn btn-primary text-white" title="{{ c.name|truncatewords:1|slice:"-2" }}'s data">
+                        class="btn btn-primary text-white" title="{{ sale.customer.name|truncatewords:1|slice:"-2" }}'s sale">
                            View <i class="fa-solid fa-binoculars"></i>
                         </a>
                     </td>
@@ -101,8 +103,9 @@
             hx-get="{% url 'sales_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}"
             hx-target="#sales-table"
             hx-push-url="true"
-            class="btn btn-soft btn-accent cursor-pointer"
-        >Previous</a>
+            hx-indicator="#htmx-loading"
+            class="btn btn-soft btn-accent cursor-pointer hover:text-white"
+        ><i class="fa-solid fa-backward-step"></i> Previous</a>
         {% else %}
         <span class="btn btn-disabled">Previous</span>
         {% endif %}
@@ -113,9 +116,10 @@
         <a
             hx-get="{% url 'sales_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}"
             hx-target="#sales-table"
+            hx-indicator="#htmx-loading"
             hx-push-url="true"
-            class="btn btn-soft btn-success cursor-pointer"
-        >Next</a>
+            class="btn btn-soft btn-success cursor-pointer hover:text-white"
+        >Next <i class="fa-solid fa-forward-step"></i></a>
         {% else %}
         <span class="btn btn-disabled">Next</span>
         {% endif %}

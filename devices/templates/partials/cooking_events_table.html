@@ -1,0 +1,156 @@
+{% load dict_extras %}
+{% load math_filters %}
+
+<!-- COOKING EVENTS TABLE -->
+<div class="card bg-base-100 shadow mt-6">
+            <div class="card-body">
+                <h3 class="text-lg font-semibold mb-4">
+                    Cooking Events
+                </h3>
+
+                <div class="bg-base-100 rounded-lg shadow-sm overflow-x-auto">
+                    <table class="table w-full">
+                        <thead class="bg-success uppercase">
+                        <tr>
+                            <th class="text-white">
+                                <a
+                                    hx-get="{% url 'device_detail' device.deviceid %}?sort=start&dir={{ next_dirs.start }}"
+                                    hx-target="#cooking-events-table"
+                                    hx-push-url="true"
+                                    hx-indicator="#htmx-loading"
+                                    class="flex items-center gap-1 cursor-pointer"
+                                >
+                                    Start Time
+                                    {% if current_sort == "start" %}
+                                        {% if current_dir == "asc" %}
+                                            <i class="fa-solid fa-arrow-up"></i>
+                                        {% else %}
+                                            <i class="fa-solid fa-arrow-down"></i>
+                                        {% endif %}
+                                    {% endif %}
+                                </a>
+                            </th>
+
+                            <th class="text-white">
+                                <a
+                                    hx-get="{% url 'device_detail' device.deviceid %}?sort=end&dir={{ next_dirs.end }}"
+                                    hx-target="#cooking-events-table"
+                                    hx-push-url="true"
+                                    hx-indicator="#htmx-loading"
+                                    class="flex items-center gap-1 cursor-pointer"
+                                >
+                                    End Time
+                                    {% if current_sort == "end" %}
+                                        {% if current_dir == "asc" %}
+                                            <i class="fa-solid fa-arrow-up"></i>
+                                        {% else %}
+                                            <i class="fa-solid fa-arrow-down"></i>
+                                        {% endif %}
+                                    {% endif %}
+                                </a>
+                            </th>
+
+                            <th class="text-white">
+                                <a
+                                    hx-get="{% url 'device_detail' device.deviceid %}?sort=duration&dir={{ next_dirs.duration }}"
+                                    hx-target="#cooking-events-table"
+                                    hx-push-url="true"
+                                    hx-indicator="#htmx-loading"
+                                    class="flex items-center gap-1 cursor-pointer"
+                                >
+                                    Duration (min)
+                                    {% if current_sort == "duration" %}
+                                        {% if current_dir == "asc" %}
+                                            <i class="fa-solid fa-arrow-up"></i>
+                                        {% else %}
+                                            <i class="fa-solid fa-arrow-down"></i>
+                                        {% endif %}
+                                    {% endif %}
+                                </a>
+                            </th>
+
+                            <th class="text-white">
+                                <a
+                                    hx-get="{% url 'device_detail' device.deviceid %}?sort=energy&dir={{ next_dirs.energy }}"
+                                    hx-target="#cooking-events-table"
+                                    hx-push-url="true"
+                                    hx-indicator="#htmx-loading"
+                                    class="flex items-center gap-1 cursor-pointer"
+                                >
+                                    Energy (kWh)
+                                    {% if current_sort == "energy" %}
+                                        {% if current_dir == "asc" %}
+                                            <i class="fa-solid fa-arrow-up"></i>
+                                        {% else %}
+                                            <i class="fa-solid fa-arrow-down"></i>
+                                        {% endif %}
+                                    {% endif %}
+                                </a>
+                            </th>
+
+                            <th class="text-white rounded-tr-lg">Estimated Cost (Ksh.)</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for e in cooking_event_rows %}
+                            <tr>
+                                
+                                <td>{{ e.start|date:"j M Y h:i:s A" }}</td>
+                                <td>{{ e.end|date:"j M Y h:i:s A" }}</td>
+                                <td>{{ e.duration }}</td>
+                                <td>{{ e.energy }}</td>
+                                <td>{{ e.energy|multiply:14.32|floatformat:1 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-gray-500">
+                                    No cooking events detected
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination -->
+                    {% if cooking_event_rows.has_other_pages %}
+                    <div class="flex justify-between mt-4 items-center mb-4">
+                        {% if cooking_event_rows.has_previous %}
+                            <a
+                                hx-get="{% url 'device_detail' device.deviceid %}?page={{ cooking_event_rows.previous_page_number }}&sort={{ current_sort }}&dir={{ current_dir }}"
+                                hx-target="#cooking-events-table"
+                                hx-push-url="true"
+                                hx-indicator="#htmx-loading"
+                                class="btn btn-soft btn-accent hover:text-white"
+                            >
+
+                                <i class="fa-solid fa-backward-step"></i>
+                                Previous
+                            </a>
+                        {% else %}
+                            <span class="btn btn-outline btn-disabled">Previous</span>
+                        {% endif %}
+
+                        <span class="font-medium">
+                            Page {{ cooking_event_rows.number }} of {{ cooking_event_rows.paginator.num_pages }}
+                        </span>
+
+                        {% if cooking_event_rows.has_next %}
+                            <a
+                                hx-get="{% url 'device_detail' device.deviceid %}?page={{ cooking_event_rows.next_page_number }}&sort={{ current_sort }}&dir={{ current_dir }}"
+                                hx-target="#cooking-events-table"
+                                hx-push-url="true"
+                                hx-indicator="#htmx-loading"
+                                class="btn btn-soft btn-success hover:text-white"
+                            >
+
+                                Next
+                                <i class="fa-solid fa-forward-step"></i>
+                            </a>
+                        {% else %}
+                            <span class="btn btn-outline btn-disabled">Next</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+            </div>
+</div>

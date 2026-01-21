@@ -55,6 +55,7 @@
                                 hx-push-url="true"
                                 hx-indicator="#htmx-loading"
                                 class="flex items-center gap-1 cursor-pointer"
+                                title="Click to sort by {{ label }}" 
                             >
                                 {{ label }}
                                 {% if current_sort == field %}
@@ -91,7 +92,12 @@
                     <td>{{ c.name }}</td>
                     <td>{{ c.phone_number }}</td>
                     <td>{{ c.location }}</td>
-                    <td>{{ c.gender }}</td>
+                    <td>
+                        {% if c.gender == "M" %}Male
+                        {% elif c.gender == "F" %}Female
+                        {% elif c.gender == "P" %}Prefer not to say
+                        {% else %}Other{% endif %}
+                    </td>
                     <td>{{ c.household_size }}</td>
                     <td>{{ c.date|date:"j M Y" }}</td>
                     {% if is_superadmin %}
