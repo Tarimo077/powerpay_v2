@@ -25,17 +25,45 @@
 
         <!-- CHARTS -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="card bg-base-100 shadow p-4">
-                <h3 class="font-semibold mb-2">Inventory Growth</h3>
-                <div class="flex-1">
-                    <canvas id="inventoryGrowthChart"></canvas>
+            <div id="inventoryGrowth" class="card bg-base-100 shadow p-4 border-none outline-none">
+                <div class="flex justify-between items-center mb-2 border-none outline-none">
+                    <h3 class="text-lg font-semibold border-none outline-none">
+                        Inventory Growth
+                    </h3>
+
+                    <!-- This button will NOT appear in download -->
+                    <button
+                        data-ignore-download
+                        onclick="downloadCard('inventoryGrowth', 'inventory-growth.png')"
+                        class="btn btn-sm btn-outline btn-success hover:text-white"
+                    >
+                        <i class="fas fa-download mr-2"></i>
+                        Download
+                    </button>
+                </div>
+                <div class="flex-1 border-none outline-none">
+                    <canvas id="inventoryGrowthChart" class="border-none outline-none"></canvas>
                 </div>
             </div>
 
-            <div class="card bg-base-100 shadow p-4">
-                <h3 class="font-semibold mb-2">Items per Warehouse</h3>
-                <div class="flex-1">
-                    <canvas id="warehouseChart"></canvas>
+            <div id="itemsWarehouse" class="card bg-base-100 shadow p-4 border-none outline-none flex flex-col">
+                <div class="flex justify-between items-center mb-2 border-none outline-none">
+                    <h3 class="text-lg font-semibold border-none">
+                        Items Per Warehouse
+                    </h3>
+
+                    <!-- This button will NOT appear in download -->
+                    <button
+                        data-ignore-download
+                        onclick="downloadCard('itemsWarehouse', 'items-warehouse.png')"
+                        class="btn btn-sm btn-outline btn-success hover:text-white"
+                    >
+                        <i class="fas fa-download mr-2"></i>
+                        Download
+                    </button>
+                </div>
+                <div class="flex-1 border-none outline-none">
+                    <canvas id="warehouseChart" class="border-none outline-none"></canvas>
                 </div>
             </div>
         </div>

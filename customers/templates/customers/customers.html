@@ -37,19 +37,49 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div class="card bg-base-100 p-4 rounded-lg shadow flex-col">
-                    <h3 class="font-semibold mb-2 text-lg">Customers by Gender</h3>
-                    <div class="flex-1">
-                        <canvas id="genderChart"></canvas>
+
+                <div id="customerGender" class="card bg-base-100 p-4 rounded-lg shadow flex-col border-none outline-none">
+                    <div class="flex justify-between items-center mb-2 border-none outline-none">
+                        <h3 class="text-lg font-semibold border-none outline-none">
+                            Customer By Gender
+                        </h3>
+
+                        <!-- This button will NOT appear in download -->
+                        <button
+                            data-ignore-download
+                            onclick="downloadCard('customerGender', 'customer-gender.png')"
+                            class="btn btn-sm btn-outline btn-success hover:text-white"
+                        >
+                            <i class="fas fa-download mr-2"></i>
+                            Download
+                        </button>
+                    </div>
+                    <div class="flex-1 border-none outline-none">
+                        <canvas id="genderChart" class="border-none outline-none"></canvas>
                     </div>
                 </div>
 
-                <div class="card bg-base-100 p-4 rounded-lg shadow flex-col">
-                    <h3 class="font-semibold mb-2 text-lg">Customer Growth</h3>
-                    <div class="flex-1">
-                        <canvas id="customerGrowthChart"></canvas>
+                <div id="customerGrowth" class="card bg-base-100 p-4 rounded-lg shadow flex-col">
+                    <div class="flex justify-between items-center mb-2 border-none outline-none">
+                        <h3 class="text-lg font-semibold border-none outline-none">
+                            Customer Growth
+                        </h3>
+
+                        <!-- This button will NOT appear in download -->
+                        <button
+                            data-ignore-download
+                            onclick="downloadCard('customerGrowth', 'customer-growth.png')"
+                            class="btn btn-sm btn-outline btn-success hover:text-white"
+                        >
+                            <i class="fas fa-download mr-2"></i>
+                            Download
+                        </button>
+                    </div>
+                    <div class="flex-1 border-none outline-none">
+                        <canvas id="customerGrowthChart" class="border-none outline-none"></canvas>
                     </div>
                 </div>
+
             </div>
 
 

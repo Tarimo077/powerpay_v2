@@ -1,5 +1,5 @@
 {% load dict_extras %}
-<div id="sales-table" class="relative">
+<div id="sales-table" class="relative mb-4">
 
     <!-- HTMX LOADER -->
     <div id="htmx-loading"
@@ -59,9 +59,9 @@
                             {{ label }}
                             {% if current_sort == field %}
                                 {% if current_dir == "asc" %}
-                                    <i class="fa-solid fa-arrow-up"></i>
+                                    <i class="fa-solid fa-sort-up"></i>
                                 {% else %}
-                                    <i class="fa-solid fa-arrow-down"></i>
+                                    <i class="fa-solid fa-sort-down"></i>
                                 {% endif %}
                             {% endif %}
                         </a>

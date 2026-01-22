@@ -9,12 +9,14 @@
 
     {% include "partials/sidebar.html" %}
 
-    <div class="flex-1 p-6 space-y-6" id="page-content">
+    <div id="page-content"
+     class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
+            lg:ml-64 ml-0">
 
-        <h2 class="text-2xl font-bold">Sales</h2>
+        <h2 class="text-2xl font-bold mb-6">Sales</h2>
 
         <!-- STATS -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-success">
                 <div class="stat-title">Total Sales</div>
                 <div class="stat-value text-success">{{ total_sales|intcomma }}</div>
@@ -27,19 +29,47 @@
         </div>
 
         <!-- CHARTS -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
 
-            <div class="bg-base-100 p-4 rounded-lg shadow">
-                <h3 class="font-semibold mb-2">Sales Growth</h3>
-                <div class="flex-1">
-                    <canvas id="salesGrowthChart"></canvas>
+            <div id="salesGrowth" class="bg-base-100 p-4 rounded-lg shadow outline-none border-none">
+                <div class="flex justify-between items-center mb-2 border-none outline-none">
+                    <h3 class="text-lg font-semibold border-none outline-none">
+                        Sales Growth
+                    </h3>
+
+                    <!-- This button will NOT appear in download -->
+                    <button
+                        data-ignore-download
+                        onclick="downloadCard('salesGrowth', 'sales-growth.png')"
+                        class="btn btn-sm btn-outline btn-success hover:text-white"
+                    >
+                        <i class="fas fa-download mr-2"></i>
+                        Download
+                    </button>
+                </div>
+                <div class="flex-1 border-none outline-none">
+                    <canvas id="salesGrowthChart" class="border-none outline-none"></canvas>
                 </div>
             </div>
 
-            <div class="bg-base-100 p-4 rounded-lg shadow">
-                <h3 class="font-semibold mb-2">Sales by Purchase Mode</h3>
-                <div class="flex-1">
-                    <canvas id="salesProductChart"></canvas>
+            <div id="salesPurchaseMode" class="bg-base-100 p-4 rounded-lg shadow outline-none border-none">
+                <div class="flex justify-between items-center mb-2 border-none outline-none">
+                    <h3 class="text-lg font-semibold border-none outline-none">
+                        Sales by Purchase Mode
+                    </h3>
+
+                    <!-- This button will NOT appear in download -->
+                    <button
+                        data-ignore-download
+                        onclick="downloadCard('salesPurchaseMode', 'sales-purchase-mode.png')"
+                        class="btn btn-sm btn-outline btn-success hover:text-white"
+                    >
+                        <i class="fas fa-download mr-2"></i>
+                        Download
+                    </button>
+                </div>
+                <div class="flex-1 outline-none border-none">
+                    <canvas id="salesProductChart" class="border-none outline-none"></canvas>
                 </div>
             </div>
 

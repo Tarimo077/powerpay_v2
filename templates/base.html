@@ -16,7 +16,7 @@
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-    
+    <script src="https://unpkg.com/dom-to-image-more@3.2.0/dist/dom-to-image-more.min.js"></script>
 
 </head>
 
@@ -69,6 +69,47 @@ document.addEventListener('click', function(event){
         dropdown.classList.add('hidden');
     }
 });
+
+function downloadCard(cardId, fileName) {
+    const card = document.getElementById(cardId);
+    if (!card) return;
+
+    const ignored = card.querySelectorAll('[data-ignore-download]');
+    ignored.forEach(el => el.style.display = 'none');
+
+    // TEMPORARY STYLING FOR CLEAN IMAGE
+    const originalBoxShadow = card.style.boxShadow;
+    const originalBorder = card.style.border; // Store original
+    card.style.boxShadow = 'none';
+    card.style.border = 'none'; // REMOVE BORDER
+
+    domtoimage.toPng(card, {
+        quality: 1,
+        scale: 2,
+        bgcolor: '#ffffff', // Force white background to prevent transparent artifacts
+        style: {
+            'margin': '0',
+            'padding': '20px', // Add a little breathing room inside the image
+            'border': 'none',
+            'outline': 'none'
+        }
+    })
+    .then(dataUrl => {
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = dataUrl;
+        link.click();
+    })
+    .catch(err => {
+        console.error('Download failed:', err);
+    })
+    .finally(() => {
+        // RESTORE ORIGINAL UI
+        card.style.boxShadow = originalBoxShadow;
+        card.style.border = originalBorder; // Restore original
+        ignored.forEach(el => el.style.display = '');
+    });
+}
 </script>
 </body>
 </html>

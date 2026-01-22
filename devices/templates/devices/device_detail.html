@@ -98,17 +98,45 @@
         <!-- CHARTS -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            <div class="card bg-base-100 shadow p-4 flex flex-col">
-                <h3 class="text-lg font-semibold mb-2">Energy Usage (7 Days)</h3>
-                <div class="flex-1">
-                    <canvas id="energyChart" class="w-full h-full"></canvas>
+            <div id="energy7days" class="card bg-base-100 shadow p-4 flex flex-col border-none outline-none">
+                <div class="flex justify-between items-center mb-2 border-none outline-none">
+                    <h3 class="text-lg font-semibold border-none outline-none">
+                        Energy Usage (7 days)
+                    </h3>
+
+                    <!-- This button will NOT appear in download -->
+                    <button
+                        data-ignore-download
+                        onclick="downloadCard('energy7days', 'energy-7days.png')"
+                        class="btn btn-sm btn-outline btn-success hover:text-white"
+                    >
+                        <i class="fas fa-download mr-2"></i>
+                        Download
+                    </button>
+                </div>
+                <div class="flex-1 border-none outline-none">
+                    <canvas id="energyChart" class="border-none outline-none h-full w-full"></canvas>
                 </div>
             </div>
 
-            <div class="card bg-base-100 shadow p-4 flex flex-col">
-                <h3 class="font-semibold mb-2">Cooking Events (Last 7 Days)</h3>
-                <div class="flex-1">
-                    <canvas id="eventsChart"></canvas>
+            <div id="cookingEvents7d" class="card bg-base-100 shadow p-4 flex flex-col">
+                <div class="flex justify-between items-center mb-2 border-none outline-none">
+                    <h3 class="text-lg font-semibold border-none outline-none">
+                        Cooking Events (7 days)
+                    </h3>
+
+                    <!-- This button will NOT appear in download -->
+                    <button
+                        data-ignore-download
+                        onclick="downloadCard('cookingEvents7d', 'cooking-events-7d.png')"
+                        class="btn btn-sm btn-outline btn-success hover:text-white"
+                    >
+                        <i class="fas fa-download mr-2"></i>
+                        Download
+                    </button>
+                </div>
+                <div class="flex-1 border-none outline-none">
+                    <canvas id="eventsChart" class="border-none outline-none"></canvas>
                 </div>
             </div>
 

@@ -67,41 +67,96 @@
                 </div>
             </div>
 
-            <!-- Add more financial cards here if needed -->
         </div>
 
         <!-- CHARTS SECTION -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
             <!-- Device Status Pie Chart -->
-            <div class="card bg-base-100 shadow p-4 flex flex-col">
-                <h3 class="text-lg font-semibold mb-2">Device Status</h3>
-                <div class="flex-1">
-                    <canvas id="deviceStatusChart" class="w-full h-full"></canvas>
+            <div id="deviceStatus" class="card bg-base-100 shadow p-4 flex flex-col border-none outline-none">
+                <div class="flex justify-between items-center mb-2 border-none outline-none">
+                        <h3 class="text-lg font-semibold border-none outline-none">
+                            Device Status
+                        </h3>
+
+                        <!-- This button will NOT appear in download -->
+                        <button
+                            data-ignore-download
+                            onclick="downloadCard('deviceStatus', 'device-status.png')"
+                            class="btn btn-sm btn-outline btn-success hover:text-white"
+                        >
+                            <i class="fas fa-download mr-2"></i>
+                            Download
+                        </button>
+                </div>
+                <div class="flex-1 border-none outline-none">
+                    <canvas id="deviceStatusChart" class="w-full h-full border-none outline-none"></canvas>
                 </div>
             </div>
 
             <!-- kWh Line Chart -->
-            <div class="card bg-base-100 shadow p-4 flex flex-col">
-                <h3 class="text-lg font-semibold mb-2">Energy Usage Last 7 Days</h3>
-                <div class="flex-1">
-                    <canvas id="kwhLineChart" class="w-full h-full"></canvas>
+            <div id="energy7d" class="card bg-base-100 shadow p-4 flex flex-col">
+                <div class="flex justify-between items-center mb-2 border-none outline-none">
+                        <h3 class="text-lg font-semibold border-none outline-none">
+                            Energy Use (7 days)
+                        </h3>
+
+                        <!-- This button will NOT appear in download -->
+                        <button
+                            data-ignore-download
+                            onclick="downloadCard('energy7d', 'energy-7d.png')"
+                            class="btn btn-sm btn-outline btn-success hover:text-white"
+                        >
+                            <i class="fas fa-download mr-2"></i>
+                            Download
+                        </button>
+                </div>
+                <div class="flex-1 outline-none border-none">
+                    <canvas id="kwhLineChart" class="w-full h-full border-none outline-none"></canvas>
                 </div>
             </div>
 
             <!-- Money by Org Pie Chart -->
-            <div class="card bg-base-100 shadow p-4 flex flex-col">
-                <h3 class="text-lg font-semibold mb-2">Money by Organization</h3>
-                <div class="flex-1">
-                    <canvas id="moneyByOrgChart" class="w-full h-full"></canvas>
+            <div id="moneyOrg" class="card bg-base-100 shadow p-4 flex flex-col border-none outline-none">
+                <div class="flex justify-between items-center mb-2 border-none outline-none">
+                        <h3 class="text-lg font-semibold border-none outline-none">
+                            Money by Organization
+                        </h3>
+
+                        <!-- This button will NOT appear in download -->
+                        <button
+                            data-ignore-download
+                            onclick="downloadCard('moneyOrg', 'money-org.png')"
+                            class="btn btn-sm btn-outline btn-success hover:text-white"
+                        >
+                            <i class="fas fa-download mr-2"></i>
+                            Download
+                        </button>
+                </div>
+                <div class="flex-1 border-none outline-none">
+                    <canvas id="moneyByOrgChart" class="w-full h-full border-none outline-none"></canvas>
                 </div>
             </div>
 
             <!-- Money Over Last 7 Days Line Chart -->
-            <div class="card bg-base-100 shadow p-4 flex flex-col">
-                <h3 class="text-lg font-semibold mb-2">Money In Last 7 Days</h3>
-                <div class="flex-1">
-                    <canvas id="moneyLineChart" class="w-full h-full"></canvas>
+            <div id="money-7d" class="card bg-base-100 shadow p-4 flex flex-col border-none outline-none">
+                <div class="flex justify-between items-center mb-2 border-none outline-none">
+                        <h3 class="text-lg font-semibold border-none outline-none">
+                            Money In (7 days)
+                        </h3>
+
+                        <!-- This button will NOT appear in download -->
+                        <button
+                            data-ignore-download
+                            onclick="downloadCard('money-7d', 'money-7d.png')"
+                            class="btn btn-sm btn-outline btn-success hover:text-white"
+                        >
+                            <i class="fas fa-download mr-2"></i>
+                            Download
+                        </button>
+                </div>
+                <div class="flex-1 border-none outline-none">
+                    <canvas id="moneyLineChart" class="w-full h-full border-none outline-none"></canvas>
                 </div>
             </div>
 
