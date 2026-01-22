@@ -5,6 +5,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models.functions import TruncMonth
 from customers.models import Customer
+from sales.models import Sale
 from django.contrib.auth.decorators import login_required
 
 @login_required
@@ -159,12 +160,76 @@ def customers_page(request):
         },
     )
 
+
 @login_required
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
 
-    context = {
-        "customer": customer
+    # ---- SALES TABLE LOGIC ----
+    search_query = request.GET.get("q", "").strip()
+    sort = request.GET.get("sort", "date")
+    direction = request.GET.get("dir", "desc")
+
+    allowed_sorts = {
+        "date": "date",
+        "product": "product_name",
+        "serial": "product_serial_number",
+        "sales_rep": "sales_rep",
     }
+
+    if sort not in allowed_sorts:
+        sort = "date"
+    if direction not in ("asc", "desc"):
+        direction = "desc"
+
+    order = f"-{allowed_sorts[sort]}" if direction == "desc" else allowed_sorts[sort]
+
+    sales_qs = (
+        Sale.objects
+        .filter(customer=customer)
+        .order_by(order)
+    )
+
+    if search_query:
+        sales_qs = sales_qs.filter(
+            Q(product_name__icontains=search_query)
+            | Q(product_serial_number__icontains=search_query)
+            | Q(sales_rep__icontains=search_query)
+        )
+
+    paginator = Paginator(sales_qs, 10)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    table_fields = [
+        ("date", "Date"),
+        ("product", "Product Name"),
+        ("serial", "Serial Number"),
+        ("sales_rep", "Sales Rep"),
+    ]
+
+    next_dirs = {}
+    for f, _ in table_fields:
+        if f == sort:
+            next_dirs[f] = "desc" if direction == "asc" else "asc"
+        else:
+            next_dirs[f] = "asc"
+
+    context = {
+        "customer": customer,
+        "page_obj": page_obj,
+        "fields": table_fields,
+        "current_sort": sort,
+        "current_dir": direction,
+        "search_query": search_query,
+        "next_dirs": next_dirs,
+    }
+
+    # HTMX → return only the table
+    if request.headers.get("HX-Request"):
+        return render(
+            request,
+            "partials/customer_sales_table.html",
+            context,
+        )
 
     return render(request, "customers/customer_detail.html", context)

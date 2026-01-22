@@ -1,15 +1,19 @@
 {% extends "base.html" %}
 {% load humanize %}
-
+{% load dict_extras %}
 {% block content %}
 
 {% include "partials/navbar.html" %}
 
-<div class="flex min-h-screen bg-base-200 overflow-hidden">
+<div class="flex min-h-screen overflow-hidden bg-base-200">
 
+    <!-- Sidebar -->
     {% include "partials/sidebar.html" %}
 
-    <div id="page-content" class="flex-1 p-6 space-y-6">
+    <!-- Main Content -->
+    <div id="page-content"
+     class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
+            lg:ml-64 ml-0 space-y-6">
 
         <!-- HEADER -->
         <div class="flex items-center justify-between">
@@ -125,6 +129,14 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+        <!-- CUSTOMER SALES -->
+        <div class="space-y-2">
+            <h3 class="text-lg font-semibold">Sales</h3>
+
+            <div id="customer-sales-table" class="relative">
+                {% include "partials/customer_sales_table.html" %}
             </div>
         </div>
 
