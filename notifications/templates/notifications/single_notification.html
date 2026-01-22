@@ -1,0 +1,58 @@
+{% load humanize %}
+<li id="notif-{{ notification.id }}"
+            class="px-4 py-4 rounded-lg shadow-sm transition
+                   {% if not notification.is_read %}
+                     {% if notification.type == 'info' %} border-l-4 border-blue-500 bg-blue-50 border-r-4
+                     {% elif notification.type == 'warning' %} border-l-4 border-yellow-500 bg-yellow-50 border-r-4
+                     {% elif notification.type == 'error' %} border-l-4 border-red-500 bg-red-50 border-r-4
+                     {% elif notification.type == 'success' %} border-l-4 border-green-500 bg-green-50 border-r-4
+                     {% endif %}
+                   {% else %}
+                     border border-gray-200 bg-white
+                   {% endif %}">
+          <div class="flex justify-between items-start gap-4">
+
+            <!-- Left: icon + text -->
+            <div class="flex gap-3">
+              <div class="mt-1 text-xl">
+                {% if notification.type == "info" %}
+                  <i class="fa-solid fa-circle-info text-blue-500"></i>
+                {% elif notification.type == "warning" %}
+                  <i class="fa-solid fa-triangle-exclamation text-yellow-500"></i>
+                {% elif notification.type == "error" %}
+                  <i class="fa-solid fa-circle-exclamation text-red-500"></i>
+                {% elif notification.type == "success" %}
+                  <i class="fa-solid fa-circle-check text-green-500"></i>
+                {% else %}
+                  <i class="fa-solid fa-bell text-gray-500"></i>
+                {% endif %}
+              </div>
+
+              <div>
+                <div class="font-semibold text-gray-700">{{ notification.title }}</div>
+                <p class="text-gray-600 text-sm mt-1">{{ notification.message }}</p>
+                <p class="text-gray-400 text-xs mt-2">{{ notification.created_at|naturaltime }}</p>
+              </div>
+            </div>
+
+            <!-- Right: action -->
+            <div class="flex items-start">
+              {% if not notification.is_read %}
+              <button
+                  class="text-xs px-2 py-1 rounded font-medium transition
+                         {% if notification.type == 'info' %} text-blue-600 hover:bg-blue-100
+                         {% elif notification.type == 'warning' %} text-yellow-600 hover:bg-yellow-100
+                         {% elif notification.type == 'error' %} text-red-600 hover:bg-red-100
+                         {% elif notification.type == 'success' %} text-green-600 hover:bg-green-100
+                         {% else %} text-blue-600 hover:bg-gray-100 {% endif %}"
+                  hx-post="{% url 'notifications:mark_read_list' notification.id %}"
+                  hx-target="#notif-{{ notification.id }}"
+                  hx-swap="outerHTML"
+                  hx-on:afterRequest="htmx.trigger('#notifCount','refresh')">
+                Mark read
+              </button>
+              {% endif %}
+            </div>
+
+          </div>
+        </li>

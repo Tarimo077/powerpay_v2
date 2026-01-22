@@ -90,10 +90,11 @@
             <span class="link-text">Transactions</span>
         </a>
 
-        <a href="#"
-           class="flex items-center gap-4 p-4 mx-3 text-gray-600 hover:text-green-400 rounded-sm transition">
-            <i class="fas fa-gear w-5"></i>
-            <span class="link-text">Settings</span>
+        <a href="{% url 'support_ticket_list' %}"
+           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
+           {% if 'support' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+            <i class="fa-solid fa-headset w-5"></i>
+            <span class="link-text">Support</span>
         </a>
 
         <form method="post" action="{% url 'logout' %}" class="mt-auto w-full">

@@ -13,6 +13,7 @@ from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Sum 
+from notifications.utils import notify
 
 
 COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
@@ -284,6 +285,10 @@ def change_device_status(request):
         new_status = data.get("status", not current_status)
         updated_time_str = data.get("time")
         updated_time = None
+        if new_status:
+            notify(request.user, "Device Activation", f"{deviceid} has been activated.","success")
+        else:
+            notify(request.user, "Device Deactivation", f"{deviceid} has been deactivated.","warning")
         if updated_time_str:
             dt = parse_datetime(updated_time_str)
             if dt:

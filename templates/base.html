@@ -50,6 +50,25 @@
 }
 </style>
 
-  
+<script>
+document.body.addEventListener("htmx:configRequest", (event) => {
+    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+    event.detail.headers["X-CSRFToken"] = csrfToken;
+});
+</script>
+<script>
+document.addEventListener('click', function(event){
+    const dropdown = document.getElementById('notifDropdown');
+    const btn = document.getElementById('notifDropdownBtn');
+
+    if (!btn || !dropdown) return; // <-- prevent errors if elements don't exist
+
+    if (btn.contains(event.target)) {
+        dropdown.classList.toggle('hidden');
+    } else if (!dropdown.contains(event.target)) {
+        dropdown.classList.add('hidden');
+    }
+});
+</script>
 </body>
 </html>

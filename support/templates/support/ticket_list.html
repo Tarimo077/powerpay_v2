@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
+            lg:ml-64 ml-0 space-y-6" id="page-content">
+
+        <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                 My Tickets
+        </h2>
+        <div class="bg-white shadow-lg rounded-xl p-6 w-full">
+
+            <div class="flex justify-end mb-4">
+                <a href="{% url 'create_ticket' %}" 
+                class="btn bg-green-600 text-white font-bold p-2 rounded-lg shadow-lg hover:bg-green-700 transition">
+                    <i class="fa-solid fa-ticket"></i> New Support Ticket
+                </a>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full table-auto border-collapse rounded-lg overflow-hidden"> <!-- FORCE FULL WIDTH -->
+                    <thead class="bg-green-600 text-white">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-lg">Subject</th>
+                            <th class="px-6 py-4 text-left text-lg">Status</th>
+                            <th class="px-6 py-4 text-left text-lg">Priority</th>
+                            <th class="px-6 py-4 text-left text-lg">Created</th>
+                            <th class="px-6 py-4 text-left text-lg">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for ticket in tickets %}
+                        <tr class="border-b hover:bg-gray-50 transition">
+
+                            <td class="px-6 py-4 font-semibold text-gray-700">
+                                {{ ticket.get_subject_display }}
+                            </td>
+
+                            <td class="px-6 py-4">
+                                <span class="px-3 py-1 text-white rounded-md text-sm font-semibold
+                                    {% if ticket.status == 'open' %} bg-yellow-500
+                                    {% elif ticket.status == 'in_progress' %} bg-blue-500
+                                    {% else %} bg-green-600 {% endif %}">
+                                    {{ ticket.get_status_display }}
+                                </span>
+                            </td>
+
+                            <td class="px-6 py-4 font-semibold 
+                                {% if ticket.priority == 'low' %} text-green-600
+                                {% elif ticket.priority == 'medium' %} text-yellow-600
+                                {% else %} text-red-600 {% endif %}
+                            ">
+                                {{ ticket.get_priority_display }}
+                            </td>
+
+                            <td class="px-6 py-4 text-gray-500">
+                                {{ ticket.created_at|date:"M d, Y H:i" }}
+                            </td>
+
+                            <td class="px-6 py-4">
+                                <a href="{% url 'ticket_detail' ticket.id %}" class="btn rounded-lg text-white text-sm bg-blue-500 p-2">
+                                    Details
+                                </a>
+                            </td>
+
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-6 text-center text-gray-500 text-lg">
+                                No tickets yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <form method="get" class="mt-4 mb-4 flex justify-end">
+            <label class="mr-2 mt-2 font-semibold">Items per page:</label>
+            <select name="per_page" onchange="this.form.submit()" class="border-green-600 rounded-lg">
+                <option value="5" {% if per_page == 5 %}selected{% endif %}>5</option>
+                <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
+            </select>
+        </form>
+
+        {% if tickets.has_other_pages %}
+        <div class="flex justify-center mt-6 mb-6">
+            <div class="flex items-center gap-2">
+
+                <!-- Prev Button -->
+                {% if tickets.has_previous %}
+                <a 
+                    href="?page={{ tickets.previous_page_number }}&per_page={{ per_page }}"
+                    class="px-4 py-2 rounded-full cursor-pointer bg-white shadow hover:bg-green-600 hover:text-white transition">
+                    <i class="fa-solid fa-backward m-1"></i> Prev
+                </a>
+                {% else %}
+                <button class="px-4 py-2 rounded-full bg-gray-200 text-gray-400 cursor-not-allowed shadow">
+                    <i class="fa-solid fa-backward m-1"></i> Prev
+                </button>
+                {% endif %}
+
+                <!-- Page Numbers -->
+                <div class="flex gap-2">
+                    {% for num in tickets.paginator.page_range %}
+                        {% if num == tickets.number %}
+                        <span class="px-4 py-2 rounded-full bg-green-600 text-white shadow font-semibold">
+                            {{ num }}
+                        </span>
+                        {% else %}
+                        <a 
+                            href="?page={{ num }}&per_page={{ per_page }}"
+                            class="px-4 py-2 rounded-full bg-white shadow hover:bg-orange-500 hover:text-white transition cursor-pointer">
+                            {{ num }}
+                        </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <!-- Next Button -->
+                {% if tickets.has_next %}
+                <a 
+                    href="?page={{ tickets.next_page_number }}&per_page={{ per_page }}"
+                    class="px-4 py-2 rounded-full bg-white shadow hover:bg-green-600 hover:text-white transition cursor-pointer">
+                    Next <i class="fa-solid fa-forward m-1"></i>
+                </a>
+                {% else %}
+                <button class="px-4 py-2 rounded-full bg-gray-200 text-gray-400 cursor-not-allowed shadow">
+                    Next <i class="fa-solid fa-forward m-1"></i>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Page Info -->
+        <p class="text-gray-600 font-medium mb-6 text-center">
+            Page <span class="text-green-600 font-semibold">{{ tickets.number }}</span>
+            of <span class="text-green-600 font-semibold">{{ tickets.paginator.num_pages }}</span>
+        </p>
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}
