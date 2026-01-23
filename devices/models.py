@@ -1,4 +1,5 @@
 from django.db import models
+from organizations.models import Organization
 
 # ----------------------
 # Device Energy Data (appliatrixdata)
@@ -24,7 +25,16 @@ class DeviceInfo(models.Model):
     deviceid = models.CharField(max_length=100)
     active = models.BooleanField()
     time = models.DateTimeField()
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.RESTRICT,
+        db_column="organization_id",
+        related_name="devices"
+    )
 
     class Meta:
-        managed = False  # read-only
+        managed = False
         db_table = "devactivity"
+
+    def __str__(self):
+        return self.deviceid

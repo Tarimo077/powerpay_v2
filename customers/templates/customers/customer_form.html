@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen overflow-hidden bg-base-200">
+
+    <!-- Sidebar -->
+    {% include "partials/sidebar.html" %}
+
+    <!-- Main Content -->
+    <div id="page-content"
+     class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
+            lg:ml-64 ml-0">
+
+        <!-- HEADER -->
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-bold">{{ title }}</h1>
+
+            <a href="{% url 'customers_page' %}"
+               class="btn btn-ghost btn-accent hover:text-white">
+                <i class="fa-solid fa-backward-step"></i> Back
+            </a>
+        </div>
+
+        <!-- FORM CARD -->
+        <div class="bg-base-100 shadow rounded-lg p-6 max-w-5xl">
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- FORM GRID -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <div>
+                        <label class="label">Name</label>
+                        {{ form.name }}
+                    </div>
+
+                    <div>
+                        <label class="label">ID Number</label>
+                        {{ form.id_number }}
+                    </div>
+
+                    <div>
+                        <label class="label">Phone Number</label>
+                        {{ form.phone_number }}
+                    </div>
+
+                    <div>
+                        <label class="label">Alternate Phone</label>
+                        {{ form.alternate_phone_number }}
+                    </div>
+
+                    <div>
+                        <label class="label">Email</label>
+                        {{ form.email }}
+                    </div>
+
+                    <div>
+                        <label class="label">Gender</label>
+                        {{ form.gender }}
+                    </div>
+
+                    <div>
+                        <label class="label">Household Type</label>
+                        {{ form.household_type }}
+                    </div>
+
+                    <div>
+                        <label class="label">Household Size</label>
+                        {{ form.household_size }}
+                    </div>
+
+                    <div>
+                        <label class="label">Preferred Language</label>
+                        {{ form.preferred_language }}
+                    </div>
+
+                    <div>
+                        <label class="label">Organization</label>
+                        {{ form.organization }}
+                    </div>
+
+                    <div>
+                        <label class="label">Location</label>
+                        {{ form.location }}
+                    </div>
+
+                    <div>
+                        <label class="label">County</label>
+                        {{ form.county }}
+                    </div>
+
+                    <div>
+                        <label class="label">Sub County</label>
+                        {{ form.sub_county }}
+                    </div>
+
+                </div>
+
+                <!-- ACTIONS -->
+                <div class="flex justify-end gap-2 mt-6">
+                    <a href="{% url 'customers_page' %}"
+                       class="btn btn-error text-white">
+                        <i class="fa-solid fa-ban"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-success text-white">
+                        <i class="fa-solid fa-floppy-disk"></i>Save Customer
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

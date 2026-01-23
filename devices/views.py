@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.timezone import now, make_aware, is_naive
 from .models import DeviceInfo, DeviceData
 from .services.energy import (
@@ -7,13 +7,15 @@ from .services.energy import (
 )
 from django.core.paginator import Paginator
 import requests
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Sum 
 from notifications.utils import notify
+from .forms import DeviceForm
+from django.views.decorators.http import require_POST
 
 
 COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
@@ -33,11 +35,11 @@ def device_list(request):
         device_stats.append({
             "device": d,
             "last_seen": last_energy_timestamp(d),
-            "kwh_today": kwh_for_device(
-                d,
-                now().replace(hour=0, minute=0, second=0, microsecond=0),
-                now()
-            )
+            #"kwh_today": kwh_for_device(
+            #    d,
+            #    now().replace(hour=0, minute=0, second=0, microsecond=0),
+            #    now()
+            #)
         })
 
     paginator = Paginator(device_stats, 10)
@@ -47,6 +49,7 @@ def device_list(request):
     context = {
         "device_stats": page_obj.object_list,
         "page_obj": page_obj,
+        "is_admin": request.user.is_superuser,
 
         # 👇 card stats
         "total_devices": total_devices,
@@ -382,3 +385,44 @@ def change_device_status_partial(request):
 
     except Exception as e:
         return HttpResponse(f"Unexpected error: {e}", status=500)
+    
+
+def superuser_required(view):
+    return user_passes_test(lambda u: u.is_superuser)(view)
+
+
+@superuser_required
+def device_create(request):
+    form = DeviceForm(request.POST or None, user=request.user)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect("devices_page")
+
+    return render(request, "devices/device_form.html", {
+        "form": form,
+        "title": "Add Device"
+    })
+
+
+@superuser_required
+def device_edit(request, deviceid):
+    device = get_object_or_404(DeviceInfo, deviceid=deviceid)
+    form = DeviceForm(request.POST or None, instance=device, user=request.user)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect("devices_page")
+
+    return render(request, "devices/device_form.html", {
+        "form": form,
+        "title": "Edit Device"
+    })
+
+
+@superuser_required
+@require_POST
+def device_delete(request, deviceid):
+    device = get_object_or_404(DeviceInfo, deviceid=deviceid)
+    device.delete()
+    return redirect("devices_page")

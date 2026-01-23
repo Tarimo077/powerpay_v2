@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen overflow-hidden bg-base-200">
+
+    <!-- Sidebar -->
+    {% include "partials/sidebar.html" %}
+
+    <!-- Main Content -->
+    <div id="page-content"
+         class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
+                lg:ml-64 ml-0">
+
+        <!-- HEADER -->
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-bold">{{ title }}</h1>
+
+            <a href="{% url 'sales_page' %}"
+               class="btn btn-ghost btn-accent hover:text-white">
+                <i class="fa-solid fa-backward-step"></i> Back
+            </a>
+        </div>
+
+        <!-- FORM CARD -->
+        <div class="bg-base-100 shadow rounded-lg p-6 max-w-6xl">
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- FORM GRID -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <div>
+                        <label class="label">Customer</label>
+                        {{ form.customer }}
+                    </div>
+
+                    <div>
+                        <label class="label">Referred By</label>
+                        {{ form.referred_by }}
+                    </div>
+
+                    <div>
+                        <label class="label">Registration Date</label>
+                        {{ form.registration_date }}
+                    </div>
+
+                    <div>
+                        <label class="label">Release Date</label>
+                        {{ form.release_date }}
+                    </div>
+
+                    <div>
+                        <label class="label">Product Type</label>
+                        {{ form.product_type }}
+                    </div>
+
+                    <div>
+                        <label class="label">Product Name</label>
+                        {{ form.product_name }}
+                    </div>
+
+                    <div>
+                        <label class="label">Product Model</label>
+                        {{ form.product_model }}
+                    </div>
+
+                    <div>
+                        <label class="label">Serial Number</label>
+                        {{ form.product_serial_number }}
+                    </div>
+
+                    <div>
+                        <label class="label">Purchase Mode</label>
+                        {{ form.purchase_mode }}
+                    </div>
+
+                    <div>
+                        <label class="label">Payment Plan</label>
+                        {{ form.payment_plan }}
+                    </div>
+
+                    <div>
+                        <label class="label">Sales Representative</label>
+                        {{ form.sales_rep }}
+                    </div>
+
+                    <div>
+                        <label class="label">Type of Use</label>
+                        {{ form.type_of_use }}
+                    </div>
+
+                    <div>
+                        <label class="label">Economic Activity</label>
+                        {{ form.specific_economic_activity }}
+                    </div>
+
+                    <div>
+                        <label class="label">Location of Use</label>
+                        {{ form.location_of_use }}
+                    </div>
+
+                    <div>
+                        <label class="label">Metered</label>
+                        {{ form.metered }}
+                    </div>
+
+                    {% if form.organization %}
+                    <div>
+                        <label class="label">Organization</label>
+                        {{ form.organization }}
+                    </div>
+                    {% endif %}
+
+                </div>
+
+                <!-- ACTIONS -->
+                <div class="flex justify-end gap-2 mt-6">
+                    <a href="{% url 'sales_page' %}"
+                       class="btn btn-error text-white">
+                        <i class="fa-solid fa-ban"></i> Cancel
+                    </a>
+                    <button type="submit"
+                            class="btn btn-success text-white">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Sale
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

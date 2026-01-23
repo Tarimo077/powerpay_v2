@@ -67,7 +67,7 @@
                         </a>
                     </th>
                     {% endfor %}
-                    <th class="px-4 py-3 text-left text-white">Actions</th>
+                    <th class="px-4 py-3 text-center text-white">Actions</th>
                 </tr>
             </thead>
 
@@ -79,11 +79,23 @@
                     <td>{{ sale.product_name }}</td>
                     <td>{{ sale.sales_rep }}</td>
                     <td>{% if sale.customer %} {{ sale.customer.name }} {% else %} - {% endif %} </td>
-                    <td>
+                    <td class="flex flex-row gap-2 justify-center">
                         <a href="{% url 'sale_detail' sale.id %}"
-                        class="btn btn-primary text-white" title="{{ sale.customer.name|truncatewords:1|slice:"-2" }}'s sale">
+                        class="btn btn-primary btn-sm text-white" title="View {{ sale.product_serial_number }}'s data">
                            View <i class="fa-solid fa-binoculars"></i>
                         </a>
+                        <a href="{% url 'sale_update' sale.id %}"
+                            class="btn btn-accent btn-sm text-white" title="Edit {{ sale.product_serial_number }}'s data">
+                            <i class="fa-solid fa-user-pen"></i> Edit
+                        </a>
+
+                        <button
+                            onclick="confirmDelete({{ sale.id }})"
+                            title="Delete {{ sale.product_serial_number }}'s data"
+                            class="btn btn-error btn-sm text-white">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+
                     </td>
                 </tr>
                 {% empty %}
@@ -126,3 +138,65 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+function confirmDelete(id) {
+    Swal.fire({
+        title: "Delete Sale?",
+        text: "This action cannot be undone",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dc2626",
+        confirmButtonText: "Yes, delete",
+        customClass: {
+            confirmButton: "swal-confirm-btn",
+            cancelButton: "swal-cancel-btn"
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/sales/${id}/delete/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}"
+                }
+            }).then(() => window.location.reload())
+        }
+    })
+}
+function getCSRFToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]')?.value
+        || document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+}
+</script>
+<style>
+/* Customizing the SweetAlert buttons */
+.swal-confirm-btn {
+    background-color: #28a745 !important;
+    color: white !important;
+    border-radius: 5px !important;
+    padding: 10px 20px !important;
+}
+
+.swal-cancel-btn {
+    background-color: #dc3545 !important;
+    color: white !important;
+    border-radius: 5px !important;
+    padding: 10px 20px !important;
+}
+
+.swal-text {
+    font-size: 16px !important;
+    color: #333 !important;
+    font-family: "Poppins", sans-serif !important;
+}
+
+.swal-title {
+    font-size: 20px !important;
+    font-weight: bold !important;
+    color: #444 !important;
+    font-family: "Poppins", sans-serif !important;
+}
+</style>

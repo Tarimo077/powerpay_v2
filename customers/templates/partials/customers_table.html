@@ -82,7 +82,7 @@
                     </th>
                     {% endif %}
 
-                    <th>Actions</th>
+                    <th class="text-center">Actions</th>
                 </tr>
             </thead>
 
@@ -103,11 +103,23 @@
                     {% if is_superadmin %}
                         <td>{{ c.organization.name }}</td>
                     {% endif %}
-                    <td>
+                    <td class="flex flex-row gap-2 justify-center">
                         <a href="{% url 'customer_detail' c.id %}"
-                        class="btn btn-primary text-white" title="{{ c.name|truncatewords:1|slice:"-2" }}'s data">
+                        class="btn btn-primary btn-sm text-white" title="View {{ c.name|truncatewords:1|slice:"-2" }}'s data">
                            View <i class="fa-solid fa-binoculars"></i>
                         </a>
+                        <a href="{% url 'customer_update' c.id %}"
+                            class="btn btn-accent btn-sm text-white" title="Edit {{ c.name|truncatewords:1|slice:"-2" }}'s data">
+                            <i class="fa-solid fa-user-pen"></i> Edit
+                        </a>
+
+                        <button
+                            onclick="confirmDeleteCustomer({{ c.id }}, '{{ c.name|escapejs }}')"
+                            title="Delete {{ c.name|truncatewords:1|slice:"-2" }}'s data"
+                            class="btn btn-error btn-sm text-white">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+
                     </td>
                 </tr>
                 {% empty %}
@@ -150,3 +162,88 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+function confirmDeleteCustomer(customerId, customerName) {
+    Swal.fire({
+        title: "Delete Customer?",
+        html: `<strong>${customerName}</strong> will be permanently removed.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete",
+        cancelButtonText: "Cancel",
+        customClass: {
+            confirmButton: "swal-confirm-btn",
+            cancelButton: "swal-cancel-btn"
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            deleteCustomer(customerId);
+        }
+    });
+}
+
+function deleteCustomer(customerId) {
+    fetch(`/customers/${customerId}/delete/`, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCSRFToken(),
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: "Deleted!",
+                text: "Customer has been removed.",
+                icon: "success",
+                timer: 1200,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.href = "{% url 'customers_page' %}";
+            });
+        }
+    })
+    .catch(() => {
+        Swal.fire("Error", "Something went wrong.", "error");
+    });
+}
+
+function getCSRFToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]')?.value
+        || document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+}
+</script>
+<style>
+/* Customizing the SweetAlert buttons */
+.swal-confirm-btn {
+    background-color: #28a745 !important;
+    color: white !important;
+    border-radius: 5px !important;
+    padding: 10px 20px !important;
+}
+
+.swal-cancel-btn {
+    background-color: #dc3545 !important;
+    color: white !important;
+    border-radius: 5px !important;
+    padding: 10px 20px !important;
+}
+
+.swal-text {
+    font-size: 16px !important;
+    color: #333 !important;
+    font-family: "Poppins", sans-serif !important;
+}
+
+.swal-title {
+    font-size: 20px !important;
+    font-weight: bold !important;
+    color: #444 !important;
+    font-family: "Poppins", sans-serif !important;
+}
+</style>
+

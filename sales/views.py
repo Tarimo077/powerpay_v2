@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q, Count
 from django.db.models.functions import TruncMonth
 from django.core.paginator import Paginator
@@ -6,6 +6,7 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import Sale
 from django.contrib.auth.decorators import login_required
+from .forms import SaleForm
 
 @login_required
 def sales_page(request):
@@ -146,3 +147,46 @@ def sale_detail(request, pk):
         "sales/sale_detail.html",
         {"sale": sale},
     )
+
+@login_required
+def sale_create(request):
+    if request.method == "POST":
+        form = SaleForm(request.POST, user=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect("sales_page")
+    else:
+        form = SaleForm(user=request.user)
+
+    return render(request, "sales/sale_form.html", {
+        "form": form,
+        "title": "Add Sale"
+    })
+
+@login_required
+def sale_update(request, pk):
+    sale = get_object_or_404(Sale, pk=pk)
+
+    if request.method == "POST":
+        form = SaleForm(request.POST, instance=sale, user=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect("sales_page")
+    else:
+        form = SaleForm(instance=sale, user=request.user)
+
+    return render(request, "sales/sale_form.html", {
+        "form": form,
+        "title": "Edit Sale"
+    })
+
+@login_required
+def sale_delete(request, pk):
+    sale = get_object_or_404(Sale, pk=pk)
+
+    if request.method == "POST":
+        sale.delete()
+        return redirect("sales_page")
+
+    return redirect("sales_page")
+

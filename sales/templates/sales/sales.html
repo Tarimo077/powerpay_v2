@@ -15,6 +15,13 @@
 
         <h2 class="text-2xl font-bold mb-6">Sales</h2>
 
+        <div class="flex justify-end w-full mb-4">
+                <a href="{% url 'sale_create' %}"
+                class="btn btn-success text-white">
+                    <i class="fa-solid fa-person-circle-plus"></i> Add Sale
+                </a>
+        </div>
+
         <!-- STATS -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-success">
@@ -29,30 +36,9 @@
         </div>
 
         <!-- CHARTS -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
-            <div id="salesGrowth" class="bg-base-100 p-4 rounded-lg shadow outline-none border-none">
-                <div class="flex justify-between items-center mb-2 border-none outline-none">
-                    <h3 class="text-lg font-semibold border-none outline-none">
-                        Sales Growth
-                    </h3>
-
-                    <!-- This button will NOT appear in download -->
-                    <button
-                        data-ignore-download
-                        onclick="downloadCard('salesGrowth', 'sales-growth.png')"
-                        class="btn btn-sm btn-outline btn-success hover:text-white"
-                    >
-                        <i class="fas fa-download mr-2"></i>
-                        Download
-                    </button>
-                </div>
-                <div class="flex-1 border-none outline-none">
-                    <canvas id="salesGrowthChart" class="border-none outline-none"></canvas>
-                </div>
-            </div>
-
-            <div id="salesPurchaseMode" class="bg-base-100 p-4 rounded-lg shadow outline-none border-none">
+            <div id="salesPurchaseMode" class="card bg-base-100 p-4 rounded-lg shadow flex-col">
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
                     <h3 class="text-lg font-semibold border-none outline-none">
                         Sales by Purchase Mode
@@ -73,6 +59,26 @@
                 </div>
             </div>
 
+            <div id="salesGrowth" class="card bg-base-100 p-4 rounded-lg shadow flex-col">
+                <div class="flex justify-between items-center mb-2 border-none outline-none">
+                    <h3 class="text-lg font-semibold border-none outline-none">
+                        Sales Growth
+                    </h3>
+
+                    <!-- This button will NOT appear in download -->
+                    <button
+                        data-ignore-download
+                        onclick="downloadCard('salesGrowth', 'sales-growth.png')"
+                        class="btn btn-sm btn-outline btn-success hover:text-white"
+                    >
+                        <i class="fas fa-download mr-2"></i>
+                        Download
+                    </button>
+                </div>
+                <div class="flex-1 border-none outline-none">
+                    <canvas id="salesGrowthChart" class="border-none outline-none"></canvas>
+                </div>
+            </div>
         </div>
 
 
@@ -138,6 +144,7 @@ new Chart(ctxGrowth, {
     },
     options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: { 
             legend: { 
                 position: 'bottom',

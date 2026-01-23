@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Count, Q
 from django.core.paginator import Paginator
 from django.utils import timezone
@@ -7,6 +7,10 @@ from django.db.models.functions import TruncMonth
 from customers.models import Customer
 from sales.models import Sale
 from django.contrib.auth.decorators import login_required
+from .forms import CustomerForm
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
 
 @login_required
 def customers_page(request):
@@ -233,3 +237,43 @@ def customer_detail(request, pk):
         )
 
     return render(request, "customers/customer_detail.html", context)
+
+
+@login_required
+def customer_create(request):
+    if request.method == "POST":
+        form = CustomerForm(request.POST, user=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect("customers_page")
+    else:
+        form = CustomerForm(user=request.user)
+
+    return render(request, "customers/customer_form.html", {
+        "form": form,
+        "title": "Add Customer"
+    })
+
+
+
+@login_required
+def customer_update(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+    form = CustomerForm(request.POST or None, instance=customer)
+
+    if form.is_valid():
+        form.save()
+        return redirect("customer_detail", pk=pk)
+
+    return render(request, "customers/customer_form.html", {
+        "form": form,
+        "title": "Edit Customer",
+        "customer": customer,
+    })
+
+@login_required
+@require_POST
+def customer_delete(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+    customer.delete()
+    return JsonResponse({"success": True})

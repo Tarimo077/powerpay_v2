@@ -29,35 +29,41 @@
             <div class="card bg-base-100 shadow border-l-4 border-fg-pink">
                 <div class="card-body">
                     <p class="text-sm text-gray-500">Total Energy</p>
-                    <p class="text-2xl font-bold">{{ total_kwh|floatformat:2|intcomma }} kWh</p>
+                    <p class="text-2xl font-bold" style="color: #ec4899 !important;">
+                        {{ total_kwh|floatformat:2|intcomma }} kWh
+                    </p>
                 </div>
             </div>
 
             <div class="card bg-base-100 shadow border-l-4 border-success">
                 <div class="card-body">
                     <p class="text-sm text-gray-500">Total Cooking Events</p>
-                    <p class="text-2xl font-bold">{{ cooking_events_today|intcomma }}</p>
+                    <p class="text-2xl font-bold text-success">{{ cooking_events_today|intcomma }}</p>
                 </div>
             </div>
 
             <div class="card bg-base-100 shadow border-l-4 border-fg-purple">
                 <div class="card-body">
                     <p class="text-sm text-gray-500">Total Cooking Time</p>
-                    <p class="text-2xl font-bold">{{ total_cooking_time|divide:60|floatformat:1|intcomma }} hrs</p>
+                    <p class="text-2xl font-bold" style="color: #9333ea !important;">
+                        {{ total_cooking_time|divide:60|floatformat:1|intcomma }} hrs
+                    </p>
                 </div>
             </div>
 
-            <div class="card bg-base-100 shadow border-l-4 border-fg-danger-strong">
+            <div class="card bg-base-100 shadow border-l-4 border-red-500">
                 <div class="card-body">
                     <p class="text-sm text-gray-500">Estimated Energy Cost</p>
-                    <p class="text-2xl font-bold">Ksh. {{ total_kwh|multiply:14.32|floatformat:1|intcomma }}</p>
+                    <p class="text-2xl font-bold" style="color: #dc2626 !important; -webkit-text-fill-color: #dc2626 !important;">
+                        Ksh. {{ total_kwh|multiply:14.32|floatformat:1|intcomma }}
+                    </p>
                 </div>
             </div>
 
             <div class="card bg-base-100 shadow border-l-4 border-warning">
                 <div class="card-body">
                     <p class="text-sm text-gray-500">Last Seen</p>
-                    <div class="flex flex-row">
+                    <div class="flex flex-row text-warning">
                         <p class="font-bold"> {{ last_seen|naturaltime }} </p>
                         <p class="text-2xs">({{ last_seen|date:"j M Y h:i:s A"|default:"-" }})</p>
                     </div>
@@ -67,7 +73,7 @@
             <div class="card bg-base-100 shadow border-l-4 border-info">
                 <div class="card-body">
                     <p class="text-sm text-gray-500">Energy (7 Days)</p>
-                    <p class="text-2xl font-bold">{{ total_kwh_7d|floatformat:2|intcomma }} kWh</p>
+                    <p class="text-2xl font-bold text-info">{{ total_kwh_7d|floatformat:2|intcomma }} kWh</p>
                 </div>
             </div>
 
@@ -75,21 +81,25 @@
             <div class="card bg-base-100 shadow border-l-4 border-accent">
                 <div class="card-body">
                     <p class="text-sm text-gray-500">Cooking Events (7 Days)</p>
-                    <p class="text-2xl font-bold">{{ cooking_events_7d|intcomma }}</p>
+                    <p class="text-2xl font-bold text-accent">{{ cooking_events_7d|intcomma }}</p>
                 </div>
             </div>
 
             <div class="card bg-base-100 shadow border-l-4 border-fg-cyan">
                 <div class="card-body">
                     <p class="text-sm text-gray-500">Cooking Time (7 Days)</p>
-                    <p class="text-2xl font-bold">{{ cooking_time_7d|divide:60|floatformat:1|intcomma }} hrs</p>
+                    <p class="text-2xl font-bold" style="color: #0891b2 !important;">
+                        {{ cooking_time_7d|divide:60|floatformat:1|intcomma }} hrs
+                    </p>
                 </div>
             </div>
 
             <div class="card bg-base-100 shadow border-l-4 border-fg-indigo">
                 <div class="card-body">
                     <p class="text-sm text-gray-500">Estimated Energy Cost (7 Days)</p>
-                    <p class="text-2xl font-bold">Ksh. {{ total_kwh_7d|multiply:14.32|floatformat:1|intcomma }}</p>
+                    <p class="text-2xl font-bold" style="color: #4f46e5 !important;">
+                        Ksh. {{ total_kwh_7d|multiply:14.32|floatformat:1|intcomma }}
+                    </p>
                 </div>
             </div>
 
