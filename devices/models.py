@@ -21,10 +21,10 @@ class DeviceData(models.Model):
 # Device Info (devactivity)
 # ----------------------
 class DeviceInfo(models.Model):
-    id = models.BigIntegerField(primary_key=True)
+    id = models.BigAutoField(primary_key=True)
     deviceid = models.CharField(max_length=100)
     active = models.BooleanField()
-    time = models.DateTimeField()
+    time = models.DateTimeField(auto_now_add=True)
     organization = models.ForeignKey(
         Organization,
         on_delete=models.RESTRICT,

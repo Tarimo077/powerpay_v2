@@ -106,7 +106,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 <script>
 Chart.defaults.font.family = "'Saira', sans-serif";
-Chart.defaults.font.size = 12;
+Chart.defaults.font.size = 10;
 
 // 1. Define the Plugin
 const centerTotalPlugin = {
@@ -120,7 +120,7 @@ const centerTotalPlugin = {
         const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
         
         // Set Font Styles
-        const fontSize = 10;
+        const fontSize = 8;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const centerX = left + width / 2;

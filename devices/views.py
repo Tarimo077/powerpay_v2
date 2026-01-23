@@ -397,7 +397,7 @@ def device_create(request):
 
     if request.method == "POST" and form.is_valid():
         form.save()
-        return redirect("devices_page")
+        return redirect("device_list")
 
     return render(request, "devices/device_form.html", {
         "form": form,
@@ -412,7 +412,7 @@ def device_edit(request, deviceid):
 
     if request.method == "POST" and form.is_valid():
         form.save()
-        return redirect("devices_page")
+        return redirect("device_list")
 
     return render(request, "devices/device_form.html", {
         "form": form,
@@ -425,4 +425,4 @@ def device_edit(request, deviceid):
 def device_delete(request, deviceid):
     device = get_object_or_404(DeviceInfo, deviceid=deviceid)
     device.delete()
-    return redirect("devices_page")
+    return redirect("device_list")
