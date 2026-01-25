@@ -1,9 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate
 from django.contrib import messages
 from django.contrib.auth import login
-from .models import EmailOTP, User
-from .forms import LoginForm
+from .models import EmailOTP, User, UserInvite
+from .forms import LoginForm, InviteUserForm
 import random
 from django.contrib import messages
 from django.core.mail import EmailMultiAlternatives
@@ -12,6 +12,9 @@ from django.contrib.auth.views import PasswordResetView
 from django.utils.html import strip_tags
 from django.urls import reverse_lazy
 import datetime
+from django.contrib.auth.decorators import login_required
+from django.conf import settings
+from django.utils import timezone
 
 
 MAX_ATTEMPTS = 5
@@ -141,3 +144,77 @@ class CustomPasswordResetView(PasswordResetView):
         msg.attach_alternative(html_body, "text/html")
         msg.send()
 
+
+def send_invite_email(invite):
+    invite_url = f"{settings.SITE_URL}/accounts/accept-invite/{invite.token}/"
+
+    subject = "You're invited to PowerPay Africa"
+    html_content = render_to_string("accounts/user_invite.html", {
+        "invite_url": invite_url,
+        "organization": invite.organization.name,
+    })
+
+    msg = EmailMultiAlternatives(
+        subject,
+        strip_tags(html_content),
+        settings.DEFAULT_FROM_EMAIL,
+        [invite.email],
+    )
+    msg.attach_alternative(html_content, "text/html")
+    msg.send()
+
+
+@login_required
+def invite_user(request):
+    if not (request.user.is_superuser or request.user.role == "admin"):
+        messages.error(request, "You are not allowed to invite users.")
+        return redirect("index")
+
+    if request.method == "POST":
+        form = InviteUserForm(request.POST, user=request.user)
+        if form.is_valid():
+            invite = form.save(commit=False)
+            invite.invited_by = request.user
+
+            if not request.user.is_superuser:
+                invite.organization = request.user.organization
+
+            invite.save()
+
+            send_invite_email(invite)
+            messages.success(request, "Invitation sent successfully.")
+            return redirect("invite_user")
+    else:
+        form = InviteUserForm(user=request.user)
+
+    return render(request, "accounts/invite_user.html", {
+        "form": form,
+        "title": "Invite User",
+    })
+
+
+def accept_invite(request, token):
+    invite = get_object_or_404(UserInvite, token=token)
+
+    if not invite.is_valid():
+        messages.error(request, "Invite link expired or already used.")
+        return redirect("login")
+
+    if request.method == "POST":
+        password = request.POST.get("password")
+
+        user = User.objects.create_user(
+            email=invite.email,
+            password=password,
+            organization=invite.organization,
+            role=invite.role,
+            is_staff=invite.role in ["admin", "staff"],
+        )
+
+        invite.is_used = True
+        invite.save()
+
+        login(request, user)
+        return redirect("index")
+
+    return render(request, "accounts/accept_invite.html")

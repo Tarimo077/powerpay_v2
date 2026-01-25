@@ -75,19 +75,17 @@
             <!-- Device Status Pie Chart -->
             <div id="deviceStatus" class="card bg-base-100 shadow p-4 flex flex-col border-none outline-none">
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
-                        <h3 class="text-lg font-semibold border-none outline-none">
-                            Device Status
-                        </h3>
-
-                        <!-- This button will NOT appear in download -->
-                        <button
-                            data-ignore-download
-                            onclick="downloadCard('deviceStatus', 'device-status.png')"
-                            class="btn btn-sm btn-outline btn-success hover:text-white"
-                        >
-                            <i class="fas fa-download mr-2"></i>
-                            Download
-                        </button>
+                    <h3 class="text-lg font-semibold border-none outline-none">
+                        Device Status
+                    </h3>
+                    <button
+                        data-ignore-download
+                        onclick="downloadCard('deviceStatus', 'device-status.png')"
+                        class="btn btn-sm btn-outline btn-success hover:text-white"
+                    >
+                        <i class="fas fa-download mr-2"></i>
+                        Download
+                    </button>
                 </div>
                 <div class="flex-1 border-none outline-none">
                     <canvas id="deviceStatusChart" class="w-full h-full border-none outline-none"></canvas>
@@ -97,19 +95,17 @@
             <!-- kWh Line Chart -->
             <div id="energy7d" class="card bg-base-100 shadow p-4 flex flex-col">
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
-                        <h3 class="text-lg font-semibold border-none outline-none">
-                            Energy Use (7 days)
-                        </h3>
-
-                        <!-- This button will NOT appear in download -->
-                        <button
-                            data-ignore-download
-                            onclick="downloadCard('energy7d', 'energy-7d.png')"
-                            class="btn btn-sm btn-outline btn-success hover:text-white"
-                        >
-                            <i class="fas fa-download mr-2"></i>
-                            Download
-                        </button>
+                    <h3 class="text-lg font-semibold border-none outline-none">
+                        Energy Use (7 days)
+                    </h3>
+                    <button
+                        data-ignore-download
+                        onclick="downloadCard('energy7d', 'energy-7d.png')"
+                        class="btn btn-sm btn-outline btn-success hover:text-white"
+                    >
+                        <i class="fas fa-download mr-2"></i>
+                        Download
+                    </button>
                 </div>
                 <div class="flex-1 outline-none border-none">
                     <canvas id="kwhLineChart" class="w-full h-full border-none outline-none"></canvas>
@@ -117,21 +113,20 @@
             </div>
 
             <!-- Money by Org Pie Chart -->
+            {% if is_superadmin %}
             <div id="moneyOrg" class="card bg-base-100 shadow p-4 flex flex-col border-none outline-none">
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
-                        <h3 class="text-lg font-semibold border-none outline-none">
-                            Money by Organization
-                        </h3>
-
-                        <!-- This button will NOT appear in download -->
-                        <button
-                            data-ignore-download
-                            onclick="downloadCard('moneyOrg', 'money-org.png')"
-                            class="btn btn-sm btn-outline btn-success hover:text-white"
-                        >
-                            <i class="fas fa-download mr-2"></i>
-                            Download
-                        </button>
+                    <h3 class="text-lg font-semibold border-none outline-none">
+                        Money by Organization
+                    </h3>
+                    <button
+                        data-ignore-download
+                        onclick="downloadCard('moneyOrg', 'money-org.png')"
+                        class="btn btn-sm btn-outline btn-success hover:text-white"
+                    >
+                        <i class="fas fa-download mr-2"></i>
+                        Download
+                    </button>
                 </div>
                 <div class="flex-1 border-none outline-none">
                     <canvas id="moneyByOrgChart" class="w-full h-full border-none outline-none"></canvas>
@@ -141,26 +136,33 @@
             <!-- Money Over Last 7 Days Line Chart -->
             <div id="money-7d" class="card bg-base-100 shadow p-4 flex flex-col border-none outline-none">
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
-                        <h3 class="text-lg font-semibold border-none outline-none">
-                            Money In (7 days)
-                        </h3>
-
-                        <!-- This button will NOT appear in download -->
-                        <button
-                            data-ignore-download
-                            onclick="downloadCard('money-7d', 'money-7d.png')"
-                            class="btn btn-sm btn-outline btn-success hover:text-white"
-                        >
-                            <i class="fas fa-download mr-2"></i>
-                            Download
-                        </button>
+                    <h3 class="text-lg font-semibold border-none outline-none">
+                        Money In (7 days)
+                    </h3>
+                    <button
+                        data-ignore-download
+                        onclick="downloadCard('money-7d', 'money-7d.png')"
+                        class="btn btn-sm btn-outline btn-success hover:text-white"
+                    >
+                        <i class="fas fa-download mr-2"></i>
+                        Download
+                    </button>
                 </div>
                 <div class="flex-1 border-none outline-none">
                     <canvas id="moneyLineChart" class="w-full h-full border-none outline-none"></canvas>
                 </div>
             </div>
+            {% else %}
+            <!-- Placeholder for non-superusers -->
+            <div class="card bg-base-100 shadow p-4 flex flex-col justify-center items-center col-span-2">
+                <p class="text-gray-500 text-center text-lg">
+                    Organization-level financial charts are only visible to admins.
+                </p>
+            </div>
+            {% endif %}
 
         </div>
+
 
     </div>
 </div>

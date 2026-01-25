@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import login_view, verify_otp, resend_otp, CustomPasswordResetView
+from .views import login_view, verify_otp, resend_otp, CustomPasswordResetView, invite_user, accept_invite
 from django.contrib.auth import views as auth_views
 from .forms import StyledPasswordResetForm, StyledSetPasswordForm
 
@@ -27,5 +27,15 @@ urlpatterns = [
     path("password-reset-complete/", auth_views.PasswordResetCompleteView.as_view(
         template_name="accounts/password_reset_complete.html"
     ), name="password_reset_complete"),
+    path(
+        "accept-invite/<uuid:token>/",
+        accept_invite,
+        name="accept_invite"
+    ),
+    path(
+        "invite/",
+        invite_user,
+        name="invite_user"
+    )
 
 ]

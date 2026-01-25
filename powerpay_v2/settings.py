@@ -89,14 +89,14 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',   # internal DB for accounts
         'NAME': BASE_DIR / config('DB_NAME_INTERNAL'),
     },
-    'powerpay': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME_POWERPAY'),
-        'USER': config('DB_USER_POWERPAY'),
-        'PASSWORD': config('DB_PASSWORD_POWERPAY'),
-        'HOST': config('DB_HOST_POWERPAY'),
-        'PORT': config('DB_PORT_POWERPAY'),
-    },
+    #'powerpay': {
+    #    'ENGINE': 'django.db.backends.postgresql',
+    #    'NAME': config('DB_NAME_POWERPAY'),
+    #    'USER': config('DB_USER_POWERPAY'),
+    #    'PASSWORD': config('DB_PASSWORD_POWERPAY'),
+    #    'HOST': config('DB_HOST_POWERPAY'),
+    #    'PORT': config('DB_PORT_POWERPAY'),
+    #},
     'coords': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': config('DB_NAME_COORDS'),
@@ -104,21 +104,12 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD_COORDS'),
         'HOST': config('DB_HOST_COORDS'),
         'PORT': config('DB_PORT_COORDS'),
-    },
-    'mpesa': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME_MPESA'),
-        'USER': config('DB_USER_MPESA'),
-        'PASSWORD': config('DB_PASSWORD_MPESA'),
-        'HOST': config('DB_HOST_MPESA'),
-        'PORT': config('DB_PORT_MPESA'),
-    },
+    }
 }
 
 DATABASE_ROUTERS = [
     'powerpay_v2.routers.PowerpayRouter',
-    'powerpay_v2.routers.CoordsRouter',
-    'powerpay_v2.routers.MpesaRouter',
+    'powerpay_v2.routers.CoordsRouter'
 ]
 
 
@@ -175,3 +166,5 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "tarimojeff@gmail.com"
 EMAIL_HOST_PASSWORD = "fvbjwtwpxufnpsva"
+
+SITE_URL = "http://127.0.0.1:8000"

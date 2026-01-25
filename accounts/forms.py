@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
-from .models import User
-
+from .models import User, UserInvite
+from organizations.models import Organization
 
 class LoginForm(forms.Form):
     email = forms.EmailField(widget=forms.EmailInput(attrs={
@@ -86,3 +86,39 @@ class UserProfileForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         user = self.instance
+
+
+class InviteUserForm(forms.ModelForm):
+    class Meta:
+        model = UserInvite
+        fields = ["email", "organization", "role"]
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if user is None:
+            raise ValueError("InviteUserForm requires a user parameter")
+
+        self.user = user  # store user for later
+
+        # Superuser can pick any org and any role
+        if self.user.is_superuser:
+            self.fields["role"].choices = [
+                ("superadmin", "Super Admin"),
+                ("admin", "Admin"),
+                ("staff", "Staff"),
+                ("support", "Support"),
+            ]
+        else:
+            # Admin restrictions: only their org and limited roles
+            self.fields["organization"].queryset = Organization.objects.filter(
+                id=self.user.organization_id
+            )
+            self.fields["organization"].initial = self.user.organization
+            self.fields["organization"].disabled = True
+
+            self.fields["role"].choices = [
+                ("admin", "Admin"),
+                ("staff", "Staff"),
+            ]
+

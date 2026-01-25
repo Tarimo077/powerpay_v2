@@ -4,6 +4,7 @@ from django.utils import timezone
 from organizations.models import Organization
 from datetime import timedelta
 from .managers import UserManager
+import uuid
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
@@ -46,3 +47,37 @@ class EmailOTP(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.otp}"
+    
+
+class UserInvite(models.Model):
+    ROLE_CHOICES = [
+        ("superadmin", "Super Admin"),
+        ("admin", "Admin"),
+        ("staff", "Staff"),
+        ("support", "Support"),
+    ]
+
+    email = models.EmailField()
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE
+    )
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="staff")
+    token = models.UUIDField(default=uuid.uuid4, unique=True)
+    invited_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="sent_invites"
+    )
+    is_used = models.BooleanField(default=False)
+    expires_at = models.DateTimeField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(days=3)
+        super().save(*args, **kwargs)
+
+    def is_valid(self):
+        return not self.is_used and timezone.now() < self.expires_at
