@@ -6,19 +6,15 @@
 
 <div class="flex min-h-screen overflow-hidden bg-base-200">
 
-    <!-- Sidebar -->
     {% include "partials/sidebar.html" %}
 
-    <!-- Main Content -->
     <div id="page-content"
      class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
             lg:ml-64 ml-0">
 
         <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
 
-        <!-- SUMMARY CARDS -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-
             <div class="card bg-base-100 shadow border-l-4 border-primary">
                 <div class="card-body flex flex-col justify-center">
                     <p class="text-sm uppercase text-gray-500">Devices</p>
@@ -39,10 +35,8 @@
                     <p class="text-3xl font-bold text-accent">{{ kwh_month|floatformat:2 }}</p>
                 </div>
             </div>
-
         </div>
 
-        <!-- FINANCIAL SUMMARY CARDS -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {% if is_superadmin %}
             <div class="card bg-base-100 shadow border-l-4 border-secondary">
@@ -66,295 +60,211 @@
                     <p class="text-3xl font-bold text-warning">{{ total_transactions|intcomma }}</p>
                 </div>
             </div>
-
         </div>
 
-        <!-- CHARTS SECTION -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
-            <!-- Device Status Pie Chart -->
             <div id="deviceStatus" class="card bg-base-100 shadow p-4 flex flex-col border-none outline-none">
-                <div class="flex justify-between items-center mb-2 border-none outline-none">
-                    <h3 class="text-lg font-semibold border-none outline-none">
-                        Device Status
-                    </h3>
-                    <button
-                        data-ignore-download
-                        onclick="downloadCard('deviceStatus', 'device-status.png')"
-                        class="btn btn-sm btn-outline btn-success hover:text-white"
-                    >
-                        <i class="fas fa-download mr-2"></i>
-                        Download
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg font-semibold">Device Status</h3>
+                    <button data-ignore-download onclick="downloadCard('deviceStatus', 'device-status.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
+                        <i class="fas fa-download mr-2"></i> Download
                     </button>
                 </div>
-                <div class="flex-1 border-none outline-none">
-                    <canvas id="deviceStatusChart" class="w-full h-full border-none outline-none"></canvas>
+                <div class="flex-1">
+                    <canvas id="deviceStatusChart" class="w-full h-full"></canvas>
                 </div>
             </div>
 
-            <!-- kWh Line Chart -->
             <div id="energy7d" class="card bg-base-100 shadow p-4 flex flex-col">
-                <div class="flex justify-between items-center mb-2 border-none outline-none">
-                    <h3 class="text-lg font-semibold border-none outline-none">
-                        Energy Use (7 days)
-                    </h3>
-                    <button
-                        data-ignore-download
-                        onclick="downloadCard('energy7d', 'energy-7d.png')"
-                        class="btn btn-sm btn-outline btn-success hover:text-white"
-                    >
-                        <i class="fas fa-download mr-2"></i>
-                        Download
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg font-semibold">Energy Use (7 days)</h3>
+                    <button data-ignore-download onclick="downloadCard('energy7d', 'energy-7d.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
+                        <i class="fas fa-download mr-2"></i> Download
                     </button>
                 </div>
-                <div class="flex-1 outline-none border-none">
-                    <canvas id="kwhLineChart" class="w-full h-full border-none outline-none"></canvas>
+                <div class="flex-1">
+                    <canvas id="kwhLineChart" class="w-full h-full"></canvas>
                 </div>
             </div>
 
-            <!-- Money by Org Pie Chart -->
             {% if is_superadmin %}
             <div id="moneyOrg" class="card bg-base-100 shadow p-4 flex flex-col border-none outline-none">
-                <div class="flex justify-between items-center mb-2 border-none outline-none">
-                    <h3 class="text-lg font-semibold border-none outline-none">
-                        Money by Organization
-                    </h3>
-                    <button
-                        data-ignore-download
-                        onclick="downloadCard('moneyOrg', 'money-org.png')"
-                        class="btn btn-sm btn-outline btn-success hover:text-white"
-                    >
-                        <i class="fas fa-download mr-2"></i>
-                        Download
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg font-semibold">Money by Organization</h3>
+                    <button data-ignore-download onclick="downloadCard('moneyOrg', 'money-org.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
+                        <i class="fas fa-download mr-2"></i> Download
                     </button>
                 </div>
-                <div class="flex-1 border-none outline-none">
-                    <canvas id="moneyByOrgChart" class="w-full h-full border-none outline-none"></canvas>
+                <div class="flex-1">
+                    <canvas id="moneyByOrgChart" class="w-full h-full"></canvas>
                 </div>
             </div>
 
-            <!-- Money Over Last 7 Days Line Chart -->
             <div id="money-7d" class="card bg-base-100 shadow p-4 flex flex-col border-none outline-none">
-                <div class="flex justify-between items-center mb-2 border-none outline-none">
-                    <h3 class="text-lg font-semibold border-none outline-none">
-                        Money In (7 days)
-                    </h3>
-                    <button
-                        data-ignore-download
-                        onclick="downloadCard('money-7d', 'money-7d.png')"
-                        class="btn btn-sm btn-outline btn-success hover:text-white"
-                    >
-                        <i class="fas fa-download mr-2"></i>
-                        Download
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg font-semibold">Money In (7 days)</h3>
+                    <button data-ignore-download onclick="downloadCard('money-7d', 'money-7d.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
+                        <i class="fas fa-download mr-2"></i> Download
                     </button>
                 </div>
-                <div class="flex-1 border-none outline-none">
-                    <canvas id="moneyLineChart" class="w-full h-full border-none outline-none"></canvas>
+                <div class="flex-1">
+                    <canvas id="moneyLineChart" class="w-full h-full"></canvas>
                 </div>
             </div>
             {% else %}
-            <!-- Placeholder for non-superusers -->
-            <div class="card bg-base-100 shadow p-4 flex flex-col justify-center items-center col-span-2">
-                <p class="text-gray-500 text-center text-lg">
-                    Organization-level financial charts are only visible to admins.
-                </p>
+            <div class="card bg-base-100 shadow p-4 flex flex-col justify-center items-center col-span-1 md:col-span-2">
+                <p class="text-gray-500 text-center text-lg">Organization-level financial charts are only visible to admins.</p>
             </div>
             {% endif %}
-
         </div>
-
-
     </div>
 </div>
 
-<!-- Chart.js + datalabels plugin -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
 <script>
 Chart.defaults.font.family = "'Saira', sans-serif";
 Chart.defaults.font.size = 12;
 
-// 1. Define the Plugin
 const centerTotalPlugin = {
     id: 'centerTotal',
     afterDatasetsDraw(chart) {
         const { ctx, data, chartArea: { top, bottom, left, right, width, height } } = chart;
-        
         ctx.save();
-        
-        // Calculate the total sum of the data
         const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
-        
-        // Set Font Styles
         const fontSize = 10;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const centerX = left + width / 2;
         const centerY = top + height / 2;
-
-        // Draw "Total" Label
         ctx.font = `${fontSize * 0.1}em 'Saira'`;
         ctx.fillStyle = '#07783c';
         ctx.fillText('TOTAL: ', centerX, centerY - 15);
-
-        // Draw the Sum Value
         ctx.font = `bold ${fontSize * 0.2}em 'Saira'`;
-        ctx.fillStyle = '#07783c';
         ctx.fillText(total.toLocaleString(), centerX, centerY + 15);
-        
         ctx.restore();
     }
 };
 
 // -------- Device Status Pie Chart --------
-const deviceStatusCtx = document.getElementById('deviceStatusChart').getContext('2d');
-new Chart(deviceStatusCtx, {
-    type: 'doughnut',
-    data: {
-        labels: ['ON', 'OFF'],
-        datasets: [{
-            data: [{{ device_status_counts.ON }}, {{ device_status_counts.OFF }}],
-            backgroundColor: ['#22c55e', '#ef4444'],
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { position: 'bottom' },
-            datalabels: {
-                color: '#fff',
-                formatter: (value, ctx) => {
-                    const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
-                    const percent = ((value/sum)*100).toFixed(1);
-                    return `${value} devices (${percent}%)`;
-                },
-                font: { weight: 'bold', size: 14 }
+const deviceStatusEl = document.getElementById('deviceStatusChart');
+if (deviceStatusEl) {
+    new Chart(deviceStatusEl.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['ON', 'OFF'],
+            datasets: [{
+                data: [{{ device_status_counts.ON|default:0 }}, {{ device_status_counts.OFF|default:0 }}],
+                backgroundColor: ['#22c55e', '#ef4444'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' },
+                datalabels: {
+                    color: '#fff',
+                    formatter: (value, ctx) => {
+                        const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+                        const percent = sum > 0 ? ((value/sum)*100).toFixed(1) : 0;
+                        return `${value} (${percent}%)`;
+                    },
+                    font: { weight: 'bold', size: 12 }
+                }
             }
-        }
-    },
-    plugins: [ChartDataLabels, centerTotalPlugin]
-});
+        },
+        plugins: [ChartDataLabels, centerTotalPlugin]
+    });
+}
 
 // -------- kWh Line Chart --------
-const kwhLineCtx = document.getElementById('kwhLineChart').getContext('2d');
-const lineDatasets = [];
-{% for device_id, kwh_values in line_chart_data.items %}
-(function() {
-    const color = `hsl(${ ({{ forloop.counter0 }} * 137) % 360 }, 70%, 50%)`;
+const kwhLineEl = document.getElementById('kwhLineChart');
+if (kwhLineEl) {
+    const lineDatasets = [];
+    {% for device_id, kwh_values in line_chart_data.items %}
     lineDatasets.push({
         label: "{{ device_id }}",
         data: {{ kwh_values|safe }},
-        borderColor: color,
-        backgroundColor: color,
-        pointBackgroundColor: color,
+        borderColor: `hsl(${ ({{ forloop.counter0 }} * 137) % 360 }, 70%, 50%)`,
         tension: 0.3,
-        fill: false,
-        pointRadius: 4,
-        pointHoverRadius: 6
+        fill: false
     });
-})();
-{% endfor %}
+    {% endfor %}
 
-new Chart(kwhLineCtx, {
-    type: 'line',
-    data: { labels: {{ line_chart_labels|safe }}, datasets: lineDatasets },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { 
-                position: 'bottom',
-                labels: { usePointStyle: true, pointStyle: 'rectRounded', padding: 20 }
-            },
-            tooltip: { mode: 'index', intersect: false, usePointStyle: true }
+    new Chart(kwhLineEl.getContext('2d'), {
+        type: 'line',
+        data: { labels: {{ line_chart_labels|safe }}, datasets: lineDatasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
+
+// -------- Superadmin Charts --------
+{% if is_superadmin %}
+const moneyByOrgEl = document.getElementById('moneyByOrgChart');
+if (moneyByOrgEl) {
+    new Chart(moneyByOrgEl.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: {{ money_by_org_labels|safe }},
+            datasets: [{
+                data: {{ money_by_org_data|safe }},
+                backgroundColor: ['#22c55e', '#ef4444', '#3b82f6', '#facc15', '#8b5cf6'],
+                borderWidth: 1
+            }]
         },
-        scales: {
-            y: { title: { display: true, text: 'kWh' }, beginAtZero: true },
-            x: { title: { display: true, text: 'Day' } }
-        }
-    }
-});
-
-// -------- Money by Organization Pie Chart --------
-const moneyByOrgCtx = document.getElementById('moneyByOrgChart').getContext('2d');
-new Chart(moneyByOrgCtx, {
-    type: 'doughnut',
-    data: {
-        labels: {{ money_by_org_labels|safe }},
-        datasets: [{
-            data: {{ money_by_org_data|safe }},
-            backgroundColor: ['#22c55e', '#ef4444', '#3b82f6', '#facc15', '#8b5cf6'],
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { position: 'bottom' },
-            datalabels: {
-                color: '#fff',
-                formatter: (value, ctx) => {
-                    const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
-                    const percent = ((value/sum)*100).toFixed(1);
-                    return value.toLocaleString() + ` (${percent}%)`;
-                },
-            }
-        }
-    },
-    plugins: [ChartDataLabels, centerTotalPlugin]
-});
-
-// -------- Money Over Last 7 Days Line Chart (per Org) --------
-const moneyLineCtx = document.getElementById('moneyLineChart').getContext('2d');
-const moneyLineDatasets = [];
-
-{% for org_name, daily_values in money_line_data.items %}
-    (function() {
-        const color = `hsl(${ ({{ forloop.counter0 }} * 137) % 360 }, 70%, 50%)`;
-        moneyLineDatasets.push({
-            label: "{{ org_name }}",
-            data: {{ daily_values|safe }},
-            borderColor: color,
-            backgroundColor: color,
-            pointBackgroundColor: color,
-            tension: 0.3,
-            fill: false,
-            pointRadius: 4,
-            pointHoverRadius: 6
-        });
-    })();
-{% endfor %}
-
-new Chart(moneyLineCtx, {
-    type: 'line',
-    data: {
-        labels: {{ money_line_labels|safe }},
-        datasets: moneyLineDatasets
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { 
-                position: 'bottom',
-                labels: {
-                    usePointStyle: true,
-                    pointStyle: 'rectRounded',
-                    padding: 20
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' },
+                datalabels: {
+                    color: '#fff',
+                    formatter: (value, ctx) => {
+                        const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+                        const percent = sum > 0 ? ((value/sum)*100).toFixed(1) : 0;
+                        return value.toLocaleString() + ` (${percent}%)`;
+                    },
                 }
-            },
-            tooltip: { mode: 'index', intersect: false, usePointStyle: true }
+            }
         },
-        scales: {
-            y: { title: { display: true, text: 'Amount' }, beginAtZero: true },
-            x: { title: { display: true, text: 'Day' } }
-        }
-    }
-});
+        plugins: [ChartDataLabels, centerTotalPlugin]
+    });
+}
 
+const moneyLineEl = document.getElementById('moneyLineChart');
+if (moneyLineEl) {
+    const moneyLineDatasets = [];
+    {% for org_name, daily_values in money_line_data.items %}
+    moneyLineDatasets.push({
+        label: "{{ org_name }}",
+        data: {{ daily_values|safe }},
+        borderColor: `hsl(${ ({{ forloop.counter0 }} * 137) % 360 }, 70%, 50%)`,
+        tension: 0.3,
+        fill: false
+    });
+    {% endfor %}
+
+    new Chart(moneyLineEl.getContext('2d'), {
+        type: 'line',
+        data: { labels: {{ money_line_labels|safe }}, datasets: moneyLineDatasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
+{% endif %}
 </script>
 
 {% endblock %}

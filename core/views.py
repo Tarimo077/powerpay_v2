@@ -29,6 +29,7 @@ def index(request):
         devices = DeviceInfo.objects.all()
     else:
         devices = DeviceInfo.objects.filter(organization=user.organization)
+        
 
     # ---------------- Transactions ----------------
     if is_superadmin:
@@ -89,5 +90,7 @@ def index(request):
             money_line_data[org.name] = daily_totals
         context['money_line_data'] = money_line_data
         context['money_line_labels'] = [d.strftime("%a %d") for d in days]
+
+    print(context)    
 
     return render(request, "core/index.html", context)

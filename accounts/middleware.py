@@ -23,7 +23,7 @@ class OTPRequiredMiddleware:
             ]
 
             if not otp_verified and request.path not in allowed_paths:
-                return redirect("accounts:verify_otp")
+                return redirect("verify_otp")
 
         response = self.get_response(request)
         return response

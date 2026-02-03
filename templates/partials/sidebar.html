@@ -100,7 +100,7 @@
         <form method="post" action="{% url 'logout' %}" class="mt-auto w-full">
             {% csrf_token %}
             <button type="submit"
-                    class="flex w-3/4 items-center gap-4 p-4 mx-3 text-error hover:text-red-800 hover:bg-base-200 rounded-lg transition">
+                    class="flex w-3/4 items-center gap-4 p-4 mx-3 text-error hover:text-red-800 hover:bg-base-200 rounded-lg transition cursor-pointer">
                 <i class="fas fa-right-from-bracket w-5"></i>
                 <span class="link-text">Logout</span>
             </button>
