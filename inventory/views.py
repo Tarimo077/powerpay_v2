@@ -7,8 +7,12 @@ from django.utils import timezone
 from django.db.models import Q
 from .models import InventoryItem, Warehouse
 from django.contrib.auth.decorators import login_required
+from .forms import WarehouseForm, InventoryItemForm, InventoryMoveForm
 
 
+# =========================
+# WAREHOUSES
+# =========================
 @login_required
 def warehouses_page(request):
     user = request.user
@@ -37,6 +41,87 @@ def warehouses_page(request):
         },
     )
 
+
+@login_required
+def warehouse_create(request):
+    if request.method == "POST":
+        form = WarehouseForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("warehouse_page")
+    else:
+        form = WarehouseForm()
+
+    return render(request, "inventory/warehouse_form.html", {"form": form})
+
+
+@login_required
+def warehouse_update(request, pk):
+    warehouse = get_object_or_404(Warehouse, pk=pk)
+
+    if request.method == "POST":
+        form = WarehouseForm(request.POST, instance=warehouse)
+        if form.is_valid():
+            form.save()
+            return redirect("warehouse_page")
+    else:
+        form = WarehouseForm(instance=warehouse)
+
+    return render(request, "inventory/warehouse_form.html", {"form": form})
+
+
+@login_required
+def warehouse_delete(request, pk):
+    warehouse = get_object_or_404(Warehouse, pk=pk)
+    warehouse.delete()
+    return redirect("warehouse_page")
+
+
+# =========================
+# INVENTORY ITEMS
+# =========================
+
+@login_required
+def item_create(request):
+    if request.method == "POST":
+        form = InventoryItemForm(request.POST)
+        if form.is_valid():
+            item = form.save()
+
+            # create initial movement record
+            InventoryMovement.objects.create(
+                item=item,
+                to_warehouse=item.current_warehouse,
+                moved_by=request.user,
+                note="Initial assignment"
+            )
+            return redirect("inventory_page")
+    else:
+        form = InventoryItemForm()
+
+    return render(request, "inventory/item_form.html", {"form": form})
+
+
+@login_required
+def item_update(request, pk):
+    item = get_object_or_404(InventoryItem, pk=pk)
+
+    if request.method == "POST":
+        form = InventoryItemForm(request.POST, instance=item)
+        if form.is_valid():
+            form.save()
+            return redirect("inventory_page")
+    else:
+        form = InventoryItemForm(instance=item)
+
+    return render(request, "inventory/item_form.html", {"form": form})
+
+
+@login_required
+def item_delete(request, pk):
+    item = get_object_or_404(InventoryItem, pk=pk)
+    item.delete()
+    return redirect("inventory_page")
 
 @login_required
 def inventory_page(request):
@@ -73,6 +158,7 @@ def inventory_page(request):
         ("Product Type", "type"),
         ("Warehouse", "warehouse"),
         ("Days in Warehouse", "days"),
+        ("Actions", "actions")
     ]
 
     sort = request.GET.get("sort", "name")   # ✅ valid default
@@ -184,3 +270,34 @@ def inventory_detail(request, pk):
             "page_obj": page_obj,
         },
     )
+
+# =========================
+# MOVE INVENTORY ITEM
+# =========================
+
+@login_required
+def move_item(request, pk):
+    item = get_object_or_404(InventoryItem, pk=pk)
+
+    if request.method == "POST":
+        form = InventoryMoveForm(request.POST)
+        if form.is_valid():
+            movement = form.save(commit=False)
+            movement.item = item
+            movement.from_warehouse = item.current_warehouse
+            movement.moved_by = request.user
+            movement.save()
+
+            # update item warehouse
+            item.current_warehouse = movement.to_warehouse
+            item.save()
+
+            messages.success(request, "Item moved successfully.")
+            return redirect("inventory_page")
+    else:
+        form = InventoryMoveForm()
+
+    return render(request, "inventory/move_item.html", {
+        "item": item,
+        "form": form
+    })

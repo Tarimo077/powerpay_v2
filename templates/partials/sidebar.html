@@ -35,14 +35,23 @@
     </div>
 
     <!-- Navigation Links -->
-    <div class="flex flex-col mt-4 space-y-2 flex-1 overflow-y-auto">
+    <div class="flex flex-col mt-2 space-y-1 flex-1 overflow-y-auto">
 
         <a href="{% url 'index' %}"
            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
            {% if request.path == '/' %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
             <i class="fas fa-chart-line w-5"></i>
-            <span class="link-text">Dashboard</span>
+            <span class="link-text">Overview</span>
         </a>
+
+        {% if is_superuser %}
+        <a href="{% url 'organizations_page' %}"
+           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
+           {% if 'organizations' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+            <i class="fas fa-industry w-5"></i>
+            <span class="link-text">Organizations</span>
+        </a>
+        {% endif %}
 
         <a href="{% url 'device_list' %}"
            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 

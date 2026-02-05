@@ -43,9 +43,10 @@
         </div>
 
         <!-- CHARTS -->
+        {% if is_superadmin %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
-            {% if is_superadmin %}
+            
             <!-- Money by Org Card -->
             <div id="moneyByOrgCard" class="card bg-base-100 shadow p-4 border-none outline-none flex flex-col">
 
@@ -66,13 +67,11 @@
                 </div>
 
                 <div class="flex-1 border-none outline-none">
-                    <canvas id="moneyByOrgChart" class="border-none outline-none"></canvas>
+                    <canvas id="moneyByOrgChart" class="w-full h-full border-none outline-none"></canvas>
                 </div>
 
             </div>
-            {% endif %}
-
-            <!-- Money Last 7 Days Line Chart -->
+        <!-- Money Last 7 Days Line Chart -->
             <div id="week-transactions" class="card bg-base-100 shadow border-none outline-none p-4 flex flex-col">
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
                     <h3 class="text-lg font-semibold border-none">
@@ -93,8 +92,33 @@
                     <canvas id="moneyLineChart" class="w-full h-full border-none outline-none"></canvas>
                 </div>
             </div>
-
         </div>
+        {% else %}
+        <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6">
+
+        <!-- Money Last 7 Days Line Chart -->
+            <div id="week-transactions" class="card bg-base-100 shadow border-none outline-none p-4 flex flex-col">
+                <div class="flex justify-between items-center mb-2 border-none outline-none">
+                    <h3 class="text-lg font-semibold border-none">
+                        Money In Last 7 Days
+                    </h3>
+
+                    <!-- This button will NOT appear in download -->
+                    <button
+                        data-ignore-download
+                        onclick="downloadCard('week-transactions', 'money-in-7days.png')"
+                        class="btn btn-sm btn-outline btn-success hover:text-white"
+                    >
+                        <i class="fas fa-download mr-2"></i>
+                        Download
+                    </button>
+                </div>
+                <div class="flex-1 border-none outline-none">
+                    <canvas id="moneyLineChart" class="w-full h-full border-none outline-none"></canvas>
+                </div>
+            </div>
+        </div>
+        {% endif %}        
 
         {% include "partials/transactions_table.html" %}
 

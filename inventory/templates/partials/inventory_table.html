@@ -82,6 +82,14 @@
                    class="btn btn-primary btn-sm text-white">
                    View<i class="fa-solid fa-binoculars"></i>
                 </a>
+                <a href="{% url 'item_update' item.id %}"
+                   class="btn btn-accent btn-sm text-white">
+                   Edit<i class="fa-solid fa-pen-to-square"></i>
+                </a>
+                <a href="{% url 'item_delete' item.id %}"
+                   class="btn btn-error btn-sm text-white">
+                   View<i class="fa-solid fa-trash"></i>
+                </a>
             </td>
         </tr>
         {% empty %}

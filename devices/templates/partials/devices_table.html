@@ -1,0 +1,102 @@
+{% load humanize %}
+
+<div id="devices-table" class="relative">
+
+    <!-- HTMX LOADER -->
+    <div id="htmx-loading"
+         class="absolute inset-0 bg-base-200/50 flex items-center justify-center
+                z-10 pointer-events-none opacity-0 transition-opacity
+                htmx-indicator">
+        <span class="loading loading-spinner loading-lg text-success"></span>
+    </div>
+
+    <!-- SEARCH BAR -->
+    <form
+        class="mb-4 flex flex-wrap items-center gap-2"
+        hx-get="{% url 'device_list' %}"
+        hx-target="#devices-table"
+        hx-push-url="true"
+        hx-indicator="#htmx-loading"
+    >
+        <input
+            type="text"
+            name="q"
+            value="{{ search_query }}"
+            placeholder="Search device ID..."
+            class="input input-bordered flex-1 min-w-50"
+        >
+        <button class="btn btn-success text-white">
+            <i class="fa fa-search"></i> Search
+        </button>
+
+        {% if search_query %}
+        <a
+            hx-get="{% url 'device_list' %}"
+            hx-target="#devices-table"
+            hx-push-url="true"
+            hx-indicator="#htmx-loading"
+            class="btn btn-error text-white"
+        >
+           <i class="fa fa-times"></i> Clear
+        </a>
+        {% endif %}
+    </form>
+
+    <!-- TABLE -->
+    <div class="bg-base-100 rounded-lg shadow overflow-x-auto">
+        <table class="table w-full">
+            <thead class="bg-success text-success-content text-sm uppercase tracking-wide">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-white rounded-tl-lg">Device ID</th>
+                        <th class="px-4 py-3 text-center text-white">Status</th>
+                        <th class="px-4 py-3 text-center text-white">Last Seen</th>
+                        {% if is_superuser %}
+                        <th class="px-4 py-3 text-center text-white">Organization</th>
+                        {% endif %}
+                        <th class="px-4 py-3 text-center text-white rounded-tr-lg">Actions</th>
+                    </tr>
+            </thead>
+
+            <tbody>
+                    {% for stat in device_stats %}
+                        {% include "partials/device-row.html" with deviceid=stat.device.deviceid active=stat.device.active last_seen=stat.last_seen is_admin=is_admin organization=stat.device.organization %}
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No devices found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+        </table>
+    </div>
+
+    <!-- PAGINATION -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex justify-between mt-4">
+        {% if page_obj.has_previous %}
+            <a
+                hx-get="{% url 'device_list' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}"
+                hx-target="#devices-table"
+                hx-push-url="true"
+                hx-indicator="#htmx-loading"
+                class="btn btn-soft btn-accent hover:text-white"
+            ><i class="fa fa-backward-step"></i> Previous</a>
+        {% else %}
+            <span class="btn btn-disabled">Previous</span>
+        {% endif %}
+
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+            <a
+                hx-get="{% url 'device_list' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}"
+                hx-target="#devices-table"
+                hx-push-url="true"
+                hx-indicator="#htmx-loading"
+                class="btn btn-soft btn-success hover:text-white"
+            >Next <i class="fa fa-forward-step"></i></a>
+        {% else %}
+            <span class="btn btn-disabled">Next</span>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>

@@ -1,8 +1,8 @@
 {% load humanize %}
 <tr id="device-{{ deviceid }}">
-    <td>{{ deviceid }}</td>
+    <td class="text-left">{{ deviceid }}</td>
 
-    <td class="flex items-center gap-4">
+    <td class="text-center flex items-center gap-4 justify-center">
         <!-- Status badge -->
         <span class="badge text-white {% if active %}badge-success{% else %}badge-error{% endif %}">
             {{ active|yesno:"ON,OFF" }}
@@ -29,7 +29,7 @@
 
     </td>
 
-    <td>
+    <td class="text-center">
         {% if last_seen %}
             {{ last_seen|naturaltime }}
         {% else %}
@@ -37,7 +37,14 @@
         {% endif %}
     </td>
 
-    <td class="flex flex-row gap-2 justify-center">
+    {% if is_superuser %}
+    <td class="text-center">
+        {{ organization.name }}
+    </td>
+
+    {% endif %}
+
+    <td class="text-center flex flex-row gap-2 justify-center">
         <a href="{% url 'device_detail' deviceid %}" class="btn btn-sm btn-primary">View<i class="fa-solid fa-binoculars"></i></a>
         
         {% if is_admin %}

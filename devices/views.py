@@ -22,43 +22,57 @@ COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
 # ------------------------------
 # Device List View
 # ------------------------------
+
 @login_required
 def device_list(request):
-    devices = DeviceInfo.objects.all().order_by('deviceid')
+    user = request.user
+    q = request.GET.get("q", "")
 
+    # Role-based filtering
+    if user.is_superuser or getattr(user, "role", None) == "admin":
+        devices = DeviceInfo.objects.all().select_related('organization')
+        is_admin = True
+    else:
+        devices = DeviceInfo.objects.filter(organization=user.organization).select_related('organization')
+        is_admin = False
+
+    # Search
+    if q:
+        devices = devices.filter(deviceid__icontains=q)
+
+    devices = devices.order_by("deviceid")
+
+    # Stats
     total_devices = devices.count()
     active_devices = devices.filter(active=True).count()
     inactive_devices = devices.filter(active=False).count()
 
-    device_stats = []
-    for d in devices:
-        device_stats.append({
-            "device": d,
-            "last_seen": last_energy_timestamp(d),
-            #"kwh_today": kwh_for_device(
-            #    d,
-            #    now().replace(hour=0, minute=0, second=0, microsecond=0),
-            #    now()
-            #)
-        })
+    device_stats = [
+        {"device": d, "last_seen": last_energy_timestamp(d)}
+        for d in devices
+    ]
 
     paginator = Paginator(device_stats, 10)
-    page_number = request.GET.get('page')
+    page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
     context = {
-        "device_stats": page_obj.object_list,
         "page_obj": page_obj,
-        "is_admin": request.user.is_superuser,
-
-        # 👇 card stats
+        "device_stats": page_obj.object_list,
+        "search_query": q,
+        "is_admin": is_admin,
         "total_devices": total_devices,
         "active_devices": active_devices,
         "inactive_devices": inactive_devices,
     }
 
-    return render(request, "devices/device_list.html", context)
+    print(page_obj.object_list)
 
+    # ✅ HTMX partial rendering
+    if request.headers.get("HX-Request"):
+        return render(request, "partials/devices_table.html", context)
+
+    return render(request, "devices/device_list.html", context)
 # ------------------------------
 # Device Detail / Stats
 # ------------------------------

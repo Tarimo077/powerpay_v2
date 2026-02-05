@@ -10,6 +10,15 @@
 
 <h2 class="text-2xl font-bold">Warehouses</h2>
 
+{% if is_superuser %}
+  <div class="flex justify-end w-full mb-4">
+    <a href="{% url 'warehouse_create' %}"
+      class="btn btn-success text-white">
+      <i class="fa-solid fa-square-plus"></i> Add Warehouse
+    </a>
+  </div>
+  {% endif %}
+
 <!-- STATS -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
   <div class="card bg-base-100 p-4 shadow border-l-4 border-info">

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content"
+         class="px-4 py-2 w-full transition-all duration-300 lg:ml-64 ml-0">
+
+        <h2 class="text-2xl font-bold mb-6">{{ title }}</h2>
+
+        <div class="bg-base-100 shadow-lg rounded-xl p-6">
+
+            <form method="POST" enctype="multipart/form-data" class="space-y-5">
+                {% csrf_token %}
+
+                <!-- Name -->
+                <div>
+                    <label class="label font-semibold">Organization Name</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.name.errors }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Address -->
+                <div>
+                    <label class="label font-semibold">Address</label>
+                    {{ form.address }}
+                    {% if form.address.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.address.errors }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Phone -->
+                <div>
+                    <label class="label font-semibold">Phone Number</label>
+                    {{ form.phone_number }}
+                    {% if form.phone_number.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.phone_number.errors }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label class="label font-semibold">Email</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.email.errors }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Logo -->
+                <div>
+                    <label class="label font-semibold">Logo</label>
+                    {{ form.logo }}
+                    {% if form.logo.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.logo.errors }}</p>
+                    {% endif %}
+
+                    {% if form.instance.logo %}
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500">Current logo:</p>
+                            <img src="{{ form.instance.logo.url }}"
+                                 class="h-16 rounded-lg border shadow-sm">
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" class="btn btn-success text-white">
+                        <i class="fa-solid fa-save"></i> Save
+                    </button>
+
+                    <a href="{% url 'organizations_page' %}" class="btn btn-outline">
+                        Cancel
+                    </a>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

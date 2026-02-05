@@ -91,6 +91,4 @@ def index(request):
         context['money_line_data'] = money_line_data
         context['money_line_labels'] = [d.strftime("%a %d") for d in days]
 
-    print(context)    
-
     return render(request, "core/index.html", context)
