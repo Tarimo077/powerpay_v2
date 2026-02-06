@@ -41,12 +41,12 @@
             {% endif %}
             
         </form>
-
+<div class="bg-base-100 rounded-lg shadow overflow-x-auto">
 <table class="table w-full">
     <thead class="bg-success text-white">
         <tr>
             {% for label, field_name in inventory_fields %}
-            <th class="px-4 py-3 text-left">
+            <th class="px-4 py-3 text-center">
                 <a class="cursor-pointer flex items-center gap-1"
                    hx-get="{% url 'inventory_page' %}?sort={{ field_name }}&dir={{ next_dirs|get_item:field_name }}&q={{ search_query }}"
                    hx-target="#inventory-table"
@@ -65,7 +65,6 @@
                 </a>
             </th>
             {% endfor %}
-            <th></th>
         </tr>
     </thead>
 
@@ -77,7 +76,7 @@
             <td>{{ item.product_type }}</td>
             <td>{{ item.current_warehouse.name }}</td>
             <td>{{ item.days_in_current_warehouse }}</td>
-            <td>
+            <td class="flex flex-row justify-center items-center gap-2">
                 <a href="{% url 'inventory_detail' item.id %}"
                    class="btn btn-primary btn-sm text-white">
                    View<i class="fa-solid fa-binoculars"></i>
@@ -88,8 +87,14 @@
                 </a>
                 <a href="{% url 'item_delete' item.id %}"
                    class="btn btn-error btn-sm text-white">
-                   View<i class="fa-solid fa-trash"></i>
+                   Delete<i class="fa-solid fa-trash"></i>
                 </a>
+                {% if is_superuser %}
+                <a href="{% url 'move_item' item.id %}"
+                   class="btn btn-error btn-sm text-white">
+                   Move Item<i class="fa-solid fa-rotate"></i>
+                </a>
+                {% endif %}
             </td>
         </tr>
         {% empty %}
@@ -99,6 +104,7 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
 
 
 <!-- Pagination -->

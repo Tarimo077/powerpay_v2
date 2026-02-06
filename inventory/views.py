@@ -5,7 +5,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.db.models import Q
-from .models import InventoryItem, Warehouse
+from .models import InventoryItem, Warehouse, InventoryMovement
 from django.contrib.auth.decorators import login_required
 from .forms import WarehouseForm, InventoryItemForm, InventoryMoveForm
 
@@ -292,7 +292,6 @@ def move_item(request, pk):
             item.current_warehouse = movement.to_warehouse
             item.save()
 
-            messages.success(request, "Item moved successfully.")
             return redirect("inventory_page")
     else:
         form = InventoryMoveForm()
