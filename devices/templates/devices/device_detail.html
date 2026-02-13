@@ -19,6 +19,12 @@
          {{ device.deviceid }} data
         </h1>
 
+        <div class="flex justify-end w-full mb-4">
+            <a href="{% url 'device_live' device.deviceid %}" class="btn btn-success text-white justify-end flex">
+                <i class="fa-solid fa-arrows-to-circle"></i> Live Window
+            </a>
+        </div>
+
         <!-- SUMMARY CARDS -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 mb-6">
 
@@ -125,7 +131,7 @@
                     </button>
                 </div>
                 <div class="flex-1 border-none outline-none">
-                    <canvas id="energyChart" class="border-none outline-none"></canvas>
+                    <canvas id="energyChart" class="border-none outline-none w-full h-full"></canvas>
                 </div>
             </div>
 
@@ -146,7 +152,7 @@
                     </button>
                 </div>
                 <div class="flex-1 border-none outline-none">
-                    <canvas id="eventsChart" class="border-none outline-none"></canvas>
+                    <canvas id="eventsChart" class="border-none outline-none w-full h-full"></canvas>
                 </div>
             </div>
 

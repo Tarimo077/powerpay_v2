@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen overflow-hidden bg-base-200">
+
+    <!-- Sidebar -->
+    {% include "partials/sidebar.html" %}
+
+    <!-- Main Content -->
+    <div id="page-content"
+     class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
+            lg:ml-64 ml-0 space-y-6">
+
+        <div class="bg-base-100 shadow rounded-lg p-6 mt-2">
+
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold">My Profile</h2>
+                <span class="badge badge-success text-white">
+                    {% if request.user.is_superuser %}
+                        Super Admin
+                    {% else %}
+                        User
+                    {% endif %}
+                </span>
+            </div>
+
+            <!-- User Info Card -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+
+                <div class="card bg-base-200 p-4">
+                    <p class="text-xs text-gray-500">Username</p>
+                    <p class="font-semibold">{{ request.user.email }}</p>
+                </div>
+
+                <div class="card bg-base-200 p-4">
+                    <p class="text-xs text-gray-500">Date Joined</p>
+                    <p class="font-semibold">
+                        {{ request.user.date_joined|date:"j M Y" }}
+                    </p>
+                </div>
+
+                <div class="card bg-base-200 p-4">
+                    <p class="text-xs text-gray-500">Last Login</p>
+                    <p class="font-semibold">
+                        {{ request.user.last_login|date:"j M Y H:i" }}
+                    </p>
+                </div>
+
+                {% if request.user.organization %}
+                <div class="card bg-base-200 p-4">
+                    <p class="text-xs text-gray-500">Organization</p>
+                    <p class="font-semibold">
+                        {{ request.user.organization.name }}
+                    </p>
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- Edit Form -->
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+
+                <div>
+                    <label class="label font-semibold">First Name</label>
+                    {{ form.first_name }}
+                </div>
+
+                <div>
+                    <label class="label font-semibold">Last Name</label>
+                    {{ form.last_name }}
+                </div>
+
+                <div>
+                    <label class="label font-semibold">Email</label>
+                    {{ form.email }}
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <a href="{% url 'password_reset' %}" 
+                       class="btn btn-warning text-white">
+                        Change Password
+                    </a>
+
+                    <button type="submit" class="btn btn-success text-white">
+                        Update Profile
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}

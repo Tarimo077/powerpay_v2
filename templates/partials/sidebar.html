@@ -74,7 +74,8 @@
             <span class="link-text">Sales</span>
         </a>
 
-        <!-- Inventory (ALL USERS) -->
+        <!-- Inventory -->
+        {% if request.user.is_superuser %}
         <a href="{% url 'inventory_page' %}"
            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
            {% if request.path == '/inventory/' %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
@@ -83,7 +84,6 @@
         </a>
 
         <!-- Warehouses (SUPERUSERS ONLY) -->
-        {% if request.user.is_superuser %}
         <a href="{% url 'warehouses_page' %}"
            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
            {% if 'warehouses' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
@@ -99,17 +99,26 @@
             <span class="link-text">Transactions</span>
         </a>
 
+        {% if is_superuser %}
+        <a href="{% url 'admin_ticket_list' %}"
+           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
+           {% if 'support' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+            <i class="fa-solid fa-headset w-5"></i>
+            <span class="link-text">Support</span>
+        </a>
+        {% else %}
         <a href="{% url 'support_ticket_list' %}"
            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
            {% if 'support' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
             <i class="fa-solid fa-headset w-5"></i>
             <span class="link-text">Support</span>
         </a>
+        {% endif %}
 
-        <form method="post" action="{% url 'logout' %}" class="mt-auto w-full">
+        <form method="post" action="{% url 'logout' %}" class="mt-auto">
             {% csrf_token %}
             <button type="submit"
-                    class="flex w-3/4 items-center gap-4 p-4 mx-3 text-error hover:text-red-800 hover:bg-base-200 rounded-lg transition cursor-pointer">
+                    class="flex items-center gap-4 p-4 mx-3 text-error hover:text-red-800 hover:bg-base-200 rounded-lg transition cursor-pointer">
                 <i class="fas fa-right-from-bracket w-5"></i>
                 <span class="link-text">Logout</span>
             </button>

@@ -14,7 +14,7 @@ from django.urls import reverse_lazy
 import datetime
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from django.utils import timezone
+from .forms import UserProfileForm
 
 
 MAX_ATTEMPTS = 5
@@ -218,3 +218,18 @@ def accept_invite(request, token):
         return redirect("index")
 
     return render(request, "accounts/accept_invite.html")
+
+
+@login_required
+def profile_view(request):
+    if request.method == "POST":
+        form = UserProfileForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect("profile")
+    else:
+        form = UserProfileForm(instance=request.user)
+
+    return render(request, "accounts/profile.html", {
+        "form": form
+    })

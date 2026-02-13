@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content" class="px-6 py-6 w-full lg:ml-64 ml-0 space-y-6">
+
+        <div class="flex justify-between items-center">
+            <h2 class="text-2xl font-bold">Live Data - {{ device.deviceid }}</h2>
+            <a href="{% url 'device_detail' device.deviceid %}" class="btn btn-ghost btn-accent">
+                <i class="fa-solid fa-backward-step"></i> Back
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="card bg-base-100 shadow p-6">
+                <p class="text-xs text-gray-500 uppercase">Status</p>
+                <div class="flex items-center gap-3 mt-2">
+                    <div id="status-dot" class="w-3 h-3 rounded-full bg-error transition-all"></div>
+                    <span id="status-text" class="font-bold text-lg text-error">Offline</span>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow p-6">
+                <p class="text-xs text-gray-500 uppercase">Energy (kWh)</p>
+                <p id="kwh" class="text-lg font-bold text-primary mt-2">--</p>
+            </div>
+
+            <div class="card bg-base-100 shadow p-6">
+                <p class="text-xs text-gray-500 uppercase">Last Sync</p>
+                <p id="last-update" class="text-lg font-bold text-secondary mt-2">--</p>
+            </div>
+
+            <div class="card bg-base-100 shadow p-6">
+                <p class="text-xs text-gray-500 uppercase">Reported</p>
+                <p id="device-status" class="text-lg font-bold text-warning mt-2">--</p>
+            </div>
+        </div>
+
+        <div class="card bg-base-100 shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-base-200 flex justify-between items-center">
+                <h3 class="font-bold">Live Message Log</h3>
+                <span class="badge badge-ghost text-xs">Showing last 20 messages</span>
+            </div>
+            <div class="overflow-x-auto max-h-96">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Payload</th>
+                        </tr>
+                    </thead>
+                    <tbody id="message-log-body">
+                        <tr id="no-data-row"><td colspan="2" class="text-center text-gray-400">Waiting for data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+const deviceID = "{{ device.deviceid }}";
+let lastMessageTime = null; 
+let lastProcessedTxTime = null; // Track the device's internal timestamp
+let socket;
+let totalKwh = 0.0;
+
+function connectSocket() {
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    socket = new WebSocket(`${protocol}://${window.location.host}/ws/mqtt/${deviceID}/`);
+
+    socket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const payload = data.data;
+
+        // 1. DEDUPLICATION CHECK: Use txtime to skip duplicates
+        if (payload.txtime && payload.txtime === lastProcessedTxTime) {
+            return; 
+        }
+        lastProcessedTxTime = payload.txtime;
+
+        // 2. UPDATE STATE
+        lastMessageTime = Date.now();
+        updateOnlineStatus(true);
+        appendMessageToLog(payload);
+
+        // --- CUMULATIVE ENERGY LOGIC ---
+        if (payload.kwh !== undefined) {
+            const incomingKwh = parseFloat(payload.kwh);
+            if (!isNaN(incomingKwh)) {
+                totalKwh += incomingKwh; // Add incoming value to the total
+                document.getElementById("kwh").innerText = totalKwh.toFixed(4) + " kWh";
+            }
+        }
+        if (payload.status) {
+            document.getElementById("device-status").innerText = payload.status;
+        }
+        if (payload.txtime) {
+            document.getElementById("last-update").innerText = formatDateTime(payload.txtime);
+        }
+    };
+
+    socket.onclose = () => setTimeout(connectSocket, 3000);
+}
+
+function appendMessageToLog(payload) {
+    const tbody = document.getElementById("message-log-body");
+    const noDataRow = document.getElementById("no-data-row");
+    if (noDataRow) noDataRow.remove();
+
+    const row = document.createElement("tr");
+    const now = new Date().toLocaleTimeString();
+    
+    // We add txtime clearly in the log to help you debug
+    row.innerHTML = `
+        <td class="whitespace-nowrap font-mono text-xs">
+            <span class="text-gray-400">${now}</span><br>
+        </td>
+        <td><code class="text-xs bg-base-200 p-1 rounded">${JSON.stringify(payload)}</code></td>
+    `;
+
+    tbody.insertBefore(row, tbody.firstChild);
+
+    if (tbody.children.length > 20) {
+        tbody.removeChild(tbody.lastChild);
+    }
+}
+
+function updateOnlineStatus(isOnline) {
+    const dot = document.getElementById("status-dot");
+    const text = document.getElementById("status-text");
+    if (isOnline) {
+        dot.className = "w-3 h-3 rounded-full bg-success transition-all shadow-[0_0_8px_rgba(34,197,94,0.8)]";
+        text.innerText = "Online";
+        text.className = "font-bold text-lg text-success";
+    } else {
+        dot.className = "w-3 h-3 rounded-full bg-error transition-all";
+        text.innerText = "Offline";
+        text.className = "font-bold text-lg text-error";
+    }
+}
+
+function formatDateTime(raw) {
+    const str = raw.toString();
+    if (str.length !== 14) return str;
+    return `${str.slice(6,8)}/${str.slice(4,6)}/${str.slice(0,4)} ${str.slice(8,10)}:${str.slice(10,12)}:${str.slice(12,14)}`;
+}
+
+// Heartbeat detection: Set to offline if no data for > 2 minutes (120,000ms)
+setInterval(() => {
+    if (lastMessageTime && (Date.now() - lastMessageTime > 120000)) {
+        updateOnlineStatus(false);
+    }
+}, 5000);
+
+connectSocket();
+</script>
+{% endblock %}

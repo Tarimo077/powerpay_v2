@@ -440,3 +440,11 @@ def device_delete(request, deviceid):
     device = get_object_or_404(DeviceInfo, deviceid=deviceid)
     device.delete()
     return redirect("device_list")
+
+@login_required
+def device_live_view(request, deviceid):
+    device = get_object_or_404(DeviceInfo, deviceid=deviceid)
+
+    return render(request, "devices/device_live.html", {
+        "device": device
+    })

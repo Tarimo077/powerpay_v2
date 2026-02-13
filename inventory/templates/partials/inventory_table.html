@@ -76,7 +76,7 @@
             <td>{{ item.product_type }}</td>
             <td>{{ item.current_warehouse.name }}</td>
             <td>{{ item.days_in_current_warehouse }}</td>
-            <td class="flex flex-row justify-center items-center gap-2">
+            <td class="flex flex-row items-center gap-2">
                 <a href="{% url 'inventory_detail' item.id %}"
                    class="btn btn-primary btn-sm text-white">
                    View<i class="fa-solid fa-binoculars"></i>
@@ -85,16 +85,16 @@
                    class="btn btn-accent btn-sm text-white">
                    Edit<i class="fa-solid fa-pen-to-square"></i>
                 </a>
+                {% if is_superuser %}
+                <a href="{% url 'move_item' item.id %}"
+                   class="btn btn-warning btn-sm text-white">
+                   Move Item<i class="fa-solid fa-rotate"></i>
+                </a>
+                {% endif %}
                 <a href="{% url 'item_delete' item.id %}"
                    class="btn btn-error btn-sm text-white">
                    Delete<i class="fa-solid fa-trash"></i>
                 </a>
-                {% if is_superuser %}
-                <a href="{% url 'move_item' item.id %}"
-                   class="btn btn-error btn-sm text-white">
-                   Move Item<i class="fa-solid fa-rotate"></i>
-                </a>
-                {% endif %}
             </td>
         </tr>
         {% empty %}
