@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load dict_extras %}
+{% load static %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
+            lg:ml-64 ml-0 space-y-6" id="page-content">
+
+        <div class="bg-base-100 shadow rounded-lg p-6">
+
+            <h2 class="text-2xl font-bold mb-6">
+                Move Inventory Item
+            </h2>
+
+            <!-- Item Info -->
+            <div class="mb-4 p-4 bg-base-200 rounded-lg">
+                <p class="text-sm text-gray-500">Item</p>
+                <p class="font-semibold text-lg">
+                    {{ item.name }} ({{ item.serial_number }})
+                </p>
+
+                <p class="text-sm text-gray-500 mt-2">Current Warehouse</p>
+                <span class="badge badge-info badge-lg">
+                    {{ item.current_warehouse.name }}
+                </span>
+            </div>
+
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+
+                <div>
+                    <label class="label font-semibold">Move To Warehouse</label>
+                    {{ form.to_warehouse|add_class:"select select-bordered w-full" }}
+                </div>
+
+                <div>
+                    <label class="label font-semibold">Note (optional)</label>
+                    {{ form.note|add_class:"textarea textarea-bordered w-full" }}
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <a href="{% url 'inventory_page' %}" class="btn btn-error text-white">
+                        Cancel
+                    </a>
+
+                    <button type="submit" class="btn btn-accent text-white">
+                        <i class="fa-solid fa-truck-moving mr-2"></i>
+                        Move Item
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

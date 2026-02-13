@@ -37,19 +37,23 @@
 <div class="bg-base-100 shadow rounded-lg overflow-x-auto">
 <table class="table w-full">
 <thead class="bg-success text-white">
-<tr>
+<tr class="text-center">
   <th>Date</th>
-  <th>From</th>
-  <th>To</th>
+  <th>Moved By</th>
+  <th>Movement</th>
   <th>Note</th>
 </tr>
 </thead>
 <tbody>
 {% for m in page_obj %}
-<tr>
+<tr class="{% if forloop.first %}bg-info/10{% endif %} text-center">
   <td>{{ m.date_moved|date:"j M Y H:i" }}</td>
-  <td>{{ m.from_warehouse }}</td>
-  <td>{{ m.to_warehouse }}</td>
+  <td>{{ m.moved_by|default:"System" }}</td>
+  <td>
+    <span class="badge badge-warning text-white">{{ m.from_warehouse|default:"-" }}</span>
+    <i class="fa-solid fa-arrow-right text-gray-400"></i>
+    <span class="badge badge-success text-white">{{ m.to_warehouse }}</span>
+  </td>
   <td>{{ m.note|default:"-" }}</td>
 </tr>
 {% empty %}

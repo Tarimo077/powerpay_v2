@@ -18,3 +18,8 @@ class InventoryMoveForm(forms.ModelForm):
     class Meta:
         model = InventoryMovement
         fields = ["to_warehouse", "note"]
+
+    def __init__(self, *args, item=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if item:
+            self.fields["to_warehouse"].queryset = Warehouse.objects.exclude(id=item.current_warehouse.id)
