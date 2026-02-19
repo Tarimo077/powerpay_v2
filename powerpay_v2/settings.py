@@ -121,8 +121,7 @@ DATABASES = {
 }
 
 DATABASE_ROUTERS = [
-    'powerpay_v2.routers.PowerpayRouter',
-    'powerpay_v2.routers.CoordsRouter'
+    'powerpay_v2.routers.CoordsRouter',
 ]
 
 

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "partials/navbar.html" %}
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content" class="px-6 py-6 w-full lg:ml-64 ml-0 space-y-6">
+        <h1>Confirm Delete</h1>
+        <p>Are you sure you want to delete this schedule: {{ object }}?</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-warning text-white">Yes, Delete</button>
+            <a href="{% url 'device_schedule_list' %}" class="btn btn-error text-white">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

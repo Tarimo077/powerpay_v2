@@ -13,6 +13,7 @@ class Warehouse(models.Model):
     )
 
     class Meta:
+        managed = False
         db_table = "warehouses"
 
     def __str__(self):
@@ -29,6 +30,7 @@ class InventoryItem(models.Model):
     def __str__(self):
         return f"{self.name} ({self.serial_number})"
     class Meta:
+        managed = False
         db_table = 'inventory_items'
     @property
     def days_in_current_warehouse(self):
@@ -50,5 +52,6 @@ class InventoryMovement(models.Model):
     def __str__(self):
         return f"{self.item.serial_number} → {self.to_warehouse.name} by {self.moved_by} on {self.date_moved}"
     class Meta:
+        managed = False
         db_table = 'inventory_movements'
         ordering = ['-date_moved']

@@ -1,5 +1,5 @@
 from django import forms
-from .models import DeviceInfo
+from .models import DeviceInfo, DeviceCommandSchedule
 
 class DeviceForm(forms.ModelForm):
     class Meta:
@@ -24,3 +24,13 @@ class DeviceForm(forms.ModelForm):
         # HARD GUARD: only superuser sees org selector
         if not user or not user.is_superuser:
             self.fields.pop("organization", None)
+
+
+class DeviceCommandScheduleForm(forms.ModelForm):
+    class Meta:
+        model = DeviceCommandSchedule
+        fields = ["action", "devices", "scheduled_time", "created_by", "executed"]
+        widgets = {
+            "scheduled_time": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+            "devices": forms.CheckboxSelectMultiple(),
+        }

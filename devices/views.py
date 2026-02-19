@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.timezone import now, make_aware, is_naive
-from .models import DeviceInfo, DeviceData
+from .models import DeviceInfo, DeviceData, DeviceCommandSchedule
 from .services.energy import (
     kwh_for_device,
     last_energy_timestamp
@@ -14,8 +14,12 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Sum 
 from notifications.utils import notify
-from .forms import DeviceForm
+from .forms import DeviceForm, DeviceCommandScheduleForm
 from django.views.decorators.http import require_POST
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
+from django.contrib import messages
+from .services.device_api import call_change_status_api
 
 
 COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
@@ -448,3 +452,57 @@ def device_live_view(request, deviceid):
     return render(request, "devices/device_live.html", {
         "device": device
     })
+
+
+# List all schedules
+class DeviceScheduleListView(ListView):
+    model = DeviceCommandSchedule
+    template_name = "devices/device_schedule_list.html"
+    context_object_name = "schedules"
+    ordering = ["-scheduled_time"]
+
+
+# Create schedule
+class DeviceScheduleCreateView(CreateView):
+    model = DeviceCommandSchedule
+    form_class = DeviceCommandScheduleForm
+    template_name = "devices/device_schedule_form.html"
+    success_url = reverse_lazy("device_schedule_list")
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super().form_valid(form)
+
+
+# Edit schedule
+class DeviceScheduleUpdateView(UpdateView):
+    model = DeviceCommandSchedule
+    form_class = DeviceCommandScheduleForm
+    template_name = "devices/device_schedule_form.html"
+    success_url = reverse_lazy("device_schedule_list")
+
+
+# Delete schedule
+class DeviceScheduleDeleteView(DeleteView):
+    model = DeviceCommandSchedule
+    template_name = "devices/device_schedule_confirm_delete.html"
+    success_url = reverse_lazy("device_schedule_list")
+
+
+# Trigger schedule manually (for testing)
+def trigger_schedule(request, pk):
+    schedule = DeviceCommandSchedule.objects.get(pk=pk)
+    if schedule.executed:
+        messages.warning(request, "Schedule already executed!")
+        return redirect("device_schedule_list")
+
+    for device in schedule.devices.all():
+        result = call_change_status_api(device.device_id, schedule.action)
+        if result["success"]:
+            schedule.executed = True
+            schedule.save()
+            messages.success(request, f"{schedule.action} sent to {device}")
+        else:
+            messages.error(request, f"Error for {device}: {result['error']}")
+
+    return redirect("device_schedule_list")

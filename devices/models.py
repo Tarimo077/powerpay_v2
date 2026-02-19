@@ -1,5 +1,7 @@
 from django.db import models
 from organizations.models import Organization
+from django.utils import timezone
+from accounts.models import User
 
 # ----------------------
 # Device Energy Data (appliatrixdata)
@@ -38,3 +40,39 @@ class DeviceInfo(models.Model):
 
     def __str__(self):
         return self.deviceid
+
+
+class DeviceCommandSchedule(models.Model):
+
+    ACTION_CHOICES = [
+        ("ON", "Switch ON"),
+        ("OFF", "Switch OFF"),
+    ]
+
+    action = models.CharField(max_length=10, choices=ACTION_CHOICES)
+
+    devices = models.ManyToManyField(
+        DeviceInfo,
+        related_name="schedules"
+    )
+
+    scheduled_time = models.DateTimeField()
+
+    executed = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    created_by = models.ForeignKey(
+        User,   
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        db_table = "device_command_schedule"
+        managed = True
+        #app_label = "devices"   # 👈 IMPORTANT
+
+    def __str__(self):
+        return f"{self.action} @ {self.scheduled_time}"

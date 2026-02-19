@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "partials/navbar.html" %}
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content" class="px-6 py-6 w-full lg:ml-64 ml-0 space-y-6">
+        <h2>Device Schedules</h2>
+
+        <div class="flex justify-end w-full mb-4">
+            <a href="{% url 'device_schedule_add' %}" class="btn btn-success text-white"><i class="fa-solid fa-calendar-plus"></i>Add Schedule</a>
+        </div>
+        <table class="table table-striped mt-3">
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Devices</th>
+                    <th>Scheduled Time</th>
+                    <th>Executed</th>
+                    <th>Created By</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sched in schedules %}
+                <tr>
+                    <td>{{ sched.action }}</td>
+                    <td>
+                        {% for dev in sched.devices.all %}
+                            {{ dev.name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>{{ sched.scheduled_time }}</td>
+                    <td>{{ sched.executed }}</td>
+                    <td>{{ sched.created_by }}</td>
+                    <td>
+                        <a href="{% url 'device_schedule_edit' sched.id %}">Edit</a> |
+                        <a href="{% url 'device_schedule_delete' sched.id %}">Delete</a> |
+                        <a href="{% url 'device_schedule_trigger' sched.id %}">Trigger</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6">No schedules yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

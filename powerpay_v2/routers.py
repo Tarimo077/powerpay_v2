@@ -1,59 +1,63 @@
-class PowerpayRouter:
-    """
-    Routes database operations for apps to the correct DB.
-    """
-    route_app_labels = {'accounts', 'notifications', 'support'}
-
-    def db_for_read(self, model, **hints):
-        if model._meta.app_label in self.route_app_labels:
-            return 'default'
-        return None
-
-    def db_for_write(self, model, **hints):
-        if model._meta.app_label in self.route_app_labels:
-            return 'default'
-        return None
-
-    def allow_relation(self, obj1, obj2, **hints):
-        # Relations within same DB allowed
-        db_set = {'default', 'coords', 'mpesa'}
-        if obj1._state.db in db_set and obj2._state.db in db_set:
-            return True
-        return None
-
-    def allow_migrate(self, db, app_label, model_name=None, **hints):
-        if app_label in self.route_app_labels:
-            return db == 'default'
-        return None
-
-
 class CoordsRouter:
-    route_app_labels = {
-        'devices',
-        'organizations',
-        'transactions',
-        'customers',
-        'sales',
-        'inventory',
+    """
+    Directs all operations to the 'coords' database.
+    Manages migrations for specific apps while protecting existing tables.
+    """
+
+    # Apps we want to fully manage (create/update tables) in Postgres
+    migrate_apps = {
+        "accounts",
+        "notifications",
+        "support",
+        "auth",           # Required for User/Group models
+        "contenttypes",   # Required for Permissions
+        "sessions",       # Required for Login sessions
+        "admin",          # Required for Django Admin
+    }
+
+    # Apps that already exist in Postgres (We use them, but don't migrate them)
+    external_no_migrate_apps = {
+        "organizations",
+        "transactions",
+        "customers",
+        "sales",
+        "inventory",
     }
 
     def db_for_read(self, model, **hints):
-        if model._meta.app_label in self.route_app_labels:
-            return 'coords'
-        return None
+        """All reads go to coords."""
+        return "coords"
 
     def db_for_write(self, model, **hints):
-        if model._meta.app_label in self.route_app_labels:
-            return 'coords'
-        return None
+        """All writes go to coords."""
+        return "coords"
 
     def allow_relation(self, obj1, obj2, **hints):
-        if obj1._state.db == 'coords' or obj2._state.db == 'coords':
-            return True
-        return None
+        """Allow all relations since everything is now in one DB (coords)."""
+        return True
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
-        # Do NOT run migrations on coords DB (external DB)
-        if app_label in self.route_app_labels:
+        """
+        Controls table creation. 
+        Only runs if the target database is 'coords'.
+        """
+        if db != "coords":
             return False
-        return None
+
+        # 1. Allow full migration for project & system apps
+        if app_label in self.migrate_apps:
+            return True
+
+        # 2. Selective migration for 'devices' app
+        if app_label == "devices":
+            if model_name and model_name.lower() == "devicecommandschedule":
+                return True
+            return False
+
+
+        # 3. Explicitly block existing data tables
+        if app_label in self.external_no_migrate_apps:
+            return False
+
+        # Default: Don't migrate anything else
+        return False

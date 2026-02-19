@@ -1,4 +1,5 @@
 from django.apps import AppConfig
+from .services.mqtt_client import start_mqtt
 
 
 class DevicesConfig(AppConfig):
@@ -6,5 +7,4 @@ class DevicesConfig(AppConfig):
     name = 'devices'
 
     def ready(self):
-        from .services.mqtt_client import start_mqtt
         start_mqtt()

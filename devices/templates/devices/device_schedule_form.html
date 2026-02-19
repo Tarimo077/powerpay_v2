@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "partials/navbar.html" %}
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content" class="px-6 py-6 w-full lg:ml-64 ml-0 space-y-6">
+        <h2>{% if object %}Edit{% else %}Add{% endif %} Schedule</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-success">Save</button>
+            <a href="{% url 'device_schedule_list' %}" class="btn btn-ghost btn-accent hover:text-white"><i class="fa-solid fa-backward-step"></i>Back</a>
+        </form>
+        
+    </div>
+</div>
+{% endblock %}
