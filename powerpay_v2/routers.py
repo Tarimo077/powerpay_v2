@@ -13,6 +13,7 @@ class CoordsRouter:
         "contenttypes",   # Required for Permissions
         "sessions",       # Required for Login sessions
         "admin",          # Required for Django Admin
+        "django_celery_beat",
     }
 
     # Apps that already exist in Postgres (We use them, but don't migrate them)

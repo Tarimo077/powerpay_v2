@@ -1,18 +1,68 @@
 {% extends "base.html" %}
 {% block content %}
 {% include "partials/navbar.html" %}
+
 <div class="flex min-h-screen bg-base-200">
     {% include "partials/sidebar.html" %}
 
     <div id="page-content" class="px-6 py-6 w-full lg:ml-64 ml-0 space-y-6">
-        <h2>{% if object %}Edit{% else %}Add{% endif %} Schedule</h2>
-        <form method="post">
+        <h2 class="text-2xl font-bold">
+            {% if object %}Edit{% else %}New{% endif %} Schedule
+        </h2>
+
+        <form method="post" class="space-y-6">
             {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn btn-success">Save</button>
-            <a href="{% url 'device_schedule_list' %}" class="btn btn-ghost btn-accent hover:text-white"><i class="fa-solid fa-backward-step"></i>Back</a>
+
+            <!-- Action -->
+            <div>
+                <label class="font-bold block mb-2">Action</label>
+                {{ form.action }}
+            </div>
+
+            <!-- Scheduled Time -->
+            <div>
+                <label class="font-bold block mb-2">Scheduled Time</label>
+                {{ form.scheduled_time }}
+            </div>
+
+            <!-- Devices -->
+            <div>
+                <label class="font-bold block mb-3">Select Devices</label>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+
+                    {% for checkbox in form.devices %}
+                        <label class="flex items-center gap-3 
+                                      bg-white p-3 rounded-lg 
+                                      border border-gray-200 
+                                      cursor-pointer hover:bg-gray-50">
+
+                            {{ checkbox.tag }}
+
+                            <span class="text-sm">
+                                {{ checkbox.choice_label }}
+                            </span>
+
+                        </label>
+                    {% endfor %}
+
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="pt-4">
+                <button type="submit" class="btn btn-success">
+                    Save
+                </button>
+
+                <a href="{% url 'device_schedule_list' %}" 
+                   class="btn btn-ghost btn-accent hover:text-white">
+                    <i class="fa-solid fa-backward-step"></i> Back
+                </a>
+            </div>
+
         </form>
-        
     </div>
 </div>
+
 {% endblock %}

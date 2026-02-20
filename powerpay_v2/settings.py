@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'organizations',
     'django.contrib.humanize',
     'notifications',
-    'channels'
+    'channels',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -85,6 +86,10 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+CELERY_BROKER_URL = "redis://localhost:6379/0"  # or your Redis URL
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+CELERY_TIMEZONE = "Africa/Nairobi"  # adjust as needed
 
 
 # Database

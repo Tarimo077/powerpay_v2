@@ -17,6 +17,10 @@ def call_change_status_api(deviceid, desired_status):
     """
 
     try:
+        if desired_status == "ON":
+            desired_status = False
+        else:
+            desired_status = True
         api_payload = {
             "selectedDev": deviceid,
             "status": desired_status
