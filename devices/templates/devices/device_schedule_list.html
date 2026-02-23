@@ -10,40 +10,43 @@
         <div class="flex justify-end w-full mb-4">
             <a href="{% url 'device_schedule_add' %}" class="btn btn-success text-white"><i class="fa-solid fa-calendar-plus"></i>Add Schedule</a>
         </div>
-        <table class="table table-striped mt-3">
-            <thead>
-                <tr>
-                    <th>Action</th>
-                    <th>Devices</th>
-                    <th>Scheduled Time</th>
-                    <th>Executed</th>
-                    <th>Created By</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for sched in schedules %}
-                <tr>
-                    <td>{{ sched.action }}</td>
-                    <td>
-                        {% for dev in sched.devices.all %}
-                            {{ dev.name }}{% if not forloop.last %}, {% endif %}
-                        {% endfor %}
-                    </td>
-                    <td>{{ sched.scheduled_time }}</td>
-                    <td>{{ sched.executed }}</td>
-                    <td>{{ sched.created_by }}</td>
-                    <td>
-                        <a href="{% url 'device_schedule_edit' sched.id %}">Edit</a> |
-                        <a href="{% url 'device_schedule_delete' sched.id %}">Delete</a> |
-                        <a href="{% url 'device_schedule_trigger' sched.id %}">Trigger</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="6">No schedules yet.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+        <div class="bg-base-100 rounded-lg shadow overflow-x-auto">
+            <table class="table w-full">
+                <thead class="bg-success text-success-content text-sm uppercase tracking-wide">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-white rounded-tl-lg">Action</th>
+                        <th class="px-4 py-3 text-center text-white">Device</th>
+                        <th class="px-4 py-3 text-center text-white">Scheduled Time</th>
+                        <th class="px-4 py-3 text-center text-white">Executed</th>
+                        <th class="px-4 py-3 text-center text-white">Created By</th>
+                        <th class="px-4 py-3 text-center text-white rounded-tr-lg">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sched in schedules %}
+                    <tr>
+                        <td>{{ sched.get_action_display }}</td>
+                        <td class="text-center">
+                            {% for dev in sched.devices.all %}
+                                {{ dev.deviceid }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td class="text-center">{{ sched.scheduled_time }}</td>
+                        <td class="text-center">{{ sched.executed }}</td>
+                        <td class="text-center">{{ sched.created_by }}</td>
+                        <td class="flex justify-center gap-4">
+                            <a class="btn btn-primary text-white text-xs" href="{% url 'device_schedule_edit' sched.id %}"><i class="fa-solid fa-pen-to-square"></i>Edit</a>
+                            <a class="btn btn-warning text-white text-xs" href="{% url 'device_schedule_trigger' sched.id %}"><i class="fa-solid fa-plug-circle-bolt"></i>Trigger Now</a>
+                            <a class="btn btn-error text-white text-xs" href="{% url 'device_schedule_delete' sched.id %}"><i class="fa-solid fa-trash"></i>Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6">No schedules yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}

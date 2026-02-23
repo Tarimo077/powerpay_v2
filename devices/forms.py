@@ -31,6 +31,7 @@ class DeviceCommandScheduleForm(forms.ModelForm):
         model = DeviceCommandSchedule
         fields = ["action", "devices", "scheduled_time"]
         widgets = {
-            "scheduled_time": forms.DateTimeInput(attrs={"class": "form-control", "type": "datetime-local"}),
+            "action": forms.Select(attrs={"class": "select select-bordered w-full max-w-xs"}),
+            "scheduled_time": forms.DateTimeInput(attrs={"class": "input input-bordered w-full max-w-xs form-control", "type": "datetime-local"}),
             "devices": forms.CheckboxSelectMultiple(attrs={"class": "device-grid"}),
         }
