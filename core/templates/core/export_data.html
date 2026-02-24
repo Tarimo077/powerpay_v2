@@ -14,7 +14,10 @@
         <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
 
-                <form method="get" class="space-y-6">
+                <form method="get"
+                    id="export-form"
+                    target="download-frame"
+                    class="space-y-6">
 
                     <!-- Model Selection -->
                     <div class="form-control">
@@ -113,6 +116,8 @@
 
                 </form>
 
+                <iframe id="download-frame" name="download-frame" class="hidden"></iframe>
+
             </div>
         </div>
     </div>
@@ -125,19 +130,38 @@ document.addEventListener("DOMContentLoaded", function () {
     const deviceSection = document.getElementById("device-selection");
     const selectAll = document.getElementById("select-all-devices");
 
-    function toggleDeviceSection() {
+    const startDateField = document.querySelector("input[name='start_date']").closest(".form-control");
+    const endDateField = document.querySelector("input[name='end_date']").closest(".form-control");
+
+    function toggleSections() {
         const value = modelSelect.value;
 
+        // -------------------
+        // DEVICE CHECKBOXES
+        // -------------------
         if (value === "deviceinfo" || value === "devicedata") {
             deviceSection.classList.remove("hidden");
         } else {
             deviceSection.classList.add("hidden");
 
-            document.querySelectorAll("#device-selection input[type='checkbox']").forEach(cb => {
-                cb.checked = false;
-            });
+            document.querySelectorAll("#device-selection input[type='checkbox']")
+                .forEach(cb => cb.checked = false);
 
             selectAll.checked = false;
+        }
+
+        // -------------------
+        // DATE FILTERS
+        // -------------------
+        if (value === "transactions" || value === "devicedata" || value === "sales" || value=== "customers" || value === "inventory") {
+            startDateField.classList.remove("hidden");
+            endDateField.classList.remove("hidden");
+        } else {
+            startDateField.classList.add("hidden");
+            endDateField.classList.add("hidden");
+
+            document.querySelector("input[name='start_date']").value = "";
+            document.querySelector("input[name='end_date']").value = "";
         }
     }
 
@@ -148,9 +172,106 @@ document.addEventListener("DOMContentLoaded", function () {
             .forEach(cb => cb.checked = checked);
     });
 
-    toggleDeviceSection();
-    modelSelect.addEventListener("change", toggleDeviceSection);
+    toggleSections();
+    modelSelect.addEventListener("change", toggleSections);
 
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("export-form");
+
+    // Helper to get cookie value
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        const params = new URLSearchParams(formData).toString();
+
+        fetch(`/export/count/?${params}`)
+            .then(response => response.json())
+            .then(data => {
+                Swal.fire({
+                    title: 'Confirm Export',
+                    html: `
+                        <p><strong>${data.count}</strong> records will be aggregated and exported.</p>
+                        <br>
+                        <div class="w-full bg-gray-200 rounded-full h-4">
+                            <div id="progress-bar" class="bg-blue-600 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    `,
+                    icon: 'info',
+                    showCancelButton: true,
+                    confirmButtonText: 'Start Export',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+
+                        // Clear old cookie
+                        document.cookie = "download_started=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+                        // Close confirm modal
+                        Swal.close();
+
+                        // Show LOADING modal
+                        Swal.fire({
+                            title: 'Preparing Export...',
+                            html: `
+                                <p>Please wait while we generate your file.</p>
+                                <br>
+                                <div class="w-full bg-gray-200 rounded-full h-4">
+                                    <div id="progress-bar" class="bg-blue-600 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                            `,
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+
+                                let progress = 0;
+                                const progressBar = document.getElementById("progress-bar");
+
+                                const interval = setInterval(() => {
+                                    progress += Math.random() * 7;
+                                    if (progress >= 95) progress = 95;
+                                    if (progressBar) progressBar.style.width = progress + "%";
+                                }, 300);
+
+                                // Submit form AFTER modal opens
+                                form.submit();
+
+                                // Monitor cookie
+                                const checkCookie = setInterval(() => {
+                                    if (getCookie("download_started") === "true") {
+
+                                        clearInterval(interval);
+                                        clearInterval(checkCookie);
+
+                                        if (progressBar) progressBar.style.width = "100%";
+
+                                        setTimeout(() => {
+                                            Swal.fire({
+                                                icon: 'success',
+                                                title: 'Download Started!',
+                                                text: 'Your file is being downloaded.',
+                                                timer: 2500,
+                                                showConfirmButton: false
+                                            });
+
+                                            document.cookie = "download_started=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                                        }, 600);
+                                    }
+                                }, 500);
+                            }
+                        });
+                    }
+                });
+            });
+    });
 });
 </script>
 

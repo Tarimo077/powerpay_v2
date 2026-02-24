@@ -19,6 +19,8 @@ from sales.models import Sale
 from support.models import Ticket
 from accounts.models import User
 from django.db.models import Model
+from django.utils.timezone import is_aware
+from django.http import JsonResponse
 
 @login_required
 def index(request):
@@ -103,9 +105,11 @@ def index(request):
     return render(request, "core/index.html", context)
 
 
-def export_csv(queryset, is_superadmin, model):
+def export_csv(queryset, is_superadmin, model, filename):
     response = HttpResponse(content_type="text/csv")
-    response["Content-Disposition"] = 'attachment; filename="export.csv"'
+    filename = filename + ".csv"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    response.set_cookie('download_started', 'true', max_age=60)
     writer = csv.writer(response)
 
     # 🔥 If aggregated (DeviceData)
@@ -145,16 +149,18 @@ def export_csv(queryset, is_superadmin, model):
             if isinstance(value, Model):
                 value = str(value)
 
+            # 🔥 Remove timezone from datetime
+            if hasattr(value, "tzinfo") and value.tzinfo is not None:
+                value = value.replace(tzinfo=None)
+
             row.append(value)
 
-    writer.writerow(row)
+        writer.writerow(row)
 
     return response
 
 
-def export_excel(queryset, is_superadmin, model):
-    from openpyxl import Workbook
-    from django.db.models import Model
+def export_excel(queryset, is_superadmin, model, filename):
 
     wb = Workbook()
     ws = wb.active
@@ -170,7 +176,8 @@ def export_excel(queryset, is_superadmin, model):
         response = HttpResponse(
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-        response["Content-Disposition"] = 'attachment; filename="export.xlsx"'
+        filename = filename + ".xlsx"
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
         wb.save(response)
         return response
 
@@ -197,6 +204,10 @@ def export_excel(queryset, is_superadmin, model):
             if isinstance(value, Model):
                 value = str(value)
 
+            # 🔥 Remove timezone from datetime
+            if hasattr(value, "tzinfo") and value.tzinfo is not None:
+                value = value.replace(tzinfo=None)
+
             row.append(value)
 
         ws.append(row)
@@ -204,8 +215,9 @@ def export_excel(queryset, is_superadmin, model):
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-    response["Content-Disposition"] = 'attachment; filename="export.xlsx"'
-
+    filename = filename + ".xlsx"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    response.set_cookie('download_started', 'true', max_age=60)
     wb.save(response)
     return response
 
@@ -279,6 +291,9 @@ def export_data_view(request):
         if not is_superadmin:
             queryset = queryset.filter(organization=user.organization)
 
+        if start and end:
+            queryset = queryset.filter(date__range=(start, end))
+
     # ---------------------------
     # SALES
     # ---------------------------
@@ -287,6 +302,9 @@ def export_data_view(request):
 
         if not is_superadmin:
             queryset = queryset.filter(organization=user.organization)
+
+        if start and end:
+            queryset = queryset.filter(date__range=(start, end))
 
     # ---------------------------
     # TRANSACTIONS
@@ -307,6 +325,9 @@ def export_data_view(request):
         if not is_superadmin:
             return HttpResponse("Unauthorized", status=403)
         queryset = InventoryItem.objects.all()
+
+        if start and end:
+            queryset = queryset.filter(date_added__range=(start, end))
 
     elif model == "warehouses":
         if not is_superadmin:
@@ -331,7 +352,125 @@ def export_data_view(request):
     # ---------------------------
     # EXPORT
     # ---------------------------
+    if start and end:
+        filename = model+"_"+str(start)+"_"+"to"+"_"+str(end)
+    else:
+        filename = model
     if export_format == "csv":
-        return export_csv(queryset, is_superadmin, model)
+        return export_csv(queryset, is_superadmin, model, filename)
 
-    return export_excel(queryset, is_superadmin, model)
+    return export_excel(queryset, is_superadmin, model, filename)
+
+@login_required
+def export_count_view(request):
+    model = request.GET.get("model")
+    device_ids = request.GET.getlist("devices")
+    start = request.GET.get("start_date")
+    end = request.GET.get("end_date")
+
+    user = request.user
+    is_superadmin = user.role == "superadmin"
+
+    queryset = None
+    count = 0
+
+    # ---------------------------
+    # DEVICE INFO
+    # ---------------------------
+    if model == "deviceinfo":
+        queryset = DeviceInfo.objects.all()
+        if not is_superadmin:
+            queryset = queryset.filter(organization=user.organization)
+        
+        if device_ids:
+            # Match the data view: filter by the primary key (id)
+            queryset = queryset.filter(id__in=device_ids)
+        
+        count = queryset.count()
+
+    # ---------------------------
+    # DEVICE DATA (AGGREGATED)
+    # ---------------------------
+    elif model == "devicedata":
+        queryset = DeviceData.objects.all()
+
+        # 1. Restrict to user's org
+        if not is_superadmin:
+            user_device_ids = DeviceInfo.objects.filter(
+                organization=user.organization
+            ).values_list("deviceid", flat=True)
+            queryset = queryset.filter(deviceid__in=user_device_ids)
+
+        # 2. Filter selected devices
+        if device_ids:
+            # We fetch the actual deviceid strings/ints from the DeviceInfo table
+            # to ensure the data types match what DeviceData expects.
+            selected_device_vals = DeviceInfo.objects.filter(
+                id__in=device_ids
+            ).values_list("deviceid", flat=True)
+            
+            queryset = queryset.filter(deviceid__in=selected_device_vals)
+
+        # 3. Time filter
+        if start and end and start.strip() and end.strip():
+            queryset = queryset.filter(time__range=(start, end))
+
+        # 4. CAPTURE RECORD COUNT
+        count = queryset.count()
+
+    # ---------------------------
+    # CUSTOMERS
+    # ---------------------------
+    elif model == "customers":
+        queryset = Customer.objects.all()
+        if not is_superadmin:
+            queryset = queryset.filter(organization=user.organization)
+        if start and end:
+            queryset = queryset.filter(date__range=(start, end))
+        count = queryset.count()
+
+    # ---------------------------
+    # SALES
+    # ---------------------------
+    elif model == "sales":
+        queryset = Sale.objects.all()
+        if not is_superadmin:
+            queryset = queryset.filter(organization=user.organization)
+        if start and end:
+            queryset = queryset.filter(date__range=(start, end))
+        count = queryset.count()
+
+    # ---------------------------
+    # TRANSACTIONS
+    # ---------------------------
+    elif model == "transactions":
+        queryset = Transaction.objects.all()
+        if not is_superadmin:
+            queryset = queryset.filter(org=user.organization)
+        if start and end:
+            queryset = queryset.filter(time__range=(start, end))
+        count = queryset.count()
+
+    # ---------------------------
+    # SUPERADMIN ONLY MODELS
+    # ---------------------------
+    elif model in ["inventory", "warehouses", "organizations", "support", "users"]:
+        if not is_superadmin:
+            return JsonResponse({"error": "Unauthorized"}, status=403)
+
+        if model == "inventory":
+            queryset = InventoryItem.objects.all()
+            if start and end:
+                queryset = queryset.filter(date_added__range=(start, end))
+        elif model == "warehouses":
+            queryset = Warehouse.objects.all()
+        elif model == "organizations":
+            queryset = Organization.objects.all()
+        elif model == "support":
+            queryset = Ticket.objects.all()
+        elif model == "users":
+            queryset = User.objects.all()
+        
+        count = queryset.count() if queryset else 0
+
+    return JsonResponse({"count": count})
