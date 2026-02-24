@@ -60,13 +60,13 @@
                         <!-- Select All -->
                         <div class="mb-4">
                             <label class="flex items-center gap-3 
-                                        bg-primary/10 p-3 rounded-lg 
-                                        border border-primary/30 
-                                        cursor-pointer hover:bg-primary/20">
+                                        bg-success/10 p-3 rounded-lg 
+                                        border border-success/30 
+                                        cursor-pointer hover:bg-success/20">
 
                                 <input type="checkbox" 
                                     id="select-all-devices"
-                                    class="checkbox checkbox-primary">
+                                    class="checkbox checkbox-success">
 
                                 <span class="font-semibold">
                                     Select All Devices
@@ -109,8 +109,8 @@
                     <!-- Submit -->
                     <div>
                         <button type="submit"
-                                class="btn btn-primary w-full md:w-auto">
-                            Export Data
+                                class="btn btn-success text-white">
+                            <i class="fa-solid fa-file-export"></i>Export Data
                         </button>
                     </div>
 
@@ -203,7 +203,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <p><strong>${data.count}</strong> records will be aggregated and exported.</p>
                         <br>
                         <div class="w-full bg-gray-200 rounded-full h-4">
-                            <div id="progress-bar" class="bg-blue-600 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            <div id="progress-bar" class="bg-green-600 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
                         </div>
                     `,
                     icon: 'info',
@@ -225,7 +225,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <p>Please wait while we generate your file.</p>
                                 <br>
                                 <div class="w-full bg-gray-200 rounded-full h-4">
-                                    <div id="progress-bar" class="bg-blue-600 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                    <div id="progress-bar" class="bg-green-600 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
                                 </div>
                             `,
                             allowOutsideClick: false,

@@ -40,7 +40,7 @@ class ExportForm(forms.Form):
         queryset=DeviceInfo.objects.all(),
         required=False,
         widget=forms.CheckboxSelectMultiple(
-            attrs={"class": "checkbox checkbox-primary"}
+            attrs={"class": "checkbox checkbox-success"}
         )
     )
 
