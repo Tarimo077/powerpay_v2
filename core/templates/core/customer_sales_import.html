@@ -14,7 +14,7 @@
         <div class="card bg-white shadow-lg mb-8">
             <div class="card-body">
 
-                <h3 class="text-lg font-semibold mb-2">
+                <h3 class="text-2xl font-semibold mb-2">
                     📋 File Requirements & Format
                 </h3>
 
@@ -33,7 +33,7 @@
 
                 <div class="divider"></div>
 
-                <h4 class="font-semibold mb-2">✅ Required Columns</h4>
+                <h4 class="text-2xl font-semibold mb-2">✅ Required Columns</h4>
                 <div class="text-sm grid grid-cols-2 gap-2">
                     <span>customer_external_id</span>
                     <span>name</span>
@@ -57,7 +57,7 @@
 
                 <div class="divider"></div>
 
-                <h4 class="font-semibold mb-2">🟡 Optional Columns</h4>
+                <h4 class="text-2xl font-semibold mb-2">🟡 Optional Columns</h4>
                 <div class="text-sm grid grid-cols-2 gap-2">
                     <span>alternate_phone_number</span>
                     <span>email</span>
@@ -69,7 +69,7 @@
 
                 <div class="divider"></div>
 
-                <h4 class="font-semibold mb-2">📌 Allowed Values</h4>
+                <h4 class="text-2xl font-semibold mb-2">📌 Allowed Values</h4>
                 <div class="text-sm space-y-4">
                     <div class="flex gap-4"><strong>gender:</strong> M, F, P, O <p class="text-sm text-gray-500">(Male, Female, Prefer Not To Say, Other)</p></div>
                     <div class="flex gap-4"><strong>household_type:</strong> M, F, C, P, O <p class="text-sm text-gray-500">(Male Headed, Female Headed, Child Headed, Prefer Not To Say, Other)</p></div>
@@ -81,7 +81,7 @@
 
                 <div class="divider"></div>
 
-                <h4 class="font-semibold mb-2">📅 Date Format</h4>
+                <h4 class="text-2xl font-semibold mb-2">📅 Date Format</h4>
                 <p class="text-sm">
                     Use ISO format: <strong>YYYY-MM-DD</strong>  
                     Example: <code>2025-02-20</code>
@@ -89,25 +89,51 @@
 
                 <div class="divider"></div>
 
-                <h4 class="font-semibold mb-2">🧾 Example Row</h4>
+                <h4 class="text-2xl font-semibold mb-2">🧾 Example Row</h4>
                 <div class="overflow-x-auto">
-                    <table class="table table-xs table-bordered">
+                    <table class="table table-sm table-bordered">
                         <thead class="bg-success text-white">
-                            <tr>
+                            <tr class="text-center">
                                 <th>customer_external_id</th>
                                 <th>name</th>
                                 <th>id_number</th>
                                 <th>registration_date</th>
                                 <th>product_serial_number</th>
+                                <th>phone_number</th>
+                                <th>country</th>
+                                <th>location</th>
+                                <th>gender</th>
+                                <th>household_type</th>
+                                <th>household_size</th>
+                                <th>preferred_language</th>
+                                <th>product_type</th>
+                                <th>product_name</th>
+                                <th>product_model</th>
+                                <th>purchase_mode</th>
+                                <th>sales_rep</th>
+                                <th>type_of_use</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>CUST001</td>
+                            <tr class="text-center">
+                                <td>26</td>
                                 <td>Jane Doe</td>
                                 <td>12345678</td>
-                                <td>2025-02-20</td>
+                                <td>2026-02-06</td>
                                 <td>SN-0001</td>
+                                <td>254712345678</td>
+                                <td>Kenya</td>
+                                <td>Nairobi</td>
+                                <td>F</td>
+                                <td>F</td>
+                                <td>5</td>
+                                <td>EN</td>
+                                <td>EPC</td>
+                                <td>Neoline EPC</td>
+                                <td>Neoline Pro</td>
+                                <td>C</td>
+                                <td>John Doe</td>
+                                <td>Domestic</td>
                             </tr>
                         </tbody>
                     </table>
@@ -142,9 +168,6 @@
     </div>
 </div>
 
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <script>
 document.getElementById("importForm").addEventListener("submit", function(e) {
     e.preventDefault();
@@ -157,27 +180,34 @@ document.getElementById("importForm").addEventListener("submit", function(e) {
         text: "This will create customers and sales.",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "Yes, Import"
+        confirmButtonText: "Yes, Import",
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33"
     }).then((result) => {
-
         if (result.isConfirmed) {
 
+            // 1. Show Loading State
             Swal.fire({
                 title: "Importing...",
-                html: "Please wait while we process the file.",
+                html: "Please wait while we process the file. This may take a moment for large files.",
                 allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading();
                 }
             });
 
+            // 2. Perform Fetch
             fetch("{% url 'import_customers_sales' %}", {
                 method: "POST",
-                body: formData
+                body: formData,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    // Note: CSRF token is usually required for POST in Django
+                    "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
             })
             .then(response => response.json())
             .then(data => {
-
                 Swal.close();
 
                 if (data.success) {
@@ -185,15 +215,44 @@ document.getElementById("importForm").addEventListener("submit", function(e) {
                         icon: "success",
                         title: "Success",
                         text: data.message
+                    }).then(() => {
+                        // Optional: reload page to show new data
+                        location.reload();
                     });
                 } else {
+                    // 3. Handle Errors (String, Array, or Object)
+                    let errorContent = "";
+
+                    if (typeof data.error === 'object' && !Array.isArray(data.error)) {
+                        // Handles Django form.errors { field: [msg, msg] }
+                        errorContent = Object.keys(data.error)
+                            .map(field => `<strong>${field}:</strong> ${data.error[field].join(", ")}`)
+                            .join("<br>");
+                    } else if (Array.isArray(data.error)) {
+                        // Handles custom error list ["Error 1", "Error 2"]
+                        errorContent = data.error.join("<br>");
+                    } else {
+                        // Handles simple string "An error occurred"
+                        errorContent = data.error || "An unknown error occurred.";
+                    }
+
                     Swal.fire({
                         icon: "error",
                         title: "Import Failed",
-                        text: Array.isArray(data.error) ? data.error.join("\n") : data.error
+                        html: `<div style="text-align: center; max-height: 300px; overflow-y: auto; font-size: 0.9rem; padding: 10px;">
+                                    ${errorContent}
+                               </div>`,
+                        confirmButtonText: "Close"
                     });
                 }
-
+            })
+            .catch(error => {
+                Swal.close();
+                Swal.fire({
+                    icon: "error",
+                    title: "Network Error",
+                    text: "Could not connect to the server. Please try again."
+                });
             });
         }
     });

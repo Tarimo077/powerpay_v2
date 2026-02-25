@@ -491,106 +491,99 @@ def customer_sales_import_page(request):
 @require_POST
 def import_customers_sales(request):
     form = CustomerSalesImportForm(request.POST, request.FILES)
-
     if not form.is_valid():
         return JsonResponse({"success": False, "error": form.errors})
 
     file = form.cleaned_data["file"]
-
     try:
-        if file.name.endswith(".csv"):
-            df = pd.read_csv(file)
-        else:
-            df = pd.read_excel(file)
+        df = pd.read_csv(file) if file.name.endswith(".csv") else pd.read_excel(file)
+        # Convert NaN to None so Django handles nulls correctly
+        df = df.where(pd.notnull(df), None)
     except Exception as e:
         return JsonResponse({"success": False, "error": f"File read error: {str(e)}"})
 
     required_columns = [
-        "customer_external_id",
-        "name",
-        "id_number",
-        "phone_number",
-        "country",
-        "location",
-        "gender",
-        "household_type",
-        "household_size",
-        "preferred_language",
-        "registration_date",
-        "product_type",
-        "product_name",
-        "product_model",
-        "product_serial_number",
-        "purchase_mode",
-        "sales_rep",
-        "type_of_use",
+        "customer_external_id", "name", "id_number", "phone_number",
+        "country", "location", "gender", "household_type",
+        "household_size", "preferred_language", "registration_date",
+        "product_type", "product_name", "product_model",
+        "product_serial_number", "purchase_mode", "sales_rep", "type_of_use",
     ]
 
     for col in required_columns:
         if col not in df.columns:
             return JsonResponse({"success": False, "error": f"Missing column: {col}"})
 
-    user = request.user
-    organization = user.organization
-
+    organization = request.user.organization
     errors = []
     external_customer_map = {}
 
     try:
         with transaction.atomic():
-
-            # CREATE CUSTOMERS
+            # PHASE 1: IDENTIFY/CREATE CUSTOMERS
             for index, row in df.iterrows():
                 ext_id = str(row["customer_external_id"]).strip()
+                id_num = str(row["id_number"]).strip()
 
+                # If we already mapped this external ID in this loop, skip to next row
                 if ext_id in external_customer_map:
                     continue
 
-                if Customer.objects.filter(id_number=row["id_number"]).exists():
-                    errors.append(f"Duplicate id_number at row {index + 2}")
-                    continue
+                # Look for existing customer in DB to handle multi-row sales or repeat uploads
+                customer = Customer.objects.filter(id_number=id_num, organization=organization).first()
 
-                if row["gender"] not in dict(Customer.GENDER_CHOICES):
-                    errors.append(f"Invalid gender at row {index + 2}")
-                    continue
+                if not customer:
+                    # Validate choices before creating
+                    if row["gender"] not in dict(Customer.GENDER_CHOICES):
+                        errors.append(f"Invalid gender at row {index + 2}")
+                        continue
 
-                customer = Customer.objects.create(
-                    name=row["name"],
-                    id_number=row["id_number"],
-                    phone_number=row["phone_number"],
-                    alternate_phone_number=row.get("alternate_phone_number"),
-                    email=row.get("email"),
-                    country=row["country"],
-                    location=row["location"],
-                    gender=row["gender"],
-                    household_type=row["household_type"],
-                    household_size=int(row["household_size"]),
-                    preferred_language=row["preferred_language"],
-                    county=row.get("county"),
-                    sub_county=row.get("sub_county"),
-                    organization=organization,
-                )
+                    if row["household_type"] not in dict(Customer.HOUSEHOLD_CHOICES):
+                        errors.append(f"Invalid household type at row {index + 2}")
+                        continue
 
+                    if row["preferred_language"] not in dict(Customer.LANGUAGE_CHOICES):
+                        errors.append(f"Invalid preferred language at row {index + 2}")
+                        continue
+
+                    customer = Customer.objects.create(
+                        name=row["name"],
+                        id_number=id_num,
+                        phone_number=row["phone_number"],
+                        alternate_phone_number=row.get("alternate_phone_number"),
+                        email=row.get("email"),
+                        country=row["country"],
+                        location=row["location"],
+                        gender=row["gender"],
+                        household_type=row["household_type"],
+                        household_size=int(row["household_size"]) if row["household_size"] else 0,
+                        preferred_language=row["preferred_language"],
+                        organization=organization,
+                    )
+                
+                # Link the ID to the object (whether newly created or found in DB)
                 external_customer_map[ext_id] = customer
 
-            # CREATE SALES
+            # PHASE 2: CREATE SALES
+            sales_to_create = []
             for index, row in df.iterrows():
                 ext_id = str(row["customer_external_id"]).strip()
-                referred_ext = str(row.get("referred_by_external_id", "")).strip()
-
                 customer = external_customer_map.get(ext_id)
 
                 if not customer:
-                    errors.append(f"Customer mapping missing at row {index + 2}")
+                    # This happens if the customer creation failed due to validation errors
                     continue
 
+                # Handle referrals if applicable
+                referred_ext = str(row.get("referred_by_external_id", "")).strip()
                 referred_by = external_customer_map.get(referred_ext) if referred_ext else None
 
                 if row["product_type"] not in dict(Sale.PRODUCT_TYPE_CHOICES):
                     errors.append(f"Invalid product_type at row {index + 2}")
                     continue
 
-                Sale.objects.create(
+                # Build the Sale object (using bulk_create for performance)
+                sales_to_create.append(Sale(
                     customer=customer,
                     registration_date=parse_date(str(row["registration_date"])),
                     product_type=row["product_type"],
@@ -600,17 +593,21 @@ def import_customers_sales(request):
                     purchase_mode=row["purchase_mode"],
                     sales_rep=row["sales_rep"],
                     type_of_use=row["type_of_use"],
-                    payment_plan=row.get("payment_plan"),
                     referred_by=referred_by,
                     organization=organization,
-                )
+                ))
 
-        if errors:
-            return JsonResponse({"success": False, "error": errors})
+            if errors:
+                # Rollback if there are validation issues
+                transaction.set_rollback(True)
+                return JsonResponse({"success": False, "errors": errors})
+
+            # Save all sales in one go
+            Sale.objects.bulk_create(sales_to_create)
 
         return JsonResponse({
-            "success": True,
-            "message": f"{len(external_customer_map)} customers and {len(df)} sales imported successfully."
+            "success": True, 
+            "message": f"Imported {len(external_customer_map)} customers and {len(sales_to_create)} sales."
         })
 
     except Exception as e:
