@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen overflow-hidden bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content"
+         class="px-6 py-6 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0">
+
+        <h2 class="text-2xl font-bold mb-6">Customer + Sales Import</h2>
+
+        <!-- ===================== INSTRUCTIONS CARD ===================== -->
+        <div class="card bg-white shadow-lg mb-8">
+            <div class="card-body">
+
+                <h3 class="text-lg font-semibold mb-2">
+                    📋 File Requirements & Format
+                </h3>
+
+                <ul class="list-disc ml-6 space-y-2 text-sm">
+                    <li>Upload <strong>CSV (.csv)</strong> or <strong>Excel (.xlsx)</strong> file.</li>
+                    <li>The file must contain <strong>both customer and sales data in the same sheet</strong>.</li>
+                    <li>Each row creates:
+                        <ul class="list-disc ml-6">
+                            <li>A Customer (if not already created in file)</li>
+                            <li>A Sale linked to that customer</li>
+                        </ul>
+                    </li>
+                    <li><strong>Organization is assigned automatically</strong> based on your account.</li>
+                    <li>Database IDs are auto-generated. Use <strong>customer_external_id</strong> to link rows internally.</li>
+                </ul>
+
+                <div class="divider"></div>
+
+                <h4 class="font-semibold mb-2">✅ Required Columns</h4>
+                <div class="text-sm grid grid-cols-2 gap-2">
+                    <span>customer_external_id</span>
+                    <span>name</span>
+                    <span>id_number</span>
+                    <span>phone_number</span>
+                    <span>country</span>
+                    <span>location</span>
+                    <span>gender</span>
+                    <span>household_type</span>
+                    <span>household_size</span>
+                    <span>preferred_language</span>
+                    <span>registration_date</span>
+                    <span>product_type</span>
+                    <span>product_name</span>
+                    <span>product_model</span>
+                    <span>product_serial_number</span>
+                    <span>purchase_mode</span>
+                    <span>sales_rep</span>
+                    <span>type_of_use</span>
+                </div>
+
+                <div class="divider"></div>
+
+                <h4 class="font-semibold mb-2">🟡 Optional Columns</h4>
+                <div class="text-sm grid grid-cols-2 gap-2">
+                    <span>alternate_phone_number</span>
+                    <span>email</span>
+                    <span>county</span>
+                    <span>sub_county</span>
+                    <span>payment_plan</span>
+                    <span>referred_by_external_id</span>
+                </div>
+
+                <div class="divider"></div>
+
+                <h4 class="font-semibold mb-2">📌 Allowed Values</h4>
+                <div class="text-sm space-y-4">
+                    <div class="flex gap-4"><strong>gender:</strong> M, F, P, O <p class="text-sm text-gray-500">(Male, Female, Prefer Not To Say, Other)</p></div>
+                    <div class="flex gap-4"><strong>household_type:</strong> M, F, C, P, O <p class="text-sm text-gray-500">(Male Headed, Female Headed, Child Headed, Prefer Not To Say, Other)</p></div>
+                    <div class="flex gap-4"><strong>preferred_language:</strong> EN, SW, NA <p class="text-sm text-gray-500">(English, Swahili, Native Language)</p></div>
+                    <div class="flex gap-4"><strong>product_type:</strong> EPC, IC, O <p class="text-sm text-gray-500">(Electric Pressure Cooker, Induction Cooker, Other)</p></div>
+                    <div class="flex gap-4"><strong>purchase_mode:</strong> C, DA, P <p class="text-sm text-gray-500">(Cash, Deposit Account, Paygo)</p></div>
+                    <div><strong>type_of_use:</strong> Domestic, Business, Other</div>
+                </div>
+
+                <div class="divider"></div>
+
+                <h4 class="font-semibold mb-2">📅 Date Format</h4>
+                <p class="text-sm">
+                    Use ISO format: <strong>YYYY-MM-DD</strong>  
+                    Example: <code>2025-02-20</code>
+                </p>
+
+                <div class="divider"></div>
+
+                <h4 class="font-semibold mb-2">🧾 Example Row</h4>
+                <div class="overflow-x-auto">
+                    <table class="table table-xs table-bordered">
+                        <thead class="bg-success text-white">
+                            <tr>
+                                <th>customer_external_id</th>
+                                <th>name</th>
+                                <th>id_number</th>
+                                <th>registration_date</th>
+                                <th>product_serial_number</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>CUST001</td>
+                                <td>Jane Doe</td>
+                                <td>12345678</td>
+                                <td>2025-02-20</td>
+                                <td>SN-0001</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+        <!-- ===================== END INSTRUCTIONS ===================== -->
+
+
+        <!-- ===================== IMPORT FORM ===================== -->
+        <div class="card bg-white shadow-lg">
+            <div class="card-body">
+
+                <form id="importForm" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+                        {{ form.file }}
+                    </div>
+
+                    <button type="submit" class="btn btn-success text-white">
+                        <i class="fa-solid fa-file-import"></i>
+                        Import Data
+                    </button>
+                </form>
+
+            </div>
+        </div>
+        <!-- ===================== END FORM ===================== -->
+
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.getElementById("importForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const form = this;
+    const formData = new FormData(form);
+
+    Swal.fire({
+        title: "Import Data?",
+        text: "This will create customers and sales.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, Import"
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+
+            Swal.fire({
+                title: "Importing...",
+                html: "Please wait while we process the file.",
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            fetch("{% url 'import_customers_sales' %}", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+
+                Swal.close();
+
+                if (data.success) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Success",
+                        text: data.message
+                    });
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Import Failed",
+                        text: Array.isArray(data.error) ? data.error.join("\n") : data.error
+                    });
+                }
+
+            });
+        }
+    });
+});
+</script>
+
+{% endblock %}

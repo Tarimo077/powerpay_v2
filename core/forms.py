@@ -48,3 +48,20 @@ class ExportForm(forms.Form):
         choices=[("csv", "CSV"), ("excel", "Excel")],
         widget=forms.Select(attrs={"class": "select select-bordered w-full"})
     )
+
+
+class CustomerSalesImportForm(forms.Form):
+    file = forms.FileField(
+        label="Upload Excel or CSV File",
+        widget=forms.ClearableFileInput(attrs={
+            "class": "file-input file-input-bordered"
+        })
+    )
+
+    def clean_file(self):
+        file = self.cleaned_data.get("file")
+
+        if not file.name.endswith((".csv", ".xlsx", ".xls")):
+            raise forms.ValidationError("Only CSV or Excel files are allowed.")
+
+        return file

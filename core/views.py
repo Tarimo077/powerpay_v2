@@ -10,7 +10,7 @@ from django.db.models import Sum
 from datetime import datetime, timedelta
 from transactions.models import Transaction  
 import csv
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from openpyxl import Workbook
 from .forms import ExportForm
 from inventory.models import InventoryItem, Warehouse
@@ -20,7 +20,12 @@ from support.models import Ticket
 from accounts.models import User
 from django.db.models import Model
 from django.utils.timezone import is_aware
-from django.http import JsonResponse
+import pandas as pd
+from django.views.decorators.http import require_POST
+from django.db import transaction
+from django.utils.dateparse import parse_date
+from .forms import CustomerSalesImportForm
+
 
 @login_required
 def index(request):
@@ -474,3 +479,139 @@ def export_count_view(request):
         count = queryset.count() if queryset else 0
 
     return JsonResponse({"count": count})
+
+
+@login_required
+def customer_sales_import_page(request):
+    form = CustomerSalesImportForm()
+    return render(request, "core/customer_sales_import.html", {"form": form})
+
+
+@login_required
+@require_POST
+def import_customers_sales(request):
+    form = CustomerSalesImportForm(request.POST, request.FILES)
+
+    if not form.is_valid():
+        return JsonResponse({"success": False, "error": form.errors})
+
+    file = form.cleaned_data["file"]
+
+    try:
+        if file.name.endswith(".csv"):
+            df = pd.read_csv(file)
+        else:
+            df = pd.read_excel(file)
+    except Exception as e:
+        return JsonResponse({"success": False, "error": f"File read error: {str(e)}"})
+
+    required_columns = [
+        "customer_external_id",
+        "name",
+        "id_number",
+        "phone_number",
+        "country",
+        "location",
+        "gender",
+        "household_type",
+        "household_size",
+        "preferred_language",
+        "registration_date",
+        "product_type",
+        "product_name",
+        "product_model",
+        "product_serial_number",
+        "purchase_mode",
+        "sales_rep",
+        "type_of_use",
+    ]
+
+    for col in required_columns:
+        if col not in df.columns:
+            return JsonResponse({"success": False, "error": f"Missing column: {col}"})
+
+    user = request.user
+    organization = user.organization
+
+    errors = []
+    external_customer_map = {}
+
+    try:
+        with transaction.atomic():
+
+            # CREATE CUSTOMERS
+            for index, row in df.iterrows():
+                ext_id = str(row["customer_external_id"]).strip()
+
+                if ext_id in external_customer_map:
+                    continue
+
+                if Customer.objects.filter(id_number=row["id_number"]).exists():
+                    errors.append(f"Duplicate id_number at row {index + 2}")
+                    continue
+
+                if row["gender"] not in dict(Customer.GENDER_CHOICES):
+                    errors.append(f"Invalid gender at row {index + 2}")
+                    continue
+
+                customer = Customer.objects.create(
+                    name=row["name"],
+                    id_number=row["id_number"],
+                    phone_number=row["phone_number"],
+                    alternate_phone_number=row.get("alternate_phone_number"),
+                    email=row.get("email"),
+                    country=row["country"],
+                    location=row["location"],
+                    gender=row["gender"],
+                    household_type=row["household_type"],
+                    household_size=int(row["household_size"]),
+                    preferred_language=row["preferred_language"],
+                    county=row.get("county"),
+                    sub_county=row.get("sub_county"),
+                    organization=organization,
+                )
+
+                external_customer_map[ext_id] = customer
+
+            # CREATE SALES
+            for index, row in df.iterrows():
+                ext_id = str(row["customer_external_id"]).strip()
+                referred_ext = str(row.get("referred_by_external_id", "")).strip()
+
+                customer = external_customer_map.get(ext_id)
+
+                if not customer:
+                    errors.append(f"Customer mapping missing at row {index + 2}")
+                    continue
+
+                referred_by = external_customer_map.get(referred_ext) if referred_ext else None
+
+                if row["product_type"] not in dict(Sale.PRODUCT_TYPE_CHOICES):
+                    errors.append(f"Invalid product_type at row {index + 2}")
+                    continue
+
+                Sale.objects.create(
+                    customer=customer,
+                    registration_date=parse_date(str(row["registration_date"])),
+                    product_type=row["product_type"],
+                    product_name=row["product_name"],
+                    product_model=row["product_model"],
+                    product_serial_number=row["product_serial_number"],
+                    purchase_mode=row["purchase_mode"],
+                    sales_rep=row["sales_rep"],
+                    type_of_use=row["type_of_use"],
+                    payment_plan=row.get("payment_plan"),
+                    referred_by=referred_by,
+                    organization=organization,
+                )
+
+        if errors:
+            return JsonResponse({"success": False, "error": errors})
+
+        return JsonResponse({
+            "success": True,
+            "message": f"{len(external_customer_map)} customers and {len(df)} sales imported successfully."
+        })
+
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
