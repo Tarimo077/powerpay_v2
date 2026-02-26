@@ -120,6 +120,13 @@
             <i class="fas fa-file-export w-5"></i>
             <span class="link-text">Export Center</span>
         </a>
+        
+        <a href="{% url 'import_center' %}"
+           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
+           {% if 'import' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+            <i class="fas fa-file-import w-5"></i>
+            <span class="link-text">Import Center</span>
+        </a>
 
 
         <form method="post" action="{% url 'logout' %}" class="mt-auto">

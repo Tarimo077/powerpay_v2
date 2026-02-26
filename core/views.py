@@ -19,12 +19,14 @@ from sales.models import Sale
 from support.models import Ticket
 from accounts.models import User
 from django.db.models import Model
-from django.utils.timezone import is_aware
+from django.utils.dateparse import parse_datetime
 import pandas as pd
 from django.views.decorators.http import require_POST
 from django.db import transaction
 from django.utils.dateparse import parse_date
-from .forms import CustomerSalesImportForm
+from .forms import CustomerSalesImportForm, TransactionImportForm
+from decimal import Decimal
+
 
 
 @login_required
@@ -481,11 +483,6 @@ def export_count_view(request):
     return JsonResponse({"count": count})
 
 
-@login_required
-def customer_sales_import_page(request):
-    form = CustomerSalesImportForm()
-    return render(request, "core/customer_sales_import.html", {"form": form})
-
 
 @login_required
 @require_POST
@@ -612,3 +609,118 @@ def import_customers_sales(request):
 
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)})
+
+
+@login_required
+@require_POST
+def import_transactions(request):
+    form = TransactionImportForm(request.POST, request.FILES)
+
+    if not form.is_valid():
+        return JsonResponse({"success": False, "error": form.errors})
+
+    file = form.cleaned_data["file"]
+
+    try:
+        df = pd.read_csv(file) if file.name.endswith(".csv") else pd.read_excel(file)
+        df = df.where(pd.notnull(df), None)
+    except Exception as e:
+        return JsonResponse({"success": False, "error": f"File read error: {str(e)}"})
+
+    required_columns = ["time", "amount", "txn_id", "name", "transtime"]
+
+    for col in required_columns:
+        if col not in df.columns:
+            return JsonResponse({"success": False, "error": f"Missing column: {col}"})
+
+    organization = request.user.organization
+    errors = []
+    transactions_to_create = []
+
+    try:
+        with transaction.atomic():
+
+            existing_txns = set(
+                Transaction.objects.filter(org=organization)
+                .values_list("txn_id", flat=True)
+            )
+
+            for index, row in df.iterrows():
+                row_number = index + 2
+
+                txn_id = str(row["txn_id"]).strip()
+
+                if txn_id in existing_txns:
+                    errors.append(f"Row {row_number}: Duplicate txn_id '{txn_id}'")
+                    continue
+
+                try:
+                    # Validate and parse normal datetime field
+                    parsed_time = parse_datetime(str(row["time"]))
+                    if parsed_time is None:
+                        raise ValueError("Invalid 'time' format. Use YYYY-MM-DD HH:MM:SS")
+
+                    # Validate amount
+                    amount = Decimal(str(row["amount"]))
+
+                    # ===============================
+                    # TRANSTIME VALIDATION (KENYAN)
+                    # ===============================
+
+                    raw_transtime = str(row["transtime"]).strip()
+
+                    # Must be exactly 14 digits
+                    if not raw_transtime.isdigit() or len(raw_transtime) != 14:
+                        raise ValueError(
+                            "transtime must be 14 digits in format YYYYMMDDHHmmss"
+                        )
+
+                    # Parse into datetime
+                    transtime_dt = datetime.strptime(
+                        raw_transtime,
+                        "%Y%m%d%H%M%S"
+                    )
+
+                    # Convert back to int for storage consistency
+                    transtime_int = int(raw_transtime)
+
+                except Exception as e:
+                    errors.append(f"Row {row_number}: {str(e)}")
+                    continue
+
+                transactions_to_create.append(
+                    Transaction(
+                        time=parsed_time.replace(tzinfo=None),
+                        amount=amount,
+                        txn_id=txn_id,
+                        name=row["name"],
+                        ref=row.get("ref"),
+                        transtime=transtime_int,
+                        org=organization,
+                    )
+                )
+
+            if errors:
+                transaction.set_rollback(True)
+                return JsonResponse({"success": False, "error": errors})
+
+            Transaction.objects.bulk_create(transactions_to_create)
+
+        return JsonResponse({
+            "success": True,
+            "message": f"Imported {len(transactions_to_create)} transactions successfully."
+        })
+
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+    
+
+def import_center(request):
+    return render(
+        request,
+        "core/import_center.html",
+        {
+            "cs_form": CustomerSalesImportForm(),
+            "tx_form": TransactionImportForm(),
+        },
+    )
