@@ -3492,12 +3492,6 @@
   .whitespace-nowrap {
     white-space: nowrap;
   }
-  .checkbox-primary {
-    @layer daisyui.l1.l2 {
-      color: var(--color-primary-content);
-      --input-color: var(--color-primary);
-    }
-  }
   .checkbox-success {
     @layer daisyui.l1.l2 {
       color: var(--color-success-content);

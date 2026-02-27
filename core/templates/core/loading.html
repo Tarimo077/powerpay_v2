@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen overflow-hidden bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content"
+         class="px-6 py-6 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0">
+
+        <div class="justify-center items-center">
+            <h3 class="text-center">Preparing dashboard...</h3>
+        </div>
+        
+    </div>
+</div>
+
+<script>
+    setTimeout(function(){
+        location.reload();
+    }, 2000);
+
+</script>
+
+{% endblock %}

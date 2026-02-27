@@ -21,4 +21,4 @@ class Notification(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.title} for {self.user.username}"
+        return f"{self.title} for {self.user.email}"

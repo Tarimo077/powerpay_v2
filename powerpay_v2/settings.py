@@ -1,5 +1,6 @@
 from pathlib import Path
 from decouple import config
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -87,10 +88,30 @@ CHANNEL_LAYERS = {
     },
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://localhost:6379/1"
+    }
+}
+
 CELERY_BROKER_URL = "redis://localhost:6379/0"  # or your Redis URL
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_TIMEZONE = "Africa/Nairobi"  # adjust as needed
-
+#CELERY_BEAT_SCHEDULE = {
+#    "refresh-superadmin-dashboard": {
+#        "task": "core.tasks.cache_dashboard_superadmin",
+#        "schedule": 300.0,# every 5 minutes
+#    },
+#    "refresh-org-dashboards": {
+#        "task": "core.tasks.refresh_all_org_dashboards",
+#        "schedule": 300.0,  # every 5 minutes
+#    },
+#    "device-scheduler": {
+#        "task": "devices.tasks.run_pending_device_schedules",
+#        "schedule": 5,
+#    }
+#}
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
