@@ -8,7 +8,7 @@ from django.db.models import Q
 from .models import InventoryItem, Warehouse, InventoryMovement
 from django.contrib.auth.decorators import login_required
 from .forms import WarehouseForm, InventoryItemForm, InventoryMoveForm
-
+from notifications.utils import notify
 
 # =========================
 # WAREHOUSES
@@ -48,6 +48,7 @@ def warehouse_create(request):
         form = WarehouseForm(request.POST)
         if form.is_valid():
             form.save()
+            notify(request.user, "New Warehouse", f"{form.cleaned_data['name']} warehouse has been created.", "success")
             return redirect("warehouse_page")
     else:
         form = WarehouseForm()
@@ -63,6 +64,7 @@ def warehouse_update(request, pk):
         form = WarehouseForm(request.POST, instance=warehouse)
         if form.is_valid():
             form.save()
+            notify(request.user, "Warehouse Update", f"{warehouse.name} warehouse has been updated.", "info")
             return redirect("warehouse_page")
     else:
         form = WarehouseForm(instance=warehouse)
@@ -74,6 +76,7 @@ def warehouse_update(request, pk):
 def warehouse_delete(request, pk):
     warehouse = get_object_or_404(Warehouse, pk=pk)
     warehouse.delete()
+    notify(request.user, "Warehose Deleted", f"{warehouse.name} warehouse has been deleted.", "warning")
     return redirect("warehouse_page")
 
 
@@ -95,6 +98,7 @@ def item_create(request):
                 moved_by=request.user,
                 note="Initial assignment"
             )
+            notify(request.user, "New Item", f"{item.serial_number}({item.name}) has been created.", "success")
             return redirect("inventory_page")
     else:
         form = InventoryItemForm()
@@ -110,6 +114,7 @@ def item_update(request, pk):
         form = InventoryItemForm(request.POST, instance=item)
         if form.is_valid():
             form.save()
+            notify(request.user, "Item Updated", f"{item.serial_number}({item.name}) has been updated.", "info")
             return redirect("inventory_page")
     else:
         form = InventoryItemForm(instance=item)
@@ -121,6 +126,7 @@ def item_update(request, pk):
 def item_delete(request, pk):
     item = get_object_or_404(InventoryItem, pk=pk)
     item.delete()
+    notify(request.user, "Item Deleted", f"{item.serial_number}({item.name}) has been deleted.", "warning")
     return redirect("inventory_page")
 
 @login_required
@@ -291,7 +297,7 @@ def move_item(request, pk):
             # update item warehouse
             item.current_warehouse = movement.to_warehouse
             item.save()
-
+            notify(request.user, "Item Moved", f"{item.serial_number}({item.name}) has been moved from {movement.from_warehouse} warehouse to {movement.to_warehouse} warehouse.", "info")
             return redirect("inventory_page")
     else:
         form = InventoryMoveForm()

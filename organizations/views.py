@@ -3,9 +3,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
-
+from django.http import JsonResponse
 from .models import Organization
 from .forms import OrganizationForm
+from notifications.utils import notify
 
 
 def is_admin_user(user):
@@ -56,7 +57,7 @@ def organization_create(request):
         form = OrganizationForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            messages.success(request, "Organization created successfully.")
+            notify(request.user, "New Organization", f"{form.cleaned_data['name']} organization has been created.", "success")
             return redirect("organizations_page")
     else:
         form = OrganizationForm()
@@ -76,7 +77,7 @@ def organization_update(request, pk):
         form = OrganizationForm(request.POST, request.FILES, instance=org)
         if form.is_valid():
             form.save()
-            messages.success(request, "Organization updated successfully.")
+            notify(request.user, "Organization Updated", f"{org.name} organization has been updated.", "info")
             return redirect("organizations_page")
     else:
         form = OrganizationForm(instance=org)
@@ -91,5 +92,5 @@ def organization_delete(request, pk):
 
     org = get_object_or_404(Organization, pk=pk)
     org.delete()
-
+    notify(request.user, "Organization Deleted", f"{org.name} organization has been deleted.", "warning")
     return JsonResponse({"success": True})

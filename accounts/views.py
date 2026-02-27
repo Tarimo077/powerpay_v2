@@ -15,6 +15,7 @@ import datetime
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from .forms import UserProfileForm
+from notifications.utils import notify
 
 
 MAX_ATTEMPTS = 5
@@ -182,7 +183,7 @@ def invite_user(request):
             invite.save()
 
             send_invite_email(invite)
-            messages.success(request, "Invitation sent successfully.")
+            notify(request.user, "Invitation Sent", f"An email invite was sent to {invite.email} to join the {invite.organization} organization.", "info")
             return redirect("invite_user")
     else:
         form = InviteUserForm(user=request.user)
@@ -215,6 +216,8 @@ def accept_invite(request, token):
         invite.save()
 
         login(request, user)
+        notify(user, "Welcome", f"Welcome to the {invite.organization} organization.", "success")
+        notify(invite.invited_by, "Invite Accepted", f"Your invite to {invite.email} has been accepted.", "success")
         return redirect("index")
 
     return render(request, "accounts/accept_invite.html")

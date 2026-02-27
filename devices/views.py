@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.timezone import now, make_aware, is_naive
-from .models import DeviceInfo, DeviceData, DeviceCommandSchedule
+from .models import DeviceInfo, DeviceData, DeviceCommandSchedule, TrackKwh
 from .services.energy import (
     kwh_for_device,
     last_energy_timestamp
@@ -12,14 +12,15 @@ from django.http import HttpResponse
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 from datetime import timedelta
-from django.db.models import Sum 
-from notifications.utils import notify
+from django.db.models import Sum
 from .forms import DeviceForm, DeviceCommandScheduleForm
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.contrib import messages
 from .services.device_api import call_change_status_api
+from notifications.utils import notify
+from inventory.models import InventoryItem
 
 
 COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
@@ -70,7 +71,6 @@ def device_list(request):
         "inactive_devices": inactive_devices,
     }
 
-    print(page_obj.object_list)
 
     # ✅ HTMX partial rendering
     if request.headers.get("HX-Request"):
@@ -414,7 +414,29 @@ def device_create(request):
     form = DeviceForm(request.POST or None, user=request.user)
 
     if request.method == "POST" and form.is_valid():
-        form.save()
+        device = form.save()
+
+        # Create trackkwh record
+        TrackKwh.objects.create(
+            deviceid=device.deviceid,
+            lastkwh=0
+        )
+
+        # Create inventory if requested
+        if form.cleaned_data.get("add_to_inventory"):
+            InventoryItem.objects.create(
+                name=form.cleaned_data["inventory_name"],
+                serial_number=device.deviceid,   # use device id as serial
+                product_type=form.cleaned_data["product_type"],
+                current_warehouse=form.cleaned_data["warehouse"]
+            )
+
+        notify(
+            request.user,
+            "New Device",
+            f"{form.cleaned_data['deviceid']} has been created"
+        )
+
         return redirect("device_list")
 
     return render(request, "devices/device_form.html", {
@@ -430,6 +452,7 @@ def device_edit(request, deviceid):
 
     if request.method == "POST" and form.is_valid():
         form.save()
+        notify(request.user, "Device Update", f"Device {device.deviceid} has been updated.", "info")
         return redirect("device_list")
 
     return render(request, "devices/device_form.html", {
@@ -443,6 +466,7 @@ def device_edit(request, deviceid):
 def device_delete(request, deviceid):
     device = get_object_or_404(DeviceInfo, deviceid=deviceid)
     device.delete()
+    notify(request.user, "Device Removal", f"Device {device.deviceid} has been deleted.", "warning")
     return redirect("device_list")
 
 @login_required

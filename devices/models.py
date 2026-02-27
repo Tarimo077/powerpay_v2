@@ -76,3 +76,16 @@ class DeviceCommandSchedule(models.Model):
 
     def __str__(self):
         return f"{self.action} @ {self.scheduled_time}"
+    
+
+class TrackKwh(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    deviceid = models.CharField(max_length=50)
+    lastkwh = models.DecimalField(max_digits=12, decimal_places=6)
+
+    class Meta:
+        db_table = "trackkwh"
+        managed = False  # VERY IMPORTANT → prevents Django from creating/deleting table
+
+    def __str__(self):
+        return f"{self.deviceid} - {self.lastkwh}"

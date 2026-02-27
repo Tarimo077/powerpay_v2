@@ -26,6 +26,7 @@ from django.db import transaction
 from django.utils.dateparse import parse_date
 from .forms import CustomerSalesImportForm, TransactionImportForm
 from decimal import Decimal
+from notifications.utils import notify
 
 
 
@@ -112,12 +113,13 @@ def index(request):
     return render(request, "core/index.html", context)
 
 
-def export_csv(queryset, is_superadmin, model, filename):
+def export_csv(user, queryset, is_superadmin, model, filename):
     response = HttpResponse(content_type="text/csv")
     filename = filename + ".csv"
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     response.set_cookie('download_started', 'true', max_age=60)
     writer = csv.writer(response)
+    notify(user, "Download Completed", f"File {filename} was downloaded successfully.", "success")
 
     # 🔥 If aggregated (DeviceData)
     if model == "devicedata":
@@ -167,7 +169,7 @@ def export_csv(queryset, is_superadmin, model, filename):
     return response
 
 
-def export_excel(queryset, is_superadmin, model, filename):
+def export_excel(user, queryset, is_superadmin, model, filename):
 
     wb = Workbook()
     ws = wb.active
@@ -186,6 +188,7 @@ def export_excel(queryset, is_superadmin, model, filename):
         filename = filename + ".xlsx"
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         wb.save(response)
+        notify(user, "Download Completed", f"File {filename} was downloaded successfully.", "success")
         return response
 
     # Normal model export
@@ -226,6 +229,7 @@ def export_excel(queryset, is_superadmin, model, filename):
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     response.set_cookie('download_started', 'true', max_age=60)
     wb.save(response)
+    notify(user, "Download Completed", f"File {filename} was downloaded successfully.", "success")
     return response
 
 @login_required
@@ -364,9 +368,9 @@ def export_data_view(request):
     else:
         filename = model
     if export_format == "csv":
-        return export_csv(queryset, is_superadmin, model, filename)
+        return export_csv(user, queryset, is_superadmin, model, filename)
 
-    return export_excel(queryset, is_superadmin, model, filename)
+    return export_excel(user, queryset, is_superadmin, model, filename)
 
 @login_required
 def export_count_view(request):
@@ -481,7 +485,6 @@ def export_count_view(request):
         count = queryset.count() if queryset else 0
 
     return JsonResponse({"count": count})
-
 
 
 @login_required
@@ -601,7 +604,8 @@ def import_customers_sales(request):
 
             # Save all sales in one go
             Sale.objects.bulk_create(sales_to_create)
-
+        
+        notify(request.user, "Import Completed", f"Imported {len(external_customer_map)} customers and {len(sales_to_create)} sales.", "success")
         return JsonResponse({
             "success": True, 
             "message": f"Imported {len(external_customer_map)} customers and {len(sales_to_create)} sales."
@@ -706,6 +710,7 @@ def import_transactions(request):
 
             Transaction.objects.bulk_create(transactions_to_create)
 
+        notify(request.user, "Import Completed", f"Imported {len(transactions_to_create)} transactions successfully.", "success")
         return JsonResponse({
             "success": True,
             "message": f"Imported {len(transactions_to_create)} transactions successfully."
@@ -724,3 +729,6 @@ def import_center(request):
             "tx_form": TransactionImportForm(),
         },
     )
+
+def terms_of_service(request):
+    return render(request, "core/terms_of_service.html")

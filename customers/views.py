@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from .forms import CustomerForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-
+from notifications.utils import notify
 
 @login_required
 def customers_page(request):
@@ -245,6 +245,7 @@ def customer_create(request):
         form = CustomerForm(request.POST, user=request.user)
         if form.is_valid():
             form.save()
+            notify(request.user, "New Customer", f"{form.cleaned_data['name']} has been added as a customer.", "info")
             return redirect("customers_page")
     else:
         form = CustomerForm(user=request.user)
@@ -263,6 +264,7 @@ def customer_update(request, pk):
 
     if form.is_valid():
         form.save()
+        notify(request.user, "Customer Update", f"{customer.name}'s details have been updated.", "info")
         return redirect("customer_detail", pk=pk)
 
     return render(request, "customers/customer_form.html", {
@@ -276,4 +278,5 @@ def customer_update(request, pk):
 def customer_delete(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     customer.delete()
+    notify(request.user, "Customer Deleted", f"{customer.name} has been deleted as a customer.", "warning")
     return JsonResponse({"success": True})
