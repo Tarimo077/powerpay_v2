@@ -1,15 +1,16 @@
 from celery import shared_task
 from django.template.loader import render_to_string
 from django.core.cache import cache
-from django.contrib.auth import get_user_model
-from django.db.models import Sum, Count
-from django.db.models.functions import TruncDate
+from django.db.models import Sum, Count, Q, F
+from django.db.models.functions import TruncDate, Upper, Trim
 from django.utils import timezone
 from datetime import timedelta
 from organizations.models import Organization
 from devices.models import DeviceInfo
 from transactions.models import Transaction
 from devices.models import DeviceData
+from devices.services.energy import last_energy_timestamp
+from django.core.paginator import Paginator
 
 
 CACHE_TIMEOUT = 60 * 5  # 5 minutes
@@ -111,6 +112,108 @@ def build_dashboard_context(is_superadmin=False, organization=None):
 
     return context
 
+def build_transaction_context(user=None, is_superadmin=False, organization=None):
+    """
+    Returns a context dictionary for transactions summary & charts,
+    similar to what transactions_page view renders.
+    """
+    today = timezone.now().date()
+    date_list = [today - timedelta(days=i) for i in range(6, -1, -1)]
+    start_date = date_list[0]
+
+    # ---------------- BASE QUERYSET ----------------
+    if is_superadmin:
+        qs = Transaction.objects.select_related("org")
+    else:
+        qs = Transaction.objects.filter(org=organization)
+
+    # ---------------- STATS ----------------
+    stats = qs.aggregate(
+        total_amount=Sum("amount"),
+        last_7_days_amount=Sum("amount", filter=Q(time__date__gte=start_date)),
+    )
+
+    transaction_count = qs.count()
+
+    # ---------------- PIE CHART ----------------
+    money_by_org_labels = []
+    money_by_org_data = []
+
+    if is_superadmin:
+        qs_org = (
+            qs.annotate(org_name=Upper(Trim(F("org__name"))))
+            .values("org_name")
+            .annotate(total=Sum("amount"))
+            .order_by("org_name")
+        )
+        money_by_org_labels = [x["org_name"] for x in qs_org]
+        money_by_org_data = [float(x["total"]) for x in qs_org]
+
+    # ---------------- LINE CHART ----------------
+    money_line_labels = [d.strftime("%d %b") for d in date_list]
+    money_line_data = {}
+
+    # Initialize data for each organization
+    if is_superadmin:
+        all_orgs = qs.values_list("org__name", flat=True).distinct()
+    else:
+        all_orgs = [organization.name] if organization else []
+
+    for name in all_orgs:
+        money_line_data[name] = [0.0] * 7
+
+    # Sum daily amounts for last 7 days
+    daily_org_qs = (
+        qs.filter(time__date__gte=start_date)
+        .annotate(day=TruncDate("time"))
+        .values("org__name", "day")
+        .annotate(total=Sum("amount"))
+    )
+
+    date_to_idx = {date: i for i, date in enumerate(date_list)}
+    for entry in daily_org_qs:
+        name = entry["org__name"]
+        day = entry["day"]
+        total = float(entry["total"] or 0)
+        if name in money_line_data and day in date_to_idx:
+            idx = date_to_idx[day]
+            money_line_data[name][idx] = total
+
+    # ---------------- CONTEXT ----------------
+    context = {
+        "total_amount": stats["total_amount"] or 0,
+        "last_7_days_amount": stats["last_7_days_amount"] or 0,
+        "transaction_count": transaction_count,
+        "money_by_org_labels": money_by_org_labels,
+        "money_by_org_data": money_by_org_data,
+        "money_line_labels": money_line_labels,
+        "money_line_data": money_line_data,
+    }
+
+    return context
+
+@shared_task
+def cache_transaction_dashboard_for_org(org_id):
+    organization = Organization.objects.get(id=org_id)
+    context = build_transaction_context(
+        user=None, 
+        is_superadmin=False,
+        organization=organization
+    )
+
+    cache.set(f"transaction_dashboard_org_{org_id}", context, CACHE_TIMEOUT)
+
+
+@shared_task
+def cache_transaction_dashboard_superadmin():
+    context = build_transaction_context(is_superadmin=True)
+    cache.set("transaction_dashboard_superadmin", context, CACHE_TIMEOUT)
+
+@shared_task
+def refresh_all_transaction_dashboards():
+    for org in Organization.objects.all():
+        cache_transaction_dashboard_for_org.delay(org.id)
+    cache_transaction_dashboard_superadmin.delay()
 
 @shared_task
 def cache_dashboard_for_org(org_id):
@@ -143,3 +246,4 @@ def cache_dashboard_superadmin():
 def refresh_all_org_dashboards(): 
     for org in Organization.objects.all(): 
         cache_dashboard_for_org.delay(org.id)
+

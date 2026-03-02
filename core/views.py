@@ -174,7 +174,7 @@ def export_excel(user, queryset, is_superadmin, model, filename):
 
 @login_required
 def export_data_view(request):
-    form = ExportForm(request.GET or None)
+    form = ExportForm(request.GET or None, user=request.user)
 
     if not form.is_valid():
         return render(request, "core/export_data.html", {"form": form})
@@ -670,5 +670,3 @@ def import_center(request):
         },
     )
 
-def terms_of_service(request):
-    return render(request, "core/terms_of_service.html")

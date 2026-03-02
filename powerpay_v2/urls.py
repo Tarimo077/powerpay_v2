@@ -12,5 +12,6 @@ urlpatterns = [
     path("support/", include("support.urls")),
     path("organizations/", include("organizations.urls")),
     path("notifications/", include("notifications.urls")),
+    path("api/", include("api.urls")),
     path("", include("core.urls")),
 ]

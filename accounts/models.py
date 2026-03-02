@@ -27,6 +27,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
+    terms_accepted = models.BooleanField(default=False)
+    terms_accepted_at = models.DateTimeField(null=True, blank=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []  # No required fields besides email

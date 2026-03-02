@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    Swal.fire({
+        title: "Terms & Conditions",
+        html: `
+            <p class="mb-3">You must accept the Terms and Conditions to continue.</p>
+            <div style="text-align:left">
+                <input type="checkbox" id="termsCheckbox">
+                <label for="termsCheckbox">
+                    I agree to the 
+                    <a href="{% url 'terms' %}" 
+                    target="_blank"
+                    title="Click to see terms and conditions"
+                    class="text-primary underline font-semibold hover:text-primary-focus">
+                        Terms and Conditions
+                    </a>
+                </label>
+            </div>
+        `,
+        confirmButtonText: "Accept",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        preConfirm: () => {
+            const checkbox = document.getElementById('termsCheckbox');
+            if (!checkbox.checked) {
+                Swal.showValidationMessage("You must accept the terms");
+                return false;
+            }
+            return true;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch("{% url 'accept-terms' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json"
+                }
+            }).then(response => response.json())
+              .then(data => {
+                if (data.status === "success") {
+                    window.location.href = "/";
+                }
+              });
+        }
+    });
+
+});
+</script>
+
+{% endblock %}

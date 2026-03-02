@@ -16,6 +16,8 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from .forms import UserProfileForm
 from notifications.utils import notify
+from django.http import JsonResponse
+from django.utils import timezone
 
 
 MAX_ATTEMPTS = 5
@@ -215,10 +217,9 @@ def accept_invite(request, token):
         invite.is_used = True
         invite.save()
 
-        login(request, user)
         notify(user, "Welcome", f"Welcome to the {invite.organization} organization.", "success")
         notify(invite.invited_by, "Invite Accepted", f"Your invite to {invite.email} has been accepted.", "success")
-        return redirect("index")
+        return redirect("login")
 
     return render(request, "accounts/accept_invite.html")
 
@@ -236,3 +237,20 @@ def profile_view(request):
     return render(request, "accounts/profile.html", {
         "form": form
     })
+
+@login_required
+def accept_terms(request):
+
+    if request.user.terms_accepted:
+        return redirect("index")  # or your home page
+
+    if request.method == "POST":
+        request.user.terms_accepted = True
+        request.user.terms_accepted_at = timezone.now()
+        request.user.save()
+        return JsonResponse({"status": "success"})
+
+    return render(request, "accounts/accept_terms.html")
+
+def terms_of_service(request):
+    return render(request, "core/terms_of_service.html")

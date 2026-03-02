@@ -18,16 +18,21 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
     <script src="https://unpkg.com/dom-to-image-more@3.2.0/dist/dom-to-image-more.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
 </head>
 
 <body class="min-h-screen bg-base-200">
+
+    <!-- Toast Container appended directly to body -->
+    <div id="toast-container" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] flex flex-col items-center space-y-2 pointer-events-none"></div>
  
     <main class="w-full">
         {% block content %}
         
         {% endblock %}
     </main>
+
 
 <style>
   body {
@@ -50,6 +55,42 @@
     transition: opacity 200ms ease-in-out;
 }
 </style>
+
+<script>
+function createToast(type, text, duration = 4000) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `
+        shadow-lg px-4 py-3 rounded-lg max-w-sm w-full flex items-center justify-between
+        pointer-events-auto
+        ${type === 'success' ? 'bg-green-500 text-white' :
+          type === 'error' ? 'bg-red-500 text-white' :
+          type === 'warning' ? 'bg-yellow-400 text-black' :
+          'bg-blue-500 text-white'}
+    `;
+    toast.innerHTML = `
+        <span>${text}</span>
+        <button class="ml-4 font-bold">&times;</button>
+    `;
+
+    // Close button
+    toast.querySelector('button').addEventListener('click', () => toast.remove());
+
+    container.appendChild(toast);
+
+    // Auto-remove after duration
+    setTimeout(() => toast.remove(), duration);
+}
+
+// Render Django messages
+{% if messages %}
+    {% for msg in messages %}
+        createToast("{{ msg.tags }}", "{{ msg|escapejs }}");
+    {% endfor %}
+{% endif %}
+</script>
 
 <script>
 document.body.addEventListener("htmx:configRequest", (event) => {

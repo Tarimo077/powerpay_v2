@@ -2,21 +2,36 @@ from django import forms
 from devices.models import DeviceInfo
 
 class ExportForm(forms.Form):
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    MODEL_CHOICES = [
-        ("deviceinfo", "Device Info"),
-        ("devicedata", "Device Data"),
-        ("customers", "Customers"),
-        ("sales", "Sales"),
-        ("transactions", "Transactions"),
-        ("inventory", "Inventory"),
-        ("organizations", "Organizations"),
-        ("support", "Support Tickets"),
-        ("users", "Users"),
-    ]
+        # Full list of models
+        MODEL_CHOICES = [
+            ("deviceinfo", "Device Info"),
+            ("devicedata", "Device Data"),
+            ("customers", "Customers"),
+            ("sales", "Sales"),
+            ("transactions", "Transactions"),
+            ("inventory", "Inventory"),
+            ("organizations", "Organizations"),
+            ("support", "Support Tickets"),
+            ("users", "Users"),
+        ]
+
+        # Restrict non-superadmins
+        if not user or getattr(user, "role", "") != "superadmin":
+            allowed = ["deviceinfo", "devicedata", "customers", "sales", "transactions"]
+            MODEL_CHOICES = [m for m in MODEL_CHOICES if m[0] in allowed]
+
+            # Restrict devices queryset to user's org
+            self.fields["devices"].queryset = DeviceInfo.objects.filter(
+                organization=user.organization
+            )
+
+        self.fields["model"].choices = MODEL_CHOICES
 
     model = forms.ChoiceField(
-        choices=MODEL_CHOICES,
+        choices=[],  # dynamically set in __init__
         widget=forms.Select(attrs={"class": "select select-bordered w-full"})
     )
 
@@ -48,7 +63,6 @@ class ExportForm(forms.Form):
         choices=[("csv", "CSV"), ("excel", "Excel")],
         widget=forms.Select(attrs={"class": "select select-bordered w-full"})
     )
-
 
 class CustomerSalesImportForm(forms.Form):
     file = forms.FileField(
