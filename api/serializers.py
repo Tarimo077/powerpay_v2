@@ -3,71 +3,55 @@ from devices.models import DeviceInfo, DeviceData
 from customers.models import Customer
 from sales.models import Sale
 from transactions.models import Transaction
+import pytz
 
-# -------------------------------
-# DeviceInfo
-# -------------------------------
 class DeviceInfoSerializer(serializers.ModelSerializer):
+    ACTIVE_CHOICES = [(True, "ON"), (False, "OFF")]
+    active = serializers.ChoiceField(
+        choices=ACTIVE_CHOICES,
+        help_text="Device state: ON (true) or OFF (false)"
+    )
     organization = serializers.PrimaryKeyRelatedField(
         read_only=True,
-        help_text="Organization of this device"
+        help_text="Organization that owns this device"
     )
 
     class Meta:
         model = DeviceInfo
-        fields = ["id", "deviceid", "active", "time", "organization"]
+        fields = ["deviceid", "active", "time", "organization"]
+        extra_kwargs = {
+            "deviceid": {"help_text": "Unique device identifier"},
+            "time": {"help_text": "Last update time stored in UTC"},
+        }
 
-# -------------------------------
-# DeviceData (aggregated)
-# -------------------------------
 class DeviceDataSerializer(serializers.Serializer):
-    deviceid = serializers.CharField(
-        help_text="Device ID string (e.g., JD-29ED000116)"
-    )
-    total_kwh = serializers.FloatField(
-        help_text="Aggregated total kWh for the device"
-    )
-    # Optional fields for extra info if needed
-    status = serializers.CharField(help_text="Device status", required=False, allow_null=True)
-    time = serializers.DateTimeField(help_text="Measurement time", required=False, allow_null=True)
-    txtime = serializers.CharField(help_text="Time as text (optional)", required=False, allow_blank=True, allow_null=True)
+    deviceid = serializers.CharField(help_text="Unique device identifier")
+    total_kwh = serializers.FloatField(help_text="Aggregated total kWh for this device")
+    time = serializers.SerializerMethodField(help_text="Latest measurement time in EAT")
 
-# -------------------------------
-# Customer
-# -------------------------------
+    def get_time(self, obj):
+        # Handle both model instances and dictionaries from .values()
+        utc_time = obj.get("latest_time") if isinstance(obj, dict) else getattr(obj, "time", None)
+        if not utc_time:
+            return None
+        eat = pytz.timezone("Africa/Nairobi")
+        return utc_time.astimezone(eat)
+
 class CustomerSerializer(serializers.ModelSerializer):
     organization = serializers.PrimaryKeyRelatedField(read_only=True)
-
     class Meta:
         model = Customer
-        fields = [
-            "id", "name", "id_number", "phone_number", "alternate_phone_number",
-            "email", "country", "location", "gender", "household_type", "household_size",
-            "preferred_language", "date", "county", "sub_county", "organization"
-        ]
+        fields = "__all__"
 
-# -------------------------------
-# Sale
-# -------------------------------
 class SaleSerializer(serializers.ModelSerializer):
     organization = serializers.PrimaryKeyRelatedField(read_only=True)
     customer = serializers.PrimaryKeyRelatedField(read_only=True)
-
     class Meta:
         model = Sale
-        fields = [
-            "id", "customer", "registration_date", "release_date", "product_type",
-            "product_name", "product_model", "product_serial_number", "purchase_mode",
-            "referred_by", "sales_rep", "date", "metered", "type_of_use",
-            "specific_economic_activity", "location_of_use", "payment_plan", "organization"
-        ]
+        fields = "__all__"
 
-# -------------------------------
-# Transaction
-# -------------------------------
 class TransactionSerializer(serializers.ModelSerializer):
     org = serializers.PrimaryKeyRelatedField(read_only=True)
-
     class Meta:
         model = Transaction
-        fields = ["id", "time", "amount", "txn_id", "name", "ref", "transtime", "org"]
+        fields = "__all__"
