@@ -1,8 +1,7 @@
 from rest_framework import viewsets, mixins, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Sum, Max
+from django.db.models import Sum, Max, Q
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from devices.models import DeviceInfo, DeviceData
 from customers.models import Customer
@@ -69,8 +68,10 @@ class DeviceDataViewSet(ReadOnlyOrgFilterMixin, viewsets.GenericViewSet, mixins.
         # Date filtering
         time_start = self.request.query_params.get("time_start")
         time_end = self.request.query_params.get("time_end")
-        if time_start: qs = qs.filter(time__gte=time_start)
-        if time_end: qs = qs.filter(time__lte=time_end)
+        if time_start: 
+            qs = qs.filter(time__gte=time_start)
+        if time_end: 
+            qs = qs.filter(time__lte=time_end)
 
         return qs.values("deviceid").annotate(
             total_kwh=Sum("kwh"),
@@ -85,18 +86,97 @@ class DeviceDataViewSet(ReadOnlyOrgFilterMixin, viewsets.GenericViewSet, mixins.
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-# Standard ViewSets for other models
-class CustomerViewSet(ReadOnlyOrgFilterMixin, viewsets.ReadOnlyModelViewSet):
+class CustomerViewSet(ReadOnlyOrgFilterMixin,
+                      mixins.ListModelMixin,
+                      viewsets.GenericViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
     permission_classes = [IsAuthenticated]
 
-class SaleViewSet(ReadOnlyOrgFilterMixin, viewsets.ReadOnlyModelViewSet):
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("id_number", str, description="Filter by customer ID number"),
+            OpenApiParameter("phone_number", str, description="Filter by customer phone number"),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        id_number = self.request.query_params.get("id_number")
+        phone_number = self.request.query_params.get("phone_number")
+
+        if id_number:
+            qs = qs.filter(id_number__icontains=id_number)
+
+        if phone_number:
+            qs = qs.filter(phone_number__icontains=phone_number)
+
+        return qs
+
+class SaleViewSet(ReadOnlyOrgFilterMixin,
+                  mixins.ListModelMixin,
+                  viewsets.GenericViewSet):
     queryset = Sale.objects.all()
     serializer_class = SaleSerializer
     permission_classes = [IsAuthenticated]
 
-class TransactionViewSet(ReadOnlyOrgFilterMixin, viewsets.ReadOnlyModelViewSet):
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("product_serial_number", str, description="Filter by product serial number"),
+            OpenApiParameter("time_start", str, description="Registration date from (YYYY-MM-DD)"),
+            OpenApiParameter("time_end", str, description="Registration date to (YYYY-MM-DD)"),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        serial = self.request.query_params.get("product_serial_number")
+        time_start = self.request.query_params.get("time_start")
+        time_end = self.request.query_params.get("time_end")
+
+        if serial:
+            qs = qs.filter(product_serial_number__icontains=serial)
+
+        if time_start:
+            qs = qs.filter(registration_date__gte=time_start)
+
+        if time_end:
+            qs = qs.filter(registration_date__lte=time_end)
+
+        return qs
+
+class TransactionViewSet(ReadOnlyOrgFilterMixin,
+                         mixins.ListModelMixin,
+                         viewsets.GenericViewSet):
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("ref", str, description="Filter by reference number"),
+            OpenApiParameter("txn_id", str, description="Filter by transaction ID"),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        ref = self.request.query_params.get("ref")
+        txn_id = self.request.query_params.get("txn_id")
+
+        if ref:
+            qs = qs.filter(ref__icontains=ref)
+
+        if txn_id:
+            qs = qs.filter(txn_id__icontains=txn_id)
+
+        return qs

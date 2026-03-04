@@ -51,7 +51,7 @@
                         rounded-box w-52 border border-base-300">
 
                     <li class="mt-2">
-                        <a href={% url 'profile' %} class="flex items-center gap-2">
+                        <a href="{% url 'profile' %}" class="flex items-center gap-2">
                             <i class="fa-solid fa-user"></i>
                             Profile
                         </a>
@@ -69,6 +69,13 @@
                                 Support
                             </a>
                         {% endif %}
+                    </li>
+
+                    <li class="mt-2">
+                        <a href="{% url 'swagger-ui' %}" class="flex items-center gap-2" target="_blank" rel="noopener noreferrer">
+                            <i class="fa-solid fa-code"></i>
+                            APIs
+                        </a>
                     </li>
 
                     <li class="mt-2">

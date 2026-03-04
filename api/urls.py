@@ -16,7 +16,7 @@ urlpatterns = [
     path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
 
     # Devices Info: Only detail view
-    #path("devices/info/", DeviceInfoViewSet.as_view({'get': 'list'}), name="deviceinfo-list"),
+    
     path("devices/info/<str:deviceid>/", DeviceInfoViewSet.as_view({'get': 'retrieve'}), name="deviceinfo-detail"),
 
     # Devices Data: List (all aggregated) and Detail (one aggregated)
