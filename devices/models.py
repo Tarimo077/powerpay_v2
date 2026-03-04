@@ -69,6 +69,12 @@ class DeviceCommandSchedule(models.Model):
         blank=True
     )
 
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.RESTRICT,
+        related_name="device_schedules"
+    )
+
     class Meta:
         db_table = "device_command_schedule"
         managed = True

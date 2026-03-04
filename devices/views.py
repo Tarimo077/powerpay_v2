@@ -468,8 +468,14 @@ class DeviceScheduleCreateView(CreateView):
     template_name = "devices/device_schedule_form.html"
     success_url = reverse_lazy("device_schedule_list")
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
     def form_valid(self, form):
         form.instance.created_by = self.request.user
+        form.instance.organization = self.request.user.organization
         return super().form_valid(form)
 
 
@@ -479,6 +485,19 @@ class DeviceScheduleUpdateView(UpdateView):
     form_class = DeviceCommandScheduleForm
     template_name = "devices/device_schedule_form.html"
     success_url = reverse_lazy("device_schedule_list")
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == "superadmin":
+            return DeviceCommandSchedule.objects.all()
+        return DeviceCommandSchedule.objects.filter(
+            organization=user.organization
+        )
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
 
 
 # Delete schedule

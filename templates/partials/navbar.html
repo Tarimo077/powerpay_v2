@@ -50,14 +50,14 @@
                     class="mt-3 p-4 shadow menu menu-sm dropdown-content bg-base-100
                         rounded-box w-52 border border-base-300">
 
-                    <li class="mt-2">
+                    <li class="mt-4">
                         <a href="{% url 'profile' %}" class="flex items-center gap-2">
                             <i class="fa-solid fa-user"></i>
                             Profile
                         </a>
                     </li>
 
-                    <li class="mt-2">
+                    <li class="mt-4">
                         {% if is_superuser %}
                             <a href="{% url 'admin_ticket_list' %}" class="flex items-center gap-2">
                                 <i class="fa-solid fa-headset"></i>
@@ -71,14 +71,14 @@
                         {% endif %}
                     </li>
 
-                    <li class="mt-2">
+                    <li class="mt-4">
                         <a href="{% url 'swagger-ui' %}" class="flex items-center gap-2" target="_blank" rel="noopener noreferrer">
                             <i class="fa-solid fa-code"></i>
                             APIs
                         </a>
                     </li>
 
-                    <li class="mt-2">
+                    <li class="mt-4">
                         <a href="{% url 'terms' %}" class="flex items-center gap-2">
                             <i class="fa-solid fa-file-contract"></i>
                             Terms Of Service
@@ -86,14 +86,14 @@
 
                     </li>
 
-                    <li class="mt-2">
+                    <li class="mt-4">
                         <a href="https://powerpayafrica.com/" class="flex items-center gap-2" target="_blank" rel="noopener noreferrer">
                             <i class="fa-solid fa-globe"></i>
                             Website
                         </a>
                     </li>
 
-                    <li class="border-t-2 border-base-200 mt-2">
+                    <li class="border-t-2 border-base-200 mt-4">
                         <form method="post" action="{% url 'logout' %}">
                             {% csrf_token %}
                             <button type="submit"
