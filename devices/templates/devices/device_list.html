@@ -17,7 +17,7 @@
 
         <h2 class="text-2xl font-bold mb-4">Devices</h2>
 
-        {% if is_admin %}
+        {% if is_superuser %}
         <div class="flex justify-end w-full mb-4">
                 <a href="{% url 'device_create' %}"
                 class="btn btn-success text-white">

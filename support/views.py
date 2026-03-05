@@ -8,7 +8,7 @@ from accounts.models import User
 
 # Admin views
 def is_admin(user):
-    return user.is_staff
+    return user.is_superuser
 
 @login_required
 def create_ticket(request):

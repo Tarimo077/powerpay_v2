@@ -33,7 +33,7 @@ def device_list(request):
     q = request.GET.get("q", "")
 
     # Role-based filtering
-    if user.is_superuser or getattr(user, "role", None) == "admin":
+    if user.is_superuser or getattr(user, "role", None) == "superadmin":
         devices = DeviceInfo.objects.all().select_related('organization')
         is_admin = True
     else:

@@ -10,7 +10,7 @@ from notifications.utils import notify
 
 
 def is_admin_user(user):
-    return user.is_superuser or getattr(user, "role", None) == "admin"
+    return user.is_superuser or getattr(user, "role", None) == "superadmin"
 
 
 @login_required

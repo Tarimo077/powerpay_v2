@@ -32,7 +32,7 @@ from .tasks import cache_dashboard_for_org, cache_dashboard_superadmin
 @login_required
 def index(request):
     user = request.user
-    is_superadmin = user.is_superuser or getattr(user, "role", "") == "admin"
+    is_superadmin = user.is_superuser or getattr(user, "role", "") == "superadmin"
 
     if is_superadmin:
         cache_key = "dashboard_html_superadmin"

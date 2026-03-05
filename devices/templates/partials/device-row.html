@@ -47,7 +47,7 @@
     <td class="text-center flex flex-row gap-2 justify-center">
         <a href="{% url 'device_detail' deviceid %}" class="btn btn-sm btn-primary">View<i class="fa-solid fa-binoculars"></i></a>
         
-        {% if is_admin %}
+        {% if is_superuser %}
         <a href="{% url 'device_edit' deviceid %}"
         class="btn btn-sm btn-accent text-white">
             <i class="fa-solid fa-pen-to-square"></i> Edit
