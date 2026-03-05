@@ -15,6 +15,7 @@ def sales_page(request):
     search_query = request.GET.get("q", "").strip()
     sort = request.GET.get("sort", "date")
     direction = request.GET.get("dir", "desc")
+    is_superadmin = request.user.role == "superadmin"
 
     allowed_sorts = {
         "date": "date",
@@ -31,7 +32,10 @@ def sales_page(request):
 
     order = f"-{allowed_sorts[sort]}" if direction == "desc" else allowed_sorts[sort]
 
-    qs = Sale.objects.select_related("customer", "organization").order_by(order)
+    if is_superadmin:
+        qs = Sale.objects.select_related("customer", "organization").order_by(order)
+    else:
+        qs = Sale.objects.filter(organization=request.user.organization).order_by(order)
 
     if search_query:
         qs = qs.filter(
@@ -60,13 +64,13 @@ def sales_page(request):
             next_dirs[f] = "asc"
 
     # ---------------- STATS ----------------
-    total_sales = Sale.objects.count()
+    total_sales = qs.count()
     last_30_days = timezone.now().date() - timedelta(days=30)
-    new_sales_30 = Sale.objects.filter(date__gte=last_30_days).count()
+    new_sales_30 = qs.filter(date__gte=last_30_days).count()
 
     # ---------------- MONTHLY SALES GROWTH (CUMULATIVE) ----------------
     monthly_qs = (
-        Sale.objects
+        qs
         .annotate(month=TruncMonth("date"))
         .values("month")
         .annotate(total=Count("id"))
@@ -93,7 +97,7 @@ def sales_page(request):
 
     # 2. Query the database
     rep_qs = (
-        Sale.objects
+        qs
         .values("purchase_mode")
         .annotate(total=Count("id"))
         .order_by("purchase_mode")

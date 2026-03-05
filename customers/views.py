@@ -114,8 +114,10 @@ def customers_page(request):
         "O": "Other",
     }
 
+    stats_qs = qs
+
     gender_qs = (
-        Customer.objects
+        stats_qs
         .values("gender")
         .annotate(total=Count("id"))
     )
@@ -126,7 +128,7 @@ def customers_page(request):
     # ---------------- CUSTOMER GROWTH (MONTHLY) ----------------
 
     growth_qs = (
-        Customer.objects
+        stats_qs
         .annotate(month=TruncMonth("date"))
         .values("month")
         .annotate(count=Count("id"))
