@@ -70,22 +70,36 @@ class DeviceCommandScheduleForm(forms.ModelForm):
     class Meta:
         model = DeviceCommandSchedule
         fields = ["action", "devices", "scheduled_time"]
+
         widgets = {
-            "action": forms.Select(attrs={"class": "select select-bordered w-full max-w-xs"}),
+            "action": forms.Select(
+                attrs={"class": "select select-bordered w-full max-w-xs"}
+            ),
+
             "scheduled_time": forms.DateTimeInput(
                 attrs={
                     "class": "input input-bordered w-full max-w-xs form-control",
                     "type": "datetime-local"
-                }
+                },
+                format="%Y-%m-%dT%H:%M"
             ),
-            "devices": forms.CheckboxSelectMultiple(attrs={"class": "device-grid"}),
+
+            "devices": forms.CheckboxSelectMultiple(
+                attrs={"class": "device-grid"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
-        if user and user.role != "superadmin":
-            self.fields["devices"].queryset = DeviceInfo.objects.filter(
-                organization=user.organization
-            )
+        # Ensure datetime-local parses correctly
+        self.fields["scheduled_time"].input_formats = ("%Y-%m-%dT%H:%M",)
+
+        if user:
+            if user.role == "superadmin":
+                self.fields["devices"].queryset = DeviceInfo.objects.all()
+            else:
+                self.fields["devices"].queryset = DeviceInfo.objects.filter(
+                    organization=user.organization
+                )

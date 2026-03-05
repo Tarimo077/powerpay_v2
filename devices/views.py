@@ -460,6 +460,16 @@ class DeviceScheduleListView(ListView):
     context_object_name = "schedules"
     ordering = ["-scheduled_time"]
 
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.role == "superadmin":
+            return DeviceCommandSchedule.objects.all().order_by("-scheduled_time")
+
+        return DeviceCommandSchedule.objects.filter(
+            organization=user.organization
+        ).order_by("-scheduled_time")
+
 
 # Create schedule
 class DeviceScheduleCreateView(CreateView):
@@ -488,8 +498,10 @@ class DeviceScheduleUpdateView(UpdateView):
 
     def get_queryset(self):
         user = self.request.user
+
         if user.role == "superadmin":
             return DeviceCommandSchedule.objects.all()
+
         return DeviceCommandSchedule.objects.filter(
             organization=user.organization
         )
@@ -506,21 +518,43 @@ class DeviceScheduleDeleteView(DeleteView):
     template_name = "devices/device_schedule_confirm_delete.html"
     success_url = reverse_lazy("device_schedule_list")
 
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.role == "superadmin":
+            return DeviceCommandSchedule.objects.all()
+
+        return DeviceCommandSchedule.objects.filter(
+            organization=user.organization
+        )
+
 
 # Trigger schedule manually (for testing)
 def trigger_schedule(request, pk):
-    schedule = DeviceCommandSchedule.objects.get(pk=pk)
+    user = request.user
+
+    if user.role == "superadmin":
+        schedule = get_object_or_404(DeviceCommandSchedule, pk=pk)
+    else:
+        schedule = get_object_or_404(
+            DeviceCommandSchedule,
+            pk=pk,
+            organization=user.organization
+        )
+
     if schedule.executed:
         messages.warning(request, "Schedule already executed!")
         return redirect("device_schedule_list")
 
     for device in schedule.devices.all():
         result = call_change_status_api(device.device_id, schedule.action)
+
         if result["success"]:
-            schedule.executed = True
-            schedule.save()
             messages.success(request, f"{schedule.action} sent to {device}")
         else:
             messages.error(request, f"Error for {device}: {result['error']}")
+
+    schedule.executed = True
+    schedule.save()
 
     return redirect("device_schedule_list")

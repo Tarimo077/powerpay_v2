@@ -78,6 +78,15 @@
                         </a>
                     </li>
 
+                    {% if request.user.role == 'superadmin' or request.user.role == 'admin' %}
+                    <li class="mt-4">
+                        <a href="{% url 'invite_user' %}" class="flex items-center gap-2">
+                            <i class="fa-solid fa-person-circle-plus"></i>
+                            Add User
+                        </a>
+                    </li>
+                    {% endif %}
+
                     <li class="mt-4">
                         <a href="{% url 'terms' %}" class="flex items-center gap-2">
                             <i class="fa-solid fa-file-contract"></i>

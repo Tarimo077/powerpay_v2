@@ -89,6 +89,28 @@ class UserProfileForm(forms.ModelForm):
 
 
 class InviteUserForm(forms.ModelForm):
+
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            "class": "input input-bordered w-full border-green-300 focus:border-green-500 focus:ring focus:ring-green-200 rounded-lg",
+            "placeholder": "Enter user email"
+        })
+    )
+
+    organization = forms.ModelChoiceField(
+        queryset=Organization.objects.all(),
+        widget=forms.Select(attrs={
+            "class": "select select-bordered w-full border-green-300 focus:border-green-500 focus:ring focus:ring-green-200 rounded-lg"
+        })
+    )
+
+    role = forms.ChoiceField(
+        choices=[],
+        widget=forms.Select(attrs={
+            "class": "select select-bordered w-full border-green-300 focus:border-green-500 focus:ring focus:ring-green-200 rounded-lg"
+        })
+    )
+
     class Meta:
         model = UserInvite
         fields = ["email", "organization", "role"]
@@ -99,9 +121,9 @@ class InviteUserForm(forms.ModelForm):
         if user is None:
             raise ValueError("InviteUserForm requires a user parameter")
 
-        self.user = user  # store user for later
+        self.user = user
 
-        # Superuser can pick any org and any role
+        # Superuser can pick any org and role
         if self.user.is_superuser:
             self.fields["role"].choices = [
                 ("superadmin", "Super Admin"),
@@ -109,8 +131,9 @@ class InviteUserForm(forms.ModelForm):
                 ("staff", "Staff"),
                 ("support", "Support"),
             ]
+
         else:
-            # Admin restrictions: only their org and limited roles
+            # Admin restrictions
             self.fields["organization"].queryset = Organization.objects.filter(
                 id=self.user.organization_id
             )
@@ -121,4 +144,3 @@ class InviteUserForm(forms.ModelForm):
                 ("admin", "Admin"),
                 ("staff", "Staff"),
             ]
-
