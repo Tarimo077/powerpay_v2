@@ -99,7 +99,7 @@ def verify_otp(request):
             request.session['otp_verified'] = True
 
             # Clear session and OTP
-            request.session.pop("otp_user_id")
+            request.session.pop("otp_user_id", None)
             otp_obj.delete()
             messages.success(request, "Login successful!")
             return redirect("index")  # Default landing page
