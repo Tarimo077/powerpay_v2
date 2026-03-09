@@ -154,7 +154,7 @@ if (deviceStatusEl) {
             labels: ['ACTIVE', 'INACTIVE'],
             datasets: [{
                 data: [{{ device_status_counts.ON|default:0 }}, {{ device_status_counts.OFF|default:0 }}],
-                backgroundColor: ['#22c55e', '#ef4444'],
+                backgroundColor: ['#22c55e', '#eda11f'],
                 borderWidth: 1
             }]
         },
@@ -240,7 +240,7 @@ if (moneyByOrgEl) {
             labels: {{ money_by_org_labels|safe }},
             datasets: [{
                 data: {{ money_by_org_data|safe }},
-                backgroundColor: ['#22c55e', '#ef4444', '#3b82f6', '#facc15', '#8b5cf6'],
+                backgroundColor: ['#22c55e', '#eda11f', '#3b82f6', '#facc15', '#8b5cf6'],
                 borderWidth: 1
             }]
         },

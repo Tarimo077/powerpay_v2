@@ -172,7 +172,7 @@ new Chart(moneyByOrgCtx, {
         labels: {{ money_by_org_labels|safe }},
         datasets: [{
             data: {{ money_by_org_data|safe }},
-            backgroundColor: ['#22c55e', '#ef4444', '#3b82f6', '#facc15', '#8b5cf6'],
+            backgroundColor: ['#22c55e', '#eda11f', '#3b82f6', '#facc15', '#8b5cf6'],
             borderWidth: 1
         }]
     },
@@ -219,7 +219,7 @@ const moneyLineDatasets = [];
             label: "{{ org_name }}",
             data: {{ daily_values|safe }},
             borderColor: color,
-            backgroundColor: color,
+            backgroundColor: ['#22c55e', '#eda11f', '#3b82f6', '#facc15', '#8b5cf6'],
             pointBackgroundColor: color,
             tension: 0.3,
             fill: false,

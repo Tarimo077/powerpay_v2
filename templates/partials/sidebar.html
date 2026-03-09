@@ -27,11 +27,13 @@
     </div>
 
     <!-- Logo -->
-    <div class="flex items-center justify-center p-4 space-x-2 mt-2">
-        <img src="{% static 'images/pp_no_bgcropped.png' %}" class="h-8 w-8">
+    <div class="flex items-center justify-center p-2 gap-4 mt-2">
+        <img id="sidebar-image" src="{% static 'images/pp_no_bgcropped.png' %}" class="h-8 w-8">
+        <!-- 
         <span id="sidebar-text" class="font-bold text-green-800 text-xl">
             PowerPay Africa
-        </span>
+        </span> -->
+        <img id="sidebar-text" src="{% static 'images/pplogo.png' %}" style="height: 40px;">
     </div>
 
     <!-- Navigation Links -->
@@ -142,8 +144,8 @@
 
     <!-- Desktop Collapse Button -->
     <button id="sidebar-toggle"
-            class="hidden lg:block absolute top-1/16 -right-4 -translate-y-1/2
-                   bg-base-100 border-none rounded-full p-2 shadow">
+            class="hidden lg:block absolute top-4 -right-4 -translate-y-2/3
+                   bg-base-100 border-gray-500 rounded-full p-2 shadow text-green-500">
         <i class="fas fa-chevron-left"></i>
     </button>
 </nav>
@@ -157,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mobileBtn = document.getElementById('mobile-menu-btn');
     const overlay = document.getElementById('mobile-overlay');
     const sidebarText = document.getElementById('sidebar-text');
+    const sidebarImage = document.getElementById('sidebar-image');
     const pageContent = document.getElementById('page-content');
     const chevron = toggleBtn?.querySelector('i');
     const mobileCloseBtn = document.getElementById('mobile-close-btn');
@@ -203,6 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             document.querySelectorAll('.link-text').forEach(e => e.classList.add('hidden'));
             sidebarText.classList.add('hidden');
+            sidebarImage.classList.remove('hidden');
             chevron?.classList.replace('fa-chevron-left','fa-chevron-right');
             
             if (save) localStorage.setItem(SIDEBAR_KEY, 'collapsed');
@@ -222,6 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.querySelectorAll('.link-text').forEach(e => e.classList.remove('hidden'));
         sidebarText.classList.remove('hidden');
+        sidebarImage.classList.add('hidden');
         chevron?.classList.replace('fa-chevron-right','fa-chevron-left');
     }
 
