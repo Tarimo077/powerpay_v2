@@ -5,7 +5,7 @@
     <td class="text-center flex items-center gap-4 justify-center">
         <!-- Status badge -->
         <span class="badge text-white {% if active %}badge-success{% else %}badge-error{% endif %}">
-            {{ active|yesno:"ON,OFF" }}
+            {{ active|yesno:"ACTIVE, INACTIVE" }}
         </span>
 
         <!-- Toggle switch -->

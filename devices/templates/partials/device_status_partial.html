@@ -4,7 +4,7 @@
     <div class="flex items-center justify-between gap-3">
         <!-- Status badge -->
         <span class="badge text-white {% if device.active %}badge-success{% else %}badge-error{% endif %}">
-            {{ device.active|yesno:"ON,OFF" }}
+            {{ device.active|yesno:"ACTIVE, INACTIVE" }}
         </span>
 
         <div class="flex items-center gap-3">

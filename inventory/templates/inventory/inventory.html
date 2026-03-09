@@ -160,18 +160,34 @@ new Chart(document.getElementById("inventoryGrowthChart"), {
 });
 
 new Chart(document.getElementById("warehouseChart"), {
-    type: "doughnut",
+    type: "bar",
     data: {
         labels: {{ warehouse_labels|safe }},
         datasets: [{
-            data: {{ warehouse_data|safe }}
+            data: {{ warehouse_data|safe }},
+            backgroundColor: [
+                '#3b82f6','#10b981','#f97316','#8b5cf6','#ef4444','#facc15','#0ea5e9'
+            ],
         }]
     },
     options: {
         responsive: true,
         maintainAspectRatio: false,
+        scales: {
+                x: {
+                    grid: {
+                        display: false // Removes vertical lines
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false // Removes horizontal lines
+                    },
+                    beginAtZero: true
+                }
+            },
         plugins: {
-            legend: { position: 'bottom' },
+            legend: { display: false },
             datalabels: {
                 color: '#fff',
                 formatter: (value, ctx) => {
@@ -182,7 +198,7 @@ new Chart(document.getElementById("warehouseChart"), {
             }
         }
     },
-    plugins: [ChartDataLabels, centerTotalPlugin]
+    plugins: [ChartDataLabels]
 });
 </script>
 

@@ -137,7 +137,7 @@ const centerTotalPlugin = {
 };
 const ctx = document.getElementById("genderChart");
 new Chart(ctx, {
-    type: "doughnut",
+    type: "bar",
     data: {
         labels: {{ gender_labels|safe }},
         datasets: [{
@@ -149,8 +149,21 @@ new Chart(ctx, {
     options: {
         responsive: true,
         maintainAspectRatio: false,
+        scales: {
+                x: {
+                    grid: {
+                        display: false // Removes vertical lines
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false // Removes horizontal lines
+                    },
+                    beginAtZero: true
+                }
+            },
         plugins: {
-            legend: { position: 'bottom' },
+            legend: { display: false },
             datalabels: {
                 color: '#fff',
                 formatter: (value, ctx) => {
@@ -161,7 +174,7 @@ new Chart(ctx, {
             }
         }
     },
-    plugins: [ChartDataLabels, centerTotalPlugin]
+    plugins: [ChartDataLabels]
 });
 
 const growthCtx = document.getElementById("customerGrowthChart");

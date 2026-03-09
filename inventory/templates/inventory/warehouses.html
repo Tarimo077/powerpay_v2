@@ -50,7 +50,7 @@
     </button>
   </div>
   <div class="flex-1 border-none outline-none">
-    <canvas id="warehouseChart" class="border-none outline-none h-full"></canvas>
+    <canvas id="warehouseChart" class="border-none outline-none h-1/2 w-1/2"></canvas>
   </div>
 </div>
 
@@ -117,16 +117,34 @@ const centerTotalPlugin = {
     }
 };
 new Chart(document.getElementById("warehouseChart"), {
-  type: "doughnut",
+  type: "bar",
   data: {
     labels: {{ warehouse_labels|safe }},
-    datasets: [{ data: {{ warehouse_data|safe }} }]
+    datasets: [{ 
+      data: {{ warehouse_data|safe }},
+      backgroundColor: [
+                '#3b82f6','#10b981','#f97316','#8b5cf6','#ef4444','#facc15','#0ea5e9'
+      ],
+    }]
   },
   options: {
         responsive: true,
         maintainAspectRatio: false,
+        scales: {
+                x: {
+                    grid: {
+                        display: false // Removes vertical lines
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false // Removes horizontal lines
+                    },
+                    beginAtZero: true
+                }
+            },
         plugins: {
-            legend: { position: 'bottom' },
+            legend: { display: false },
             datalabels: {
                 color: '#fff',
                 formatter: (value, ctx) => {
@@ -137,7 +155,7 @@ new Chart(document.getElementById("warehouseChart"), {
             }
         }
     },
-    plugins: [ChartDataLabels, centerTotalPlugin]
+    plugins: [ChartDataLabels]
 });
 </script>
 {% endblock %}

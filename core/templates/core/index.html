@@ -149,9 +149,9 @@ const centerTotalPlugin = {
 const deviceStatusEl = document.getElementById('deviceStatusChart');
 if (deviceStatusEl) {
     new Chart(deviceStatusEl.getContext('2d'), {
-        type: 'doughnut',
+        type: 'bar',
         data: {
-            labels: ['ON', 'OFF'],
+            labels: ['ACTIVE', 'INACTIVE'],
             datasets: [{
                 data: [{{ device_status_counts.ON|default:0 }}, {{ device_status_counts.OFF|default:0 }}],
                 backgroundColor: ['#22c55e', '#ef4444'],
@@ -161,8 +161,21 @@ if (deviceStatusEl) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            scales: {
+                x: {
+                    grid: {
+                        display: false // Removes vertical lines
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false // Removes horizontal lines
+                    },
+                    beginAtZero: true
+                }
+            },
             plugins: {
-                legend: { position: 'bottom' },
+                legend: { display: false },
                 datalabels: {
                     color: '#fff',
                     formatter: (value, ctx) => {
@@ -174,7 +187,7 @@ if (deviceStatusEl) {
                 }
             }
         },
-        plugins: [ChartDataLabels, centerTotalPlugin]
+        plugins: [ChartDataLabels]
     });
 }
 
@@ -198,7 +211,20 @@ if (kwhLineEl) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom' } },
+            scales: {
+                x: {
+                    grid: {
+                        display: false // Removes vertical lines
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false // Removes horizontal lines
+                    },
+                    beginAtZero: true
+                }
+            },
+            plugins: { legend: { display: false } },
             scales: { y: { beginAtZero: true } }
         }
     });
@@ -209,7 +235,7 @@ if (kwhLineEl) {
 const moneyByOrgEl = document.getElementById('moneyByOrgChart');
 if (moneyByOrgEl) {
     new Chart(moneyByOrgEl.getContext('2d'), {
-        type: 'doughnut',
+        type: 'bar',
         data: {
             labels: {{ money_by_org_labels|safe }},
             datasets: [{
@@ -221,8 +247,21 @@ if (moneyByOrgEl) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            scales: {
+                x: {
+                    grid: {
+                        display: false // Removes vertical lines
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false // Removes horizontal lines
+                    },
+                    beginAtZero: true
+                }
+            },
             plugins: {
-                legend: { position: 'bottom' },
+                legend: { display: false },
                 datalabels: {
                     color: '#fff',
                     formatter: (value, ctx) => {
@@ -233,7 +272,7 @@ if (moneyByOrgEl) {
                 }
             }
         },
-        plugins: [ChartDataLabels, centerTotalPlugin]
+        plugins: [ChartDataLabels]
     });
 }
 
@@ -256,7 +295,20 @@ if (moneyLineEl) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom' } },
+            scales: {
+                x: {
+                    grid: {
+                        display: false // Removes vertical lines
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false // Removes horizontal lines
+                    },
+                    beginAtZero: true
+                }
+            },
+            plugins: { legend: { display: false } },
             scales: { y: { beginAtZero: true } }
         }
     });

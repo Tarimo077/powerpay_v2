@@ -167,7 +167,7 @@ const centerTotalPlugin = {
 {% if is_superadmin %}
 const moneyByOrgCtx = document.getElementById('moneyByOrgChart').getContext('2d');
 new Chart(moneyByOrgCtx, {
-    type: 'doughnut',
+    type: 'bar',
     data: {
         labels: {{ money_by_org_labels|safe }},
         datasets: [{
@@ -179,8 +179,21 @@ new Chart(moneyByOrgCtx, {
     options: {
         responsive: true,
         maintainAspectRatio: false,
+        scales: {
+                x: {
+                    grid: {
+                        display: false // Removes vertical lines
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false // Removes horizontal lines
+                    },
+                    beginAtZero: true
+                }
+            },
         plugins: {
-            legend: { position: 'bottom' },
+            legend: { display: false },
             datalabels: {
                 color: '#fff',
                 formatter: (value, ctx) => {
@@ -191,7 +204,7 @@ new Chart(moneyByOrgCtx, {
             }
         }
     },
-    plugins: [ChartDataLabels, centerTotalPlugin]
+    plugins: [ChartDataLabels]
 });
 {% endif %}
 

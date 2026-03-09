@@ -162,7 +162,7 @@ new Chart(ctxGrowth, {
 
 const ctxRep = document.getElementById("salesProductChart");
 new Chart(ctxRep, {
-    type: 'doughnut',
+    type: 'bar',
     data: {
         labels: {{ rep_labels|safe }},
         datasets: [{
@@ -176,8 +176,21 @@ new Chart(ctxRep, {
     options: {
         responsive: true,
         maintainAspectRatio: false,
+        scales: {
+                x: {
+                    grid: {
+                        display: false // Removes vertical lines
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false // Removes horizontal lines
+                    },
+                    beginAtZero: true
+                }
+            },
         plugins: {
-            legend: { position: 'bottom' },
+            legend: { display: false },
             datalabels: {
                 color: '#fff',
                 formatter: (value, ctx) => {
@@ -188,7 +201,7 @@ new Chart(ctxRep, {
             }
         }
     },
-    plugins: [ChartDataLabels, centerTotalPlugin]
+    plugins: [ChartDataLabels]
 });
 </script>
 

@@ -36,10 +36,12 @@
                     <div class="w-9 h-9 rounded-full bg-green-600 
                                 flex items-center justify-center">
                         <span class="text-white font-bold text-xl">
-                            {% if request.user.first_name %}
-                                {{ request.user.first_name|first|upper }}
+                            {% if request.user.first_name and request.user.last_name %}
+                                {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+                            {% elif request.user.first_name %}
+                                {{ request.user.first_name|slice:":2"|upper }}
                             {% else %}
-                                {{ request.user.email|first|upper }}
+                                {{ request.user.email|slice:":2"|upper }}
                             {% endif %}
                         </span>
                     </div>

@@ -104,32 +104,36 @@ def customers_page(request):
     last_30_days = today - timedelta(days=30)
     new_customers_30 = qs.filter(date__date__gte=last_30_days).count()
 
-    # ---------------- GENDER CHART ----------------
-    gender_labels = []
-    gender_data = []
-
+    # ---------------- GENDER CHART (REFACTORED) ----------------
     GENDER_MAP = {
         "F": "Female",
         "M": "Male",
         "O": "Other",
     }
 
-    stats_qs = qs
-
+    # IMPORTANT: .order_by() clears previous sorting to allow proper GROUP BY
     gender_qs = (
-        stats_qs
+        qs.order_by()
         .values("gender")
         .annotate(total=Count("id"))
     )
 
-    gender_labels = [GENDER_MAP.get(x["gender"], "Unknown") for x in gender_qs]
-    gender_data = [x["total"] for x in gender_qs]
+    gender_labels = []
+    gender_data = []
+
+    for item in gender_qs:
+        label = GENDER_MAP.get(item["gender"]) or "Unknown"
+        # If multiple DB values map to 'Unknown' (like None and ""), combine them
+        if label in gender_labels:
+            idx = gender_labels.index(label)
+            gender_data[idx] += item["total"]
+        else:
+            gender_labels.append(label)
+            gender_data.append(item["total"])
 
     # ---------------- CUSTOMER GROWTH (MONTHLY) ----------------
-
     growth_qs = (
-        stats_qs
-        .annotate(month=TruncMonth("date"))
+        qs.annotate(month=TruncMonth("date"))
         .values("month")
         .annotate(count=Count("id"))
         .order_by("month")
@@ -143,7 +147,6 @@ def customers_page(request):
         running_total += row["count"]
         customer_growth_labels.append(row["month"].strftime("%b %Y"))
         customer_growth_data.append(running_total)
-
 
     return render(
         request,
@@ -162,7 +165,6 @@ def customers_page(request):
             "next_dirs": next_dirs,  
             "customer_growth_labels": customer_growth_labels,
             "customer_growth_data": customer_growth_data,
-
         },
     )
 
