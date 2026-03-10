@@ -33,11 +33,12 @@ from .tasks import cache_dashboard_for_org, cache_dashboard_superadmin
 def index(request):
     user = request.user
     is_superadmin = user.is_superuser or getattr(user, "role", "") == "superadmin"
+    period = request.GET.get("period", "7d")
 
     if is_superadmin:
-        cache_key = "dashboard_html_superadmin"
+        cache_key = f"dashboard_context_superadmin_{period}"
     else:
-        cache_key = f"dashboard_html_org_{user.organization.id}"
+        cache_key = f"dashboard_context_org_{user.organization.id}_{period}"
 
     context = cache.get(cache_key)
 

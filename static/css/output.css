@@ -72,8 +72,6 @@
     --radius-lg: 0.5rem;
     --radius-xl: 0.75rem;
     --radius-2xl: 1rem;
-    --ease-in: cubic-bezier(0.4, 0, 1, 1);
-    --ease-out: cubic-bezier(0, 0, 0.2, 1);
     --animate-bounce: bounce 1s infinite;
     --default-transition-duration: 150ms;
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -2803,6 +2801,9 @@
   .table {
     display: table;
   }
+  .h-1\/2 {
+    height: calc(1/2 * 100%);
+  }
   .h-2\/3 {
     height: calc(2/3 * 100%);
   }
@@ -2972,12 +2973,8 @@
     --tw-translate-y: calc(calc(1/2 * 100%) * -1);
     translate: var(--tw-translate-x) var(--tw-translate-y);
   }
-  .translate-y-0 {
-    --tw-translate-y: calc(var(--spacing) * 0);
-    translate: var(--tw-translate-x) var(--tw-translate-y);
-  }
-  .translate-y-2 {
-    --tw-translate-y: calc(var(--spacing) * 2);
+  .-translate-y-2\/3 {
+    --tw-translate-y: calc(calc(2/3 * 100%) * -1);
     translate: var(--tw-translate-x) var(--tw-translate-y);
   }
   .transform {
@@ -3069,13 +3066,6 @@
   }
   .gap-16 {
     gap: calc(var(--spacing) * 16);
-  }
-  .space-y-1 {
-    :where(& > :not(:last-child)) {
-      --tw-space-y-reverse: 0;
-      margin-block-start: calc(calc(var(--spacing) * 1) * var(--tw-space-y-reverse));
-      margin-block-end: calc(calc(var(--spacing) * 1) * calc(1 - var(--tw-space-y-reverse)));
-    }
   }
   .space-y-2 {
     :where(& > :not(:last-child)) {
@@ -3232,6 +3222,9 @@
   }
   .border-gray-300 {
     border-color: var(--color-gray-300);
+  }
+  .border-gray-500 {
+    border-color: var(--color-gray-500);
   }
   .border-green-300 {
     border-color: var(--color-green-300);
@@ -3664,9 +3657,6 @@
   .opacity-50 {
     opacity: 50%;
   }
-  .opacity-100 {
-    opacity: 100%;
-  }
   .shadow {
     --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
@@ -3744,14 +3734,6 @@
   .duration-500 {
     --tw-duration: 500ms;
     transition-duration: 500ms;
-  }
-  .ease-in {
-    --tw-ease: var(--ease-in);
-    transition-timing-function: var(--ease-in);
-  }
-  .ease-out {
-    --tw-ease: var(--ease-out);
-    transition-timing-function: var(--ease-out);
   }
   .btn-outline {
     @layer daisyui.l1 {
@@ -4594,10 +4576,6 @@
   syntax: "*";
   inherits: false;
 }
-@property --tw-ease {
-  syntax: "*";
-  inherits: false;
-}
 @property --tw-gradient-position {
   syntax: "*";
   inherits: false;
@@ -4695,7 +4673,6 @@
       --tw-drop-shadow-alpha: 100%;
       --tw-drop-shadow-size: initial;
       --tw-duration: initial;
-      --tw-ease: initial;
       --tw-gradient-position: initial;
       --tw-gradient-from: #0000;
       --tw-gradient-via: #0000;

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load dict_extras %}
 {% block content %}
 
 {% include "partials/navbar.html" %}
@@ -14,6 +15,53 @@
 
         <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
 
+        <div class="flex flex-wrap gap-4 mb-6 items-center">
+
+            <!-- TIME FILTER -->
+            <form method="get" class="flex gap-2">
+
+                <select name="period" class="select select-bordered select-sm"
+                        onchange="this.form.submit()">
+
+                    <option value="7d" {% if period == "7d" %}selected{% endif %}>Last 7 Days</option>
+                    <option value="30d" {% if period == "30d" %}selected{% endif %}>Last 30 Days</option>
+                    <option value="90d" {% if period == "90d" %}selected{% endif %}>Last 90 Days</option>
+
+                </select>
+
+                {% if request.GET.org %}
+                <input type="hidden" name="org" value="{{ request.GET.org }}">
+                {% endif %}
+
+            </form>
+
+
+            {% if is_superadmin %}
+            <!-- ORG FILTER -->
+            <form method="get">
+
+                <select name="org"
+                        class="select select-bordered select-sm"
+                        onchange="this.form.submit()">
+
+                    <option value="">All Organizations</option>
+
+                    {% for org in organizations %}
+                    <option value="{{ org.id }}"
+                        {% if request.GET.org == org.id|stringformat:"s" %}selected{% endif %}>
+                        {{ org.name }}
+                    </option>
+                    {% endfor %}
+
+                </select>
+
+                <input type="hidden" name="period" value="{{ period }}">
+
+            </form>
+            {% endif %}
+
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div class="card bg-base-100 shadow border-l-4 border-primary">
                 <div class="card-body flex flex-col justify-center">
@@ -24,15 +72,27 @@
 
             <div class="card bg-base-100 shadow border-l-4 border-success">
                 <div class="card-body flex flex-col justify-center">
-                    <p class="text-sm uppercase text-gray-500">kWh Today</p>
-                    <p class="text-3xl font-bold text-success">{{ kwh_today|floatformat:2 }}</p>
+                    <p class="text-sm uppercase text-gray-500">kWh ({{ period }})</p>
+                    <div class="flex flex-row gap-2">
+                        <p class="text-3xl font-bold text-success">{{ kwh_total|floatformat:2 }}</p>
+                        <p class="text-sm
+                        {% if kwh_change > 0 %}text-success{% else %}text-error{% endif %}">
+                        {% if kwh_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ kwh_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ kwh_change|abs }}%{% endif %}
+                        </p>
+                    </div>
                 </div>
             </div>
 
             <div class="card bg-base-100 shadow border-l-4 border-accent">
-                <div class="card-body flex flex-col justify-center">
-                    <p class="text-sm uppercase text-gray-500">kWh This Month</p>
-                    <p class="text-3xl font-bold text-accent">{{ kwh_month|floatformat:2 }}</p>
+                <div class="card-body justify-center">
+                    <p class="text-sm uppercase text-gray-500">CO₂ Emissions ({{ period }})</p>
+                    <div class="flex flex-row">
+                        <p class="text-3xl font-bold text-accent">{{ co2_total|floatformat:2 }}</p>
+                        <p class="text-sm
+                            {% if co2_change > 0 %}text-success{% else %}text-error{% endif %}">
+                            {% if co2_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ co2_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ co2_change|abs }}%{% endif %}
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -49,15 +109,27 @@
             
             <div class="card bg-base-100 shadow border-l-4 border-info">
                 <div class="card-body flex flex-col justify-center">
-                    <p class="text-sm uppercase text-gray-500">Total Money In</p>
-                    <p class="text-3xl font-bold text-info">{{ total_money|intcomma }}</p>
+                    <p class="text-sm uppercase text-gray-500">Total Money ({{ period }})</p>
+                    <div class="flex flex-row">
+                        <p class="text-3xl font-bold text-info">{{ total_money|intcomma }}</p>
+                        <p class="text-sm
+                            {% if money_change > 0 %}text-success{% else %}text-error{% endif %}">
+                            {% if money_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ money_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ money_change|abs }}%{% endif %}
+                        </p>
+                    </div>
                 </div>
             </div>
 
             <div class="card bg-base-100 shadow border-l-4 border-warning">
                 <div class="card-body flex flex-col justify-center">
-                    <p class="text-sm uppercase text-gray-500">Total Transactions</p>
-                    <p class="text-3xl font-bold text-warning">{{ total_transactions|intcomma }}</p>
+                    <p class="text-sm uppercase text-gray-500">Total Transactions ({{ period }})</p>
+                    <div class="flex flex-row">
+                        <p class="text-3xl font-bold text-warning">{{ total_transactions|intcomma }}</p>
+                        <p class="text-sm
+                            {% if tx_change > 0 %}text-success{% else %}text-error{% endif %}">
+                            {% if tx_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ tx_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ tx_change|abs }}%{% endif %}
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -78,7 +150,7 @@
 
             <div id="energy7d" class="card bg-base-100 shadow p-4 flex flex-col">
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold">Energy Use (7 days)</h3>
+                    <h3 class="text-lg font-semibold">Energy Use ({{ period }})</h3>
                     <button data-ignore-download onclick="downloadCard('energy7d', 'energy-7d.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
                         <i class="fas fa-download mr-2"></i> Download
                     </button>
@@ -118,32 +190,11 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
 <script>
 Chart.defaults.font.family = "'Saira', sans-serif";
 Chart.defaults.font.size = 12;
 
-const centerTotalPlugin = {
-    id: 'centerTotal',
-    afterDatasetsDraw(chart) {
-        const { ctx, data, chartArea: { top, bottom, left, right, width, height } } = chart;
-        ctx.save();
-        const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
-        const fontSize = 10;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        const centerX = left + width / 2;
-        const centerY = top + height / 2;
-        ctx.font = `${fontSize * 0.1}em 'Saira'`;
-        ctx.fillStyle = '#07783c';
-        ctx.fillText('TOTAL: ', centerX, centerY - 15);
-        ctx.font = `bold ${fontSize * 0.2}em 'Saira'`;
-        ctx.fillText(total.toLocaleString(), centerX, centerY + 15);
-        ctx.restore();
-    }
-};
 
 // -------- Device Status Pie Chart --------
 const deviceStatusEl = document.getElementById('deviceStatusChart');
