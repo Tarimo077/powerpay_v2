@@ -27,17 +27,19 @@
     </div>
 
     <!-- Logo -->
-    <div class="flex items-center justify-center p-2 gap-4 mt-2">
-        <img id="sidebar-image" src="{% static 'images/pp_no_bgcropped.png' %}" class="h-8 w-8">
+    <div class="flex items-center justify-center mt-6">
+        <img id="sidebar-image" src="{% static 'images/powerpay_logo.png' %}" class="h-8 w-8">
         <!-- 
         <span id="sidebar-text" class="font-bold text-green-800 text-xl">
             PowerPay Africa
         </span> -->
-        <img id="sidebar-text" src="{% static 'images/pplogo.png' %}" style="height: 40px;">
+        <img id="sidebar-text" src="{% static 'images/pplogo.png' %}" style="height: 42px;">
     </div>
 
+    <div class="divider p-3"></div>
+
     <!-- Navigation Links -->
-    <div class="flex flex-col mt-4 space-y-2 flex-1 overflow-y-auto text-sm">
+    <div class="flex flex-col space-y-2 flex-1 overflow-y-auto text-sm">
 
         <a href="{% url 'index' %}"
            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
@@ -130,6 +132,7 @@
             <span class="link-text">Import Center</span>
         </a>
 
+        <div class="divider p-3"></div>
 
         <form method="post" action="{% url 'logout' %}" class="mt-auto">
             {% csrf_token %}
@@ -144,7 +147,7 @@
 
     <!-- Desktop Collapse Button -->
     <button id="sidebar-toggle"
-            class="hidden lg:block absolute top-4 -right-4 -translate-y-2/3
+            class="hidden lg:block absolute top-4 -right-4 -translate-y-2/3 mt-3 bg-base-200
                    bg-base-100 border-gray-500 rounded-full p-2 shadow text-green-500">
         <i class="fas fa-chevron-left"></i>
     </button>

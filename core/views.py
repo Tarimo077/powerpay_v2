@@ -33,10 +33,16 @@ from .tasks import cache_dashboard_for_org, cache_dashboard_superadmin
 def index(request):
     user = request.user
     is_superadmin = user.is_superuser or getattr(user, "role", "") == "superadmin"
-    period = request.GET.get("period", "7d")
 
+    period = request.GET.get("period", "7d")
+    org_id = request.GET.get("org")
+
+    # -------- CACHE KEY LOGIC --------
     if is_superadmin:
-        cache_key = f"dashboard_context_superadmin_{period}"
+        if org_id:
+            cache_key = f"dashboard_context_superadmin_org_{org_id}_{period}"
+        else:
+            cache_key = f"dashboard_context_superadmin_all_{period}"
     else:
         cache_key = f"dashboard_context_org_{user.organization.id}_{period}"
 
@@ -45,14 +51,13 @@ def index(request):
     if context:
         return render(request, "core/index.html", context)
 
-    # If cache missing, trigger async rebuild
+    # -------- REBUILD CACHE --------
     if is_superadmin:
         cache_dashboard_superadmin.delay()
     else:
         cache_dashboard_for_org.delay(user.organization.id)
 
     return render(request, "core/loading.html")
-
 
 def export_csv(user, queryset, is_superadmin, model, filename):
     response = HttpResponse(content_type="text/csv")
