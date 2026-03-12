@@ -37,8 +37,8 @@ def build_dashboard_context(is_superadmin=False, organization=None, period="7d",
         days_back = 14
     elif period == "60d":
         days_back = 60
-    elif period == "120d":
-        days_back = 120
+    elif period == "180d":
+        days_back = 180
     elif period == "365d":
         days_back = 365
     elif period == "all":

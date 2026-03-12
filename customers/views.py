@@ -11,6 +11,8 @@ from .forms import CustomerForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from notifications.utils import notify
+from organizations.models import Organization
+
 
 @login_required
 def customers_page(request):
@@ -23,6 +25,45 @@ def customers_page(request):
         qs = Customer.objects.select_related("organization")
     else:
         qs = Customer.objects.filter(organization=user.organization)
+
+    # ---------------- PERIOD FILTER ----------------
+    period = request.GET.get("period", "all")
+
+    today = timezone.now()
+
+    if period == "7d":
+        qs = qs.filter(date__gte=today - timedelta(days=7))
+    elif period == "30d":
+        qs = qs.filter(date__gte=today - timedelta(days=30))
+    elif period == "90d":
+        qs = qs.filter(date__gte=today - timedelta(days=90))
+    elif period == "1d":
+        qs = qs.filter(date__gte=today - timedelta(days=1))
+    elif period == "3d":
+        qs = qs.filter(date__gte=today - timedelta(days=3))
+    elif period == "14d":
+        qs = qs.filter(date__gte=today - timedelta(days=14))
+    elif period == "60d":
+        qs = qs.filter(date__gte=today - timedelta(days=60))
+    elif period == "180d":
+        qs = qs.filter(date__gte=today - timedelta(days=180))
+    elif period == "365d":
+        qs = qs.filter(date__gte=today - timedelta(days=365))
+    else:
+        pass
+
+
+    # ---------------- ORGANIZATION FILTER ----------------
+    org_filter = request.GET.get("org")
+
+    if is_superadmin:
+        organizations = Organization.objects.all()
+
+        if org_filter:
+            qs = qs.filter(organization_id=org_filter)
+
+    else:
+        organizations = None
 
     # ---------------- SEARCH ----------------
     search_query = request.GET.get("q", "").strip()
@@ -94,6 +135,9 @@ def customers_page(request):
                 "current_dir": direction,
                 "search_query": search_query,
                 "next_dirs": next_dirs,
+                "period": period,
+                "org_filter": org_filter,
+                "organizations": organizations,
             },
         )
 
@@ -165,6 +209,9 @@ def customers_page(request):
             "next_dirs": next_dirs,  
             "customer_growth_labels": customer_growth_labels,
             "customer_growth_data": customer_growth_data,
+            "period": period,
+            "org_filter": org_filter,
+            "organizations": organizations,
         },
     )
 
