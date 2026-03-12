@@ -20,6 +20,7 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.contrib import messages
 from .services.device_api import call_change_status_api
+from organizations.models import Organization
 
 
 COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
@@ -31,18 +32,35 @@ COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
 def device_list(request):
     user = request.user
     q = request.GET.get("q", "")
+    status = request.GET.get("status", "all")
+    org_id = request.GET.get("org")
 
     # Role-based filtering
     if user.is_superuser or getattr(user, "role", None) == "superadmin":
-        devices = DeviceInfo.objects.all().select_related('organization')
+        devices = DeviceInfo.objects.all().select_related("organization")
+        organizations = Organization.objects.all()
         is_admin = True
+
+        if org_id:
+            devices = devices.filter(organization_id=org_id)
+
     else:
-        devices = DeviceInfo.objects.filter(organization=user.organization).select_related('organization')
+        devices = DeviceInfo.objects.filter(
+            organization=user.organization
+        ).select_related("organization")
+
+        organizations = None
         is_admin = False
 
     # Search
     if q:
         devices = devices.filter(deviceid__icontains=q)
+
+    # Status filter
+    if status == "active":
+        devices = devices.filter(active=True)
+    elif status == "inactive":
+        devices = devices.filter(active=False)
 
     devices = devices.order_by("deviceid")
 
@@ -64,14 +82,15 @@ def device_list(request):
         "page_obj": page_obj,
         "device_stats": page_obj.object_list,
         "search_query": q,
+        "status_filter": status,
+        "org_filter": org_id,
+        "organizations": organizations,
         "is_admin": is_admin,
         "total_devices": total_devices,
         "active_devices": active_devices,
         "inactive_devices": inactive_devices,
     }
 
-
-    # ✅ HTMX partial rendering
     if request.headers.get("HX-Request"):
         return render(request, "partials/devices_table.html", context)
 

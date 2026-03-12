@@ -18,28 +18,73 @@
         hx-push-url="true"
         hx-indicator="#htmx-loading"
     >
-        <input
-            type="text"
-            name="q"
-            value="{{ search_query }}"
-            placeholder="Search device ID..."
-            class="input input-bordered flex-1 min-w-50"
-        >
-        <button class="btn btn-success text-white">
-            <i class="fa fa-search"></i> Search
-        </button>
 
-        {% if search_query %}
-        <a
-            hx-get="{% url 'device_list' %}"
-            hx-target="#devices-table"
-            hx-push-url="true"
-            hx-indicator="#htmx-loading"
-            class="btn btn-error text-white"
-        >
-           <i class="fa fa-times"></i> Clear
-        </a>
-        {% endif %}
+    <input
+        type="text"
+        name="q"
+        value="{{ search_query }}"
+        placeholder="Search device ID..."
+        class="input input-success min-w-48"
+    />
+
+    <!-- STATUS FILTER -->
+    <select name="status" class="select select-success select-md">
+        <option value="all" {% if status_filter == "all" %}selected{% endif %}>All Status</option>
+        <option value="active" {% if status_filter == "active" %}selected{% endif %}>ACTIVE</option>
+        <option value="inactive" {% if status_filter == "inactive" %}selected{% endif %}>INACTIVE</option>
+    </select>
+
+    <!-- ORGANIZATION FILTER -->
+    {% if is_admin %}
+    <select name="org" class="select select-success select-md">
+        <option value="">All Organizations</option>
+        {% for org in organizations %}
+            <option value="{{ org.id }}" {% if org_filter == org.id|stringformat:"s" %}selected{% endif %}>
+                {{ org.name }}
+            </option>
+        {% endfor %}
+    </select>
+    {% endif %}
+
+    <button class="btn btn-success text-white">
+        <i class="fa fa-search"></i> Filter
+    </button>
+
+    {% if search_query or status_filter != "all" or org_filter %}
+    <a
+        hx-get="{% url 'device_list' %}"
+        hx-target="#devices-table"
+        hx-push-url="true"
+        hx-indicator="#htmx-loading"
+        class="btn btn-error text-white"
+    >
+    <i class="fa fa-times"></i> Reset
+    </a>
+
+    <div class="flex justify-end items-center mb-3">
+
+        <div class="text-sm text-gray-500">
+            Showing
+            <span class="font-semibold text-success">
+                {{ total_devices }}
+            </span>
+            result{{ total_devices|pluralize }}
+
+            {% if search_query %}
+                for "<span class="font-medium">{{ search_query }}</span>"
+            {% endif %}
+
+            {% if status_filter != "all" %}
+                • Status:
+                <span class="badge badge-outline">
+                    {{ status_filter|upper }}
+                </span>
+            {% endif %}
+        </div>
+
+    </div>
+    {% endif %}
+
     </form>
 
     <!-- TABLE -->
@@ -74,7 +119,7 @@
     <div class="flex justify-between mt-4">
         {% if page_obj.has_previous %}
             <a
-                hx-get="{% url 'device_list' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}"
+                hx-get="{% url 'device_list' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}"
                 hx-target="#devices-table"
                 hx-push-url="true"
                 hx-indicator="#htmx-loading"
@@ -88,7 +133,7 @@
 
         {% if page_obj.has_next %}
             <a
-                hx-get="{% url 'device_list' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}"
+                hx-get="{% url 'device_list' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}"
                 hx-target="#devices-table"
                 hx-push-url="true"
                 hx-indicator="#htmx-loading"

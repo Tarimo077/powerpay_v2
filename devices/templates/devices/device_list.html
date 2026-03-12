@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load humanize %}
 
 {% block content %}
 
@@ -30,38 +31,27 @@
         <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
 
-            <div class="card bg-base-100 shadow-lg border-l-4 border-primary">
-                <div class="card-body">
-                    <h3 class="text-sm font-semibold text-gray-500 uppercase">
-                        Total Devices
-                    </h3>
-                    <p class="text-3xl font-bold text-primary">
-                        {{ total_devices }}
-                    </p>
+            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+                <div class="card-body flex flex-col justify-center">
+                    <div class="flex"><p class="text-sm uppercase text-gray-400">Total Devices</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-plug text-2xl text-green-500"></i></div></div>
+                        <p class="text-2xl font-bold text-gray-700">{{ total_devices|intcomma }} </p>
                 </div>
             </div>
 
-            <div class="card bg-base-100 shadow-lg border-l-4 border-success">
-                <div class="card-body">
-                    <h3 class="text-sm font-semibold text-gray-500 uppercase">
-                        Active Devices
-                    </h3>
-                    <p class="text-3xl font-bold text-success">
-                        {{ active_devices }}
-                    </p>
+            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+                <div class="card-body flex flex-col justify-center">
+                    <div class="flex"><p class="text-sm uppercase text-gray-400">Active Devices</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-plug-circle-check text-2xl text-green-500"></i></div></div>
+                        <p class="text-2xl font-bold text-gray-700">{{ active_devices|intcomma }} </p>
                 </div>
             </div>
 
-            <div class="card bg-base-100 shadow-lg border-l-4 border-error">
-                <div class="card-body">
-                    <h3 class="text-sm font-semibold text-gray-500 uppercase">
-                        Inactive Devices
-                    </h3>
-                    <p class="text-3xl font-bold text-error">
-                        {{ inactive_devices }}
-                    </p>
+            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+                <div class="card-body flex flex-col justify-center">
+                    <div class="flex"><p class="text-sm uppercase text-gray-400">Inactive Devices</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-plug-circle-xmark text-2xl text-green-500"></i></div></div>
+                        <p class="text-2xl font-bold text-gray-700">{{ inactive_devices|intcomma }} </p>
                 </div>
             </div>
+
 
         </div>
 
