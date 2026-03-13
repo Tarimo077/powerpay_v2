@@ -16,7 +16,7 @@ def transactions_page(request):
     This ensures partial table works even if dashboard stats are cached
     """
     user = request.user
-    is_superadmin = user.role in ("superadmin") or user.is_superuser
+    is_superadmin = user.role == "superadmin" or user.is_superuser
     is_htmx = request.headers.get("HX-Request") == "true"
 
     # Base queryset

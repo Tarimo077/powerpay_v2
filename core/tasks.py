@@ -113,11 +113,26 @@ def build_dashboard_context(is_superadmin=False, organization=None, period="7d",
     tx_current = transactions.filter(time__date__gte=start_date).count()
 
     # -------- PREVIOUS PERIOD --------
-    prev_start = min(energy_start_date, money_start_date) - timedelta(days=1)
-    prev_end = prev_start
-    kwh_previous = DeviceData.objects.filter(deviceid__in=device_ids, time__date__range=(prev_start, prev_end)).aggregate(total=Sum("kwh"))["total"] or 0
-    money_previous = transactions.filter(time__date__range=(prev_start, prev_end)).aggregate(total=Sum("amount"))["total"] or 0
-    tx_previous = transactions.filter(time__date__range=(prev_start, prev_end)).count()
+    if days_back is None:
+        kwh_previous = 0
+        money_previous = 0
+        tx_previous = 0
+    else:
+        prev_start = start_date - timedelta(days=days_back)
+        prev_end = start_date - timedelta(days=1)
+
+        kwh_previous = DeviceData.objects.filter(
+            deviceid__in=device_ids,
+            time__date__range=(prev_start, prev_end)
+        ).aggregate(total=Sum("kwh"))["total"] or 0
+
+        money_previous = transactions.filter(
+            time__date__range=(prev_start, prev_end)
+        ).aggregate(total=Sum("amount"))["total"] or 0
+
+        tx_previous = transactions.filter(
+            time__date__range=(prev_start, prev_end)
+        ).count()
 
     # -------- CO2 --------
     co2_current = kwh_current * CO2_PER_KWH
@@ -151,7 +166,7 @@ def build_dashboard_context(is_superadmin=False, organization=None, period="7d",
     energy_data = DeviceData.objects.filter(deviceid__in=device_ids, time__date__gte=energy_start_date).annotate(day=trunc_energy).values("day").annotate(total_kwh=Sum("kwh"))
     energy_lookup = {row["day"].date() if hasattr(row["day"], "date") else row["day"]: round(row["total_kwh"], 2) for row in energy_data}
     context["energy_line_data"] = [energy_lookup.get(d, 0) for d in energy_days]
-    
+
     # Label formatting based on period
     if period == "all":
         context["energy_line_labels"] = [d.strftime("%b %Y") for d in energy_days]
@@ -178,7 +193,7 @@ def build_dashboard_context(is_superadmin=False, organization=None, period="7d",
                 money_line_data[org.name] = values
 
         context["money_line_data"] = money_line_data
-        
+
         if period == "all":
             context["money_line_labels"] = [d.strftime("%b %Y") for d in money_days]
         else:
@@ -186,16 +201,118 @@ def build_dashboard_context(is_superadmin=False, organization=None, period="7d",
 
     return context
 
+def build_transaction_context(user=None, is_superadmin=False, organization=None):
+    """
+    Returns a context dictionary for transactions summary & charts,
+    similar to what transactions_page view renders.
+    """
+    today = timezone.now().date()
+    date_list = [today - timedelta(days=i) for i in range(6, -1, -1)]
+    start_date = date_list[0]
+
+    # ---------------- BASE QUERYSET ----------------
+    if is_superadmin:
+        qs = Transaction.objects.select_related("org")
+    else:
+        qs = Transaction.objects.filter(org=organization)
+
+    # ---------------- STATS ----------------
+    stats = qs.aggregate(
+        total_amount=Sum("amount"),
+        last_7_days_amount=Sum("amount", filter=Q(time__date__gte=start_date)),
+    )
+
+    transaction_count = qs.count()
+
+    # ---------------- PIE CHART ----------------
+    money_by_org_labels = []
+    money_by_org_data = []
+
+    if is_superadmin:
+        qs_org = (
+            qs.annotate(org_name=Upper(Trim(F("org__name"))))
+            .values("org_name")
+            .annotate(total=Sum("amount"))
+            .order_by("org_name")
+        )
+        money_by_org_labels = [x["org_name"] for x in qs_org]
+        money_by_org_data = [float(x["total"]) for x in qs_org]
+
+    # ---------------- LINE CHART ----------------
+    money_line_labels = [d.strftime("%d %b") for d in date_list]
+    money_line_data = {}
+
+    # Initialize data for each organization
+    if is_superadmin:
+        all_orgs = qs.values_list("org__name", flat=True).distinct()
+    else:
+        all_orgs = [organization.name] if organization else []
+
+    for name in all_orgs:
+        money_line_data[name] = [0.0] * 7
+
+    # Sum daily amounts for last 7 days
+    daily_org_qs = (
+        qs.filter(time__date__gte=start_date)
+        .annotate(day=TruncDate("time"))
+        .values("org__name", "day")
+        .annotate(total=Sum("amount"))
+    )
+
+    date_to_idx = {date: i for i, date in enumerate(date_list)}
+    for entry in daily_org_qs:
+        name = entry["org__name"]
+        day = entry["day"]
+        total = float(entry["total"] or 0)
+        if name in money_line_data and day in date_to_idx:
+            idx = date_to_idx[day]
+            money_line_data[name][idx] = total
+
+    # ---------------- CONTEXT ----------------
+    context = {
+        "total_amount": stats["total_amount"] or 0,
+        "last_7_days_amount": stats["last_7_days_amount"] or 0,
+        "transaction_count": transaction_count,
+        "money_by_org_labels": money_by_org_labels,
+        "money_by_org_data": money_by_org_data,
+        "money_line_labels": money_line_labels,
+        "money_line_data": money_line_data,
+    }
+
+    return context
+
+@shared_task
+def cache_transaction_dashboard_for_org(org_id):
+    organization = Organization.objects.get(id=org_id)
+    context = build_transaction_context(
+        user=None,
+        is_superadmin=False,
+        organization=organization
+    )
+
+    cache.set(f"transaction_dashboard_org_{org_id}", context, CACHE_TIMEOUT)
+
+
+@shared_task
+def cache_transaction_dashboard_superadmin():
+    context = build_transaction_context(is_superadmin=True)
+    cache.set("transaction_dashboard_superadmin", context, CACHE_TIMEOUT)
+
+@shared_task
+def refresh_all_transaction_dashboards():
+    for org in Organization.objects.all():
+        cache_transaction_dashboard_for_org.delay(org.id)
+    cache_transaction_dashboard_superadmin.delay()
 
 @shared_task
 def cache_dashboard_for_org(org_id):
     organization = Organization.objects.get(id=org_id)
-    for period in ["1d", "3d", "7d", "14d", "30d", "60d", "90d", "120d", "365d", "all"]:
+    for period in ["1d", "3d", "7d", "14d", "30d", "60d", "90d", "180d", "365d", "all"]:
         context = build_dashboard_context(
             is_superadmin=False,
             organization=organization,
             period=period,
-            org_id=org_id, 
+            org_id=org_id,
         )
 
         cache.set(
@@ -210,7 +327,7 @@ def cache_dashboard_superadmin():
 
     org_ids = list(Organization.objects.values_list("id", flat=True))
 
-    for period in ["1d", "3d", "7d", "14d", "30d", "60d", "90d", "120d", "365d", "all"]:
+    for period in ["1d", "3d", "7d", "14d", "30d", "60d", "90d", "180d", "365d", "all"]:
 
         # Cache "All organizations"
         context = build_dashboard_context(
@@ -240,6 +357,12 @@ def cache_dashboard_superadmin():
             )
 
 @shared_task
-def refresh_all_org_dashboards(): 
-    for org in Organization.objects.all(): 
+def refresh_all_org_dashboards():
+    for org in Organization.objects.all():
         cache_dashboard_for_org.delay(org.id)
+
+
+
+
+
+

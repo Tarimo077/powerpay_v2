@@ -73,7 +73,7 @@
             <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
                 <div class="card-body flex flex-col justify-center">
                     <div class="flex"><p class="text-sm uppercase text-gray-400">Devices</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-plug text-2xl text-green-500"></i></div></div>
-                    <p class="text-2xl font-bold text-gray-700">{{ device_count }}</p>
+                    <p class="text-2xl font-bold text-green-700">{{ device_count }}</p>
                 </div>
             </div>
 
@@ -81,7 +81,7 @@
                 <div class="card-body flex flex-col justify-center">
                     <div class="flex"><p class="text-sm uppercase text-gray-400">kWh ({{ period }})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-bolt text-2xl text-green-500"></i></div></div>
                     <div class="flex">
-                        <p class="text-2xl font-bold text-gray-700">{{ kwh_total|floatformat:2|intcomma }} kWh</p>
+                        <p class="text-2xl font-bold text-green-700">{{ kwh_total|floatformat:2|intcomma }} kWh</p>
                         <p class="text-sm
                         {% if kwh_change > 0 %}text-success{% else %}text-error{% endif %}">
                         {% if kwh_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ kwh_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ kwh_change|abs }}%{% endif %}
@@ -94,7 +94,7 @@
                 <div class="card-body justify-center">
                     <div class="flex"><p class="text-sm uppercase text-gray-400">CO₂ Emissions ({{ period }})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-plug-circle-exclamation text-2xl text-green-500"></i></div></div>
                     <div class="flex">
-                        <p class="text-2xl font-bold text-gray-700">{{ co2_total|floatformat:2 }} kgCO₂</p>
+                        <p class="text-2xl font-bold text-green-700">{{ co2_total|floatformat:2 }} kgCO₂</p>
                         <p class="text-sm
                             {% if co2_change > 0 %}text-success{% else %}text-error{% endif %}">
                             {% if co2_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ co2_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ co2_change|abs }}%{% endif %}
@@ -109,7 +109,7 @@
             <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
                 <div class="card-body flex flex-col justify-center">
                     <div class="flex"><p class="text-sm uppercase text-gray-400">Organizations</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-industry text-2xl text-green-500"></i></div></div>
-                    <p class="text-2xl font-bold text-gray-700">{{ org_count }}</p>
+                    <p class="text-2xl font-bold text-green-700">{{ org_count }}</p>
                 </div>
             </div>
             {% endif %}
@@ -118,7 +118,7 @@
                 <div class="card-body flex flex-col justify-center">
                     <div class="flex"><p class="text-sm uppercase text-gray-400">Total Money ({{ period }})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-piggy-bank text-2xl text-green-500"></i></div></div>
                     <div class="flex">
-                        <p class="text-2xl font-bold text-gray-700">Ksh. {{ total_money|intcomma }}</p>
+                        <p class="text-2xl font-bold text-green-700">Ksh. {{ total_money|intcomma }}</p>
                         <p class="text-sm
                             {% if money_change > 0 %}text-success{% else %}text-error{% endif %}">
                             {% if money_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ money_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ money_change|abs }}%{% endif %}
@@ -131,7 +131,7 @@
                 <div class="card-body flex flex-col justify-center">
                     <div class="flex"><p class="text-sm uppercase text-gray-400">Total Transactions ({{ period }})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-hand-holding-dollar text-2xl text-green-500"></i></div></div>
                     <div class="flex">
-                        <p class="text-2xl font-bold text-gray-700">{{ total_transactions|intcomma }}</p>
+                        <p class="text-2xl font-bold text-green-700">{{ total_transactions|intcomma }}</p>
                         <p class="text-sm
                             {% if tx_change > 0 %}text-success{% else %}text-error{% endif %}">
                             {% if tx_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ tx_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ tx_change|abs }}%{% endif %}
