@@ -16,30 +16,115 @@
         hx-target="#sales-table"
         hx-push-url="true"
         hx-indicator="#htmx-loading"
-    >
-        <input
-            type="text"
-            name="q"
-            value="{{ search_query }}"
-            placeholder="Search serial, product, rep..."
-            class="input input-bordered flex-1 min-w-50"
         >
+
+        <input
+        type="text"
+        name="q"
+        value="{{ search_query }}"
+        placeholder="Search serial, product, rep..."
+        class="input input-success min-w-48"
+        />
+
+        <!-- PERIOD -->
+        <select name="period" class="select select-success select-md">
+            <option value="1d" {% if period == "1d" %}selected{% endif %}>Last 24 Hours</option>
+            <option value="3d" {% if period == "3d" %}selected{% endif %}>Last 3 Days</option>
+            <option value="7d" {% if period == "7d" %}selected{% endif %}>Last 1 Week</option>
+            <option value="14d" {% if period == "14d" %}selected{% endif %}>Last 2 Weeks</option>
+            <option value="30d" {% if period == "30d" %}selected{% endif %}>Last 1 Month</option>
+            <option value="60d" {% if period == "60d" %}selected{% endif %}>Last 2 Months</option>
+            <option value="90d" {% if period == "90d" %}selected{% endif %}>Last 3 Months</option>
+            <option value="180d" {% if period == "180d" %}selected{% endif %}>Last 6 Months</option>
+            <option value="365d" {% if period == "365d" %}selected{% endif %}>Last 1 Year</option>
+            <option value="all" {% if period == "all" %}selected{% endif %}>All Time</option>
+        </select>
+
+        <!-- ORGANIZATION -->
+        {% if is_superadmin %}
+        <select name="org" class="select select-success select-md">
+        <option value="">All Organizations</option>
+        {% for org in organizations %}
+        <option value="{{ org.id }}" {% if org_filter == org.id|stringformat:"s" %}selected{% endif %}>
+        {{ org.name }}
+        </option>
+        {% endfor %}
+        </select>
+        {% endif %}
+
+        <!-- PURCHASE MODE -->
+        <select name="mode" class="select select-success select-md">
+        <option value="">All Modes</option>
+        <option value="C" {% if purchase_mode == "C" %}selected{% endif %}>Cash</option>
+        <option value="DA" {% if purchase_mode == "DA" %}selected{% endif %}>Deposit Account</option>
+        <option value="P" {% if purchase_mode == "P" %}selected{% endif %}>PayGo</option>
+        </select>
+
+        <!-- PAYMENT PLAN -->
+        {% if purchase_mode == "P" %}
+        <select name="plan" class="select select-success select-md">
+        <option value="">All Plans</option>
+        <option value="Plan_1" {% if payment_plan == "Plan_1" %}selected{% endif %}>Plan 1</option>
+        <option value="Plan_2" {% if payment_plan == "Plan_2" %}selected{% endif %}>Plan 2</option>
+        </select>
+        {% endif %}
+
         <button class="btn btn-success text-white">
-            <i class="fa fa-search"></i> Search
+        <i class="fa fa-search"></i> Filter
         </button>
 
-        {% if search_query %}
+        {% if search_query or period != "all" or org_filter or purchase_mode or payment_plan %}
         <a
-            hx-get="{% url 'sales_page' %}"
-            hx-target="#sales-table"
-            hx-push-url="true"
-            hx-indicator="#htmx-loading"
-            class="btn btn-error text-white"
+        hx-get="{% url 'sales_page' %}"
+        hx-target="#sales-table"
+        hx-push-url="true"
+        hx-indicator="#htmx-loading"
+        class="btn btn-error text-white"
         >
-           <i class="fa fa-times"></i> Clear
+        <i class="fa fa-times"></i> Reset
         </a>
         {% endif %}
+
     </form>
+
+    <div class="flex justify-between items-center mb-3 text-sm text-gray-500">
+
+        <div>
+        Showing
+        <span class="font-semibold text-success">
+        {{ page_obj.paginator.count }}
+        </span>
+        sale{{ page_obj.paginator.count|pluralize }}
+
+        {% if search_query %}
+        for "<span class="font-medium">{{ search_query }}</span>"
+        {% endif %}
+
+        {% if period != "all" %}
+        •
+                {% if period == "1d" %}Last 24 Hours{% endif %}
+                {% if period == "3d" %}Last 3 Days{% endif %}
+                {% if period == "7d" %}Last 1 Week{% endif %}
+                {% if period == "14d" %}Last 2 Weeks{% endif %}
+                {% if period == "30d" %}Last 1 Month{% endif %}
+                {% if period == "60d" %}Last 2 Months{% endif %}
+                {% if period == "90d" %}Last 3 Months{% endif %}
+                {% if period == "180d" %}Last 6 Months{% endif %}
+                {% if period == "365d" %}Last 1 Year{% endif %}
+        {% endif %}
+
+        {% if purchase_mode %}
+        • Mode:
+        <span class="badge badge-outline">
+        {% if purchase_mode == "C" %}Cash{% endif %}
+        {% if purchase_mode == "DA" %}Deposit Account{% endif %}
+        {% if purchase_mode == "P" %}PayGo{% endif %}
+        </span>
+        {% endif %}
+
+        </div>
+
+    </div>
 
     <!-- Table -->
     <div class="bg-base-100 rounded-lg shadow-sm overflow-x-auto">
@@ -49,7 +134,7 @@
                     {% for field, label in fields %}
                     <th class="px-4 py-3 text-left text-white">
                         <a
-                            hx-get="{% url 'sales_page' %}?sort={{ field }}&dir={{ next_dirs|get_item:field }}&q={{ search_query }}"
+                            hx-get="{% url 'sales_page' %}?sort={{ field }}&dir={{ next_dirs|get_item:field }}&q={{ search_query }}&period={{ period }}&org={{ org_filter }}&mode={{ purchase_mode }}&plan={{ payment_plan }}"
                             hx-target="#sales-table"
                             hx-push-url="true"
                             hx-indicator="#htmx-loading"
@@ -112,7 +197,7 @@
     <div class="flex justify-between mt-4">
         {% if page_obj.has_previous %}
         <a
-            hx-get="{% url 'sales_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}"
+            hx-get="{% url 'sales_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&org={{ org_filter }}&mode={{ purchase_mode }}&plan={{ payment_plan }}"
             hx-target="#sales-table"
             hx-push-url="true"
             hx-indicator="#htmx-loading"
@@ -126,7 +211,7 @@
 
         {% if page_obj.has_next %}
         <a
-            hx-get="{% url 'sales_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}"
+            hx-get="{% url 'sales_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&org={{ org_filter }}&mode={{ purchase_mode }}&plan={{ payment_plan }}"
             hx-target="#sales-table"
             hx-indicator="#htmx-loading"
             hx-push-url="true"

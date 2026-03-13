@@ -1,42 +1,12 @@
 from django.shortcuts import render
 from django.core.cache import cache
-from django.db.models import Q, F, Sum
-from django.db.models.functions import TruncDate, Upper, Trim
+from django.db.models import Q
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from .models import Transaction
-from core.tasks import cache_transaction_dashboard_for_org, cache_transaction_dashboard_superadmin
-
-@login_required
-def transactions_index(request):
-    """
-    Dashboard-like view for transactions:
-    - Uses cached stats for summary/line/pie charts
-    - HTMX table remains live (paginated queryset) and unaffected
-    """
-    user = request.user
-    is_superadmin = user.role in ("superadmin") or user.is_superuser
-
-    # Determine cache key
-    if is_superadmin:
-        cache_key = "transaction_dashboard_superadmin"
-    else:
-        cache_key = f"transaction_dashboard_org_{user.organization.id}"
-
-    # Get cached stats
-    context = cache.get(cache_key)
-
-    if context:
-        return render(request, "transactions/transactions.html", context)
-
-    # Cache missing → trigger rebuild
-    if is_superadmin:
-        cache_transaction_dashboard_superadmin.delay()
-    else:
-        cache_transaction_dashboard_for_org.delay(user.organization.id)
-
-    # Loading page while stats are rebuilt
-    return render(request, "core/loading.html")
+from organizations.models import Organization
+from django.utils import timezone
+from datetime import timedelta
 
 
 @login_required
@@ -64,6 +34,38 @@ def transactions_page(request):
             | Q(txn_id__icontains=search_query)
         )
 
+    # ---------------- FILTERS ----------------
+    period = request.GET.get("period", "all")
+    org_filter = request.GET.get("org")
+
+    # Organization filter (superadmin only)
+    if is_superadmin and org_filter:
+        qs = qs.filter(org_id=org_filter)
+
+    # Date filter
+    today = timezone.now()
+
+    if period == "7d":
+        qs = qs.filter(time__gte=today - timedelta(days=7))
+    elif period == "30d":
+        qs = qs.filter(time__gte=today - timedelta(days=30))
+    elif period == "90d":
+        qs = qs.filter(time__gte=today - timedelta(days=90))
+    elif period == "1d":
+        qs = qs.filter(time__gte=today - timedelta(days=1))
+    elif period == "3d":
+        qs = qs.filter(time__gte=today - timedelta(days=3))
+    elif period == "14d":
+        qs = qs.filter(time__gte=today - timedelta(days=14))
+    elif period == "60d":
+        qs = qs.filter(time__gte=today - timedelta(days=60))
+    elif period == "180d":
+        qs = qs.filter(time__gte=today - timedelta(days=180))
+    elif period == "365d":
+        qs = qs.filter(time__gte=today - timedelta(days=365))
+    else:
+        pass
+    
     # Sorting
     allowed_sorts = {
         "time": "time",
@@ -78,6 +80,9 @@ def transactions_page(request):
     sort_field = allowed_sorts.get(sort, "time")
     order = f"-{sort_field}" if direction == "desc" else sort_field
     qs = qs.order_by(order)
+
+    organizations = Organization.objects.all() if is_superadmin else None
+    total_results = qs.count()
 
     # Pagination
     paginator = Paginator(qs, 10)
@@ -110,6 +115,10 @@ def transactions_page(request):
                 "current_sort": sort,
                 "current_dir": direction,
                 "search_query": search_query,
+                "period": period,
+                "org_filter": org_filter,
+                "organizations": organizations,
+                "total_results": total_results
             },
         )
 
@@ -122,6 +131,10 @@ def transactions_page(request):
         "current_sort": sort,
         "current_dir": direction,
         "search_query": search_query,
+        "period": period,
+        "org_filter": org_filter,
+        "organizations": organizations,
+        "total_results": total_results
     })
 
     return render(request, "transactions/transactions.html", context)

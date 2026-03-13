@@ -17,27 +17,21 @@
         <h1 class="text-2xl font-bold mb-6">Transactions</h1>
 
         <!-- SUMMARY CARDS -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
-            <div class="card bg-base-100 shadow border-l-4 border-primary">
-                <div class="card-body flex flex-col justify-center">
-                    <p class="text-sm uppercase text-gray-500">Total Money</p>
-                    <p class="text-3xl font-bold text-primary">{{ total_amount|intcomma }}</p>
-                </div>
+
+            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+                    <div class="card-body flex flex-col justify-center">
+                        <div class="flex"><p class="text-sm uppercase text-gray-400">Total Money</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-cash-register text-2xl text-green-500"></i></div></div>
+                        <p class="text-2xl font-bold text-gray-700">{{ total_amount|intcomma }}</p>
+                    </div>
             </div>
 
-            <div class="card bg-base-100 shadow border-l-4 border-success">
-                <div class="card-body flex flex-col justify-center">
-                    <p class="text-sm uppercase text-gray-500">Money Last 7 Days</p>
-                    <p class="text-3xl font-bold text-success">{{ last_7_days_amount|intcomma }}</p>
-                </div>
-            </div>
-
-            <div class="card bg-base-100 shadow border-l-4 border-accent">
-                <div class="card-body flex flex-col justify-center">
-                    <p class="text-sm uppercase text-gray-500">Transactions Count</p>
-                    <p class="text-3xl font-bold text-accent">{{ transaction_count|intcomma }}</p>
-                </div>
+            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+                    <div class="card-body flex flex-col justify-center">
+                        <div class="flex"><p class="text-sm uppercase text-gray-400">Transactions Count</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-cash-register text-2xl text-green-500"></i></div></div>
+                        <p class="text-2xl font-bold text-gray-700">{{ transaction_count|intcomma }}</p>
+                    </div>
             </div>
 
         </div>
@@ -48,7 +42,7 @@
 
             
             <!-- Money by Org Card -->
-            <div id="moneyByOrgCard" class="card bg-base-100 shadow p-4 border-none outline-none flex flex-col">
+            <div id="moneyByOrgCard" class="card bg-green-50 border-2 border-green-200 shadow p-4 outline-none flex flex-col">
 
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
                     <h3 class="text-lg font-semibold border-none">
@@ -72,7 +66,7 @@
 
             </div>
         <!-- Money Last 7 Days Line Chart -->
-            <div id="week-transactions" class="card bg-base-100 shadow border-none outline-none p-4 flex flex-col">
+            <div id="week-transactions" class="card bg-green-50 border-2 border-green-200 shadow outline-none p-4 flex flex-col">
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
                     <h3 class="text-lg font-semibold border-none">
                         Money In Last 7 Days
@@ -125,44 +119,9 @@
     </div>
 </div>
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 <script>
 Chart.defaults.font.family = "'Saira', sans-serif";
 Chart.defaults.font.size = 10;
-
-// 1. Define the Plugin
-const centerTotalPlugin = {
-    id: 'centerTotal',
-    afterDatasetsDraw(chart) {
-        const { ctx, data, chartArea: { top, bottom, left, right, width, height } } = chart;
-        
-        ctx.save();
-        
-        // Calculate the total sum of the data
-        const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
-        
-        // Set Font Styles
-        const fontSize = 8;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        const centerX = left + width / 2;
-        const centerY = top + height / 2;
-
-        // Draw "Total" Label
-        ctx.font = `${fontSize * 0.1}em 'Saira'`;
-        ctx.fillStyle = '#07783c';
-        ctx.fillText('TOTAL: ', centerX, centerY - 15);
-
-        // Draw the Sum Value
-        ctx.font = `bold ${fontSize * 0.2}em 'Saira'`;
-        ctx.fillStyle = '#07783c';
-        ctx.fillText(total.toLocaleString(), centerX, centerY + 15);
-        
-        ctx.restore();
-    }
-};
 
 {% if is_superadmin %}
 const moneyByOrgCtx = document.getElementById('moneyByOrgChart').getContext('2d');

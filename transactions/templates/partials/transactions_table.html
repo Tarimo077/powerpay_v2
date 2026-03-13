@@ -10,34 +10,71 @@
 
     <!-- SEARCH + SORT BAR -->
     <form class="mb-4 flex flex-wrap items-center gap-2"
-          hx-get="{% url 'transactions_page' %}"
-          hx-target="#transactions-table"
-          hx-push-url="true"
-          hx-indicator="#htmx-loading">
+        hx-get="{% url 'transactions_page' %}"
+        hx-target="#transactions-table"
+        hx-push-url="true"
+        hx-indicator="#htmx-loading">
 
-        <input type="text"
-               name="q"
-               value="{{ search_query }}"
-               placeholder="Search name, reference or transaction ID..."
-               class="input input-bordered flex-1 min-w-50">
+    <input type="text"
+        name="q"
+        value="{{ search_query }}"
+        placeholder="Search name, reference or transaction ID..."
+        class="input input-success flex-1 min-w-50">
 
-        <input type="hidden" name="sort" value="{{ current_sort }}">
-        <input type="hidden" name="dir" value="{{ current_dir }}">
+    <input type="hidden" name="sort" value="{{ current_sort }}">
+    <input type="hidden" name="dir" value="{{ current_dir }}">
 
-        <button class="btn btn-success text-white flex items-center gap-1 cursor-pointer">
-            <i class="fa fa-search"></i> Search
-        </button>
-        {% if search_query %}
-            <button type="button"
-                    class="btn btn-error text-white flex items-center gap-1 cursor-pointer"
-                    hx-get="{% url 'transactions_page' %}?sort={{ current_sort }}&dir={{ current_dir }}"
-                    hx-target="#transactions-table"
-                    hx-push-url="true"
-                    hx-indicator="#htmx-loading">
-                <i class="fa fa-times"></i> Clear
-            </button>
-        {% endif %}
+    <!-- PERIOD FILTER -->
+    <select name="period" class="select select-success select-md">
+            <option value="1d" {% if period == "1d" %}selected{% endif %}>Last 24 Hours</option>
+            <option value="3d" {% if period == "3d" %}selected{% endif %}>Last 3 Days</option>
+            <option value="7d" {% if period == "7d" %}selected{% endif %}>Last 1 Week</option>
+            <option value="14d" {% if period == "14d" %}selected{% endif %}>Last 2 Weeks</option>
+            <option value="30d" {% if period == "30d" %}selected{% endif %}>Last 1 Month</option>
+            <option value="60d" {% if period == "60d" %}selected{% endif %}>Last 2 Months</option>
+            <option value="90d" {% if period == "90d" %}selected{% endif %}>Last 3 Months</option>
+            <option value="180d" {% if period == "180d" %}selected{% endif %}>Last 6 Months</option>
+            <option value="365d" {% if period == "365d" %}selected{% endif %}>Last 1 Year</option>
+            <option value="all" {% if period == "all" %}selected{% endif %}>All Time</option>
+    </select>
+
+    <!-- ORGANIZATION FILTER -->
+    {% if is_superadmin %}
+    <select name="org" class="select select-success select-md">
+    <option value="">All Organizations</option>
+    {% for org in organizations %}
+    <option value="{{ org.id }}"
+    {% if org_filter|stringformat:"s" == org.id|stringformat:"s" %}selected{% endif %}>
+    {{ org.name }}
+    </option>
+    {% endfor %}
+    </select>
+    {% endif %}
+
+    <button class="btn btn-success text-white flex items-center gap-1">
+    <i class="fa fa-search"></i> Filter
+    </button>
+
+    {% if search_query or period != "all" or org_filter %}
+    <button type="button"
+            class="btn btn-error text-white flex items-center gap-1"
+            hx-get="{% url 'transactions_page' %}"
+            hx-target="#transactions-table"
+            hx-push-url="true"
+            hx-indicator="#htmx-loading">
+    <i class="fa fa-times"></i> Reset
+    </button>
+    {% endif %}
+
     </form>
+
+    <div class="text-sm text-gray-500 mb-3">
+        Showing
+        <span class="font-semibold text-success">
+        {{ total_results }}
+        </span>
+        transaction{{ total_results|pluralize }}
+    </div>
 
     <!-- TABLE -->
     <div class="bg-base-200 rounded-lg overflow-x-auto">
@@ -46,7 +83,7 @@
                 <tr>
                     {% for field, label, next_dir in fields_with_dir %}
                         <th class="px-4 py-3 text-left text-white">
-                            <a hx-get="{% url 'transactions_page' %}?sort={{ field }}&dir={{ next_dir }}&q={{ search_query }}"
+                            <a hx-get="{% url 'transactions_page' %}?sort={{ field }}&dir={{ next_dir }}&q={{ search_query }}&period={{ period }}&org={{ org_filter }}"
                                hx-target="#transactions-table"
                                hx-push-url="true"
                                hx-indicator="#htmx-loading"
@@ -90,7 +127,7 @@
     {% if page_obj.has_other_pages %}
         <div class="flex justify-between mt-4 items-center flex-wrap gap-2">
             {% if page_obj.has_previous %}
-                <a hx-get="{% url 'transactions_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}"
+                <a hx-get="{% url 'transactions_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&org={{ org_filter }}"
                    hx-target="#transactions-table"
                    hx-push-url="true"
                    hx-indicator="#htmx-loading"
@@ -104,7 +141,7 @@
             <span class="font-medium">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
 
             {% if page_obj.has_next %}
-                <a hx-get="{% url 'transactions_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}"
+                <a hx-get="{% url 'transactions_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&org={{ org_filter }}"
                    hx-target="#transactions-table"
                    hx-push-url="true"
                    hx-indicator="#htmx-loading"

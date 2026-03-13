@@ -8,6 +8,7 @@ from .models import Sale
 from django.contrib.auth.decorators import login_required
 from .forms import SaleForm
 from notifications.utils import notify
+from organizations.models import Organization
 
 @login_required
 def sales_page(request):
@@ -16,6 +17,13 @@ def sales_page(request):
     sort = request.GET.get("sort", "date")
     direction = request.GET.get("dir", "desc")
     is_superadmin = request.user.role == "superadmin"
+
+
+    # ---------------- FILTERS ----------------
+    period = request.GET.get("period", "all")
+    org_filter = request.GET.get("org")
+    purchase_mode = request.GET.get("mode")
+    payment_plan = request.GET.get("plan")
 
     allowed_sorts = {
         "date": "date",
@@ -33,9 +41,50 @@ def sales_page(request):
     order = f"-{allowed_sorts[sort]}" if direction == "desc" else allowed_sorts[sort]
 
     if is_superadmin:
-        qs = Sale.objects.select_related("customer", "organization").order_by(order)
+        qs = Sale.objects.select_related("customer", "organization")
+        organizations = Organization.objects.all()
+
+        if org_filter:
+            qs = qs.filter(organization_id=org_filter)
+
     else:
-        qs = Sale.objects.filter(organization=request.user.organization).order_by(order)
+        qs = Sale.objects.filter(organization=request.user.organization)
+        organizations = None
+
+    # ---------------- STATS ----------------
+    total_sales = qs.count()
+    paygo = qs.filter(purchase_mode="P").count()
+
+    today = timezone.now()
+
+    if period == "7d":
+        qs = qs.filter(date__gte=today - timedelta(days=7))
+    elif period == "30d":
+        qs = qs.filter(date__gte=today - timedelta(days=30))
+    elif period == "90d":
+        qs = qs.filter(date__gte=today - timedelta(days=90))
+    elif period == "1d":
+        qs = qs.filter(date__gte=today - timedelta(days=1))
+    elif period == "3d":
+        qs = qs.filter(date__gte=today - timedelta(days=3))
+    elif period == "14d":
+        qs = qs.filter(date__gte=today - timedelta(days=14))
+    elif period == "60d":
+        qs = qs.filter(date__gte=today - timedelta(days=60))
+    elif period == "180d":
+        qs = qs.filter(date__gte=today - timedelta(days=180))
+    elif period == "365d":
+        qs = qs.filter(date__gte=today - timedelta(days=365))
+    else:
+        pass
+
+    # ---------------- PURCHASE MODE ----------------
+    if purchase_mode:
+        qs = qs.filter(purchase_mode=purchase_mode)
+
+    # ---------------- PAYMENT PLAN ----------------
+    if purchase_mode == "P" and payment_plan:
+        qs = qs.filter(payment_plan=payment_plan)
 
     if search_query:
         qs = qs.filter(
@@ -44,6 +93,7 @@ def sales_page(request):
             | Q(sales_rep__icontains=search_query)
         )
 
+    qs = qs.order_by(order)
     paginator = Paginator(qs, 10)
     page_obj = paginator.get_page(request.GET.get("page"))
 
@@ -63,10 +113,7 @@ def sales_page(request):
         else:
             next_dirs[f] = "asc"
 
-    # ---------------- STATS ----------------
-    total_sales = qs.count()
-    last_30_days = timezone.now().date() - timedelta(days=30)
-    new_sales_30 = qs.filter(date__gte=last_30_days).count()
+    
 
     # ---------------- MONTHLY SALES GROWTH (CUMULATIVE) ----------------
     monthly_qs = (
@@ -120,6 +167,13 @@ def sales_page(request):
                 "current_dir": direction,
                 "search_query": search_query,
                 "next_dirs": next_dirs,
+                "period": period,
+                "org_filter": org_filter,
+                "purchase_mode": purchase_mode,
+                "payment_plan": payment_plan,
+                "organizations": organizations,
+                "is_superadmin": is_superadmin,
+
             },
         )
 
@@ -135,11 +189,17 @@ def sales_page(request):
             "search_query": search_query,
             "next_dirs": next_dirs,
             "total_sales": total_sales,
-            "new_sales_30": new_sales_30,
+            "total_paygo": paygo,
             "monthly_labels": monthly_labels,
             "monthly_data": monthly_data,
             "rep_labels": rep_labels,
             "rep_data": rep_data,
+            "period": period,
+            "org_filter": org_filter,
+            "purchase_mode": purchase_mode,
+            "payment_plan": payment_plan,
+            "organizations": organizations,
+            "is_superadmin": is_superadmin,
         },
     )
 

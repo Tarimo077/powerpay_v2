@@ -11,44 +11,90 @@
 </div>
 
 <form
-            class="flex gap-2 mt-2 mb-2"
-            hx-get="{% url 'inventory_page' %}"
-            hx-target="#inventory-table"
-            hx-push-url="true"
-            hx-indicator="#htmx-loading"
-        >
-            <input name="q"
-                value="{{ search_query }}"
-                placeholder="Search name, serial, type..."
-                class="input input-bordered flex-1">
+    class="flex flex-wrap gap-2 mt-2 mb-2"
+    hx-get="{% url 'inventory_page' %}"
+    hx-target="#inventory-table"
+    hx-push-url="true"
+    hx-indicator="#htmx-loading"
+>
 
-            <input type="hidden" name="sort" value="{{ current_sort }}">
-            <input type="hidden" name="dir" value="{{ current_dir }}">
+<input name="q"
+       value="{{ search_query }}"
+       placeholder="Search name, serial, type..."
+       class="input input-success flex-1 min-w-40">
 
-            <button class="btn btn-success text-white">
-                <i class="fa-solid fa-magnifying-glass"></i> Search
-            </button>
+<input type="hidden" name="sort" value="{{ current_sort }}">
+<input type="hidden" name="dir" value="{{ current_dir }}">
 
-            {% if search_query %}
-                <a
-                    class="btn btn-error text-white"
-                    hx-get="{% url 'inventory_page' %}?sort={{ current_sort }}&dir={{ current_dir }}"
-                    hx-target="#inventory-table"
-                    hx-push-url="true"
-                    hx-indicator="#htmx-loading">
-                    <i class="fa fa-times"></i> Clear
-                </a>
-            {% endif %}
-            
-        </form>
+<!-- Time Filter -->
+<select name="period" class="select select-success select-md">
+            <option value="1d" {% if period == "1d" %}selected{% endif %}>Last 24 Hours</option>
+            <option value="3d" {% if period == "3d" %}selected{% endif %}>Last 3 Days</option>
+            <option value="7d" {% if period == "7d" %}selected{% endif %}>Last 1 Week</option>
+            <option value="14d" {% if period == "14d" %}selected{% endif %}>Last 2 Weeks</option>
+            <option value="30d" {% if period == "30d" %}selected{% endif %}>Last 1 Month</option>
+            <option value="60d" {% if period == "60d" %}selected{% endif %}>Last 2 Months</option>
+            <option value="90d" {% if period == "90d" %}selected{% endif %}>Last 3 Months</option>
+            <option value="180d" {% if period == "180d" %}selected{% endif %}>Last 6 Months</option>
+            <option value="365d" {% if period == "365d" %}selected{% endif %}>Last 1 Year</option>
+            <option value="all" {% if period == "all" %}selected{% endif %}>All Time</option>
+</select>
+
+<!-- Warehouse Filter -->
+<select name="warehouse" class="select select-success select-md">
+    <option value="">All Warehouses</option>
+    {% for w in warehouses %}
+    <option value="{{ w.id }}" {% if warehouse_filter|stringformat:"s" == w.id|stringformat:"s" %}selected{% endif %}>
+        {{ w.name }}
+    </option>
+    {% endfor %}
+</select>
+
+<!-- Organization Filter (Superadmin only) -->
+{% if is_superadmin %}
+<select name="org" class="select select-success select-md">
+    <option value="">All Organizations</option>
+    {% for org in organizations %}
+    <option value="{{ org.id }}" {% if org_filter|stringformat:"s" == org.id|stringformat:"s" %}selected{% endif %}>
+        {{ org.name }}
+    </option>
+    {% endfor %}
+</select>
+{% endif %}
+
+<button class="btn btn-success text-white">
+<i class="fa-solid fa-magnifying-glass"></i> Filter
+</button>
+
+{% if search_query or time_filter or warehouse_filter or org_filter %}
+<a
+    class="btn btn-error text-white"
+    hx-get="{% url 'inventory_page' %}"
+    hx-target="#inventory-table"
+    hx-push-url="true"
+    hx-indicator="#htmx-loading">
+    <i class="fa fa-times"></i> Reset
+</a>
+{% endif %}
+
+</form>
+
+<div class="text-sm text-gray-500 mb-2">
+Showing
+<span class="font-semibold text-success">
+{{ total_results }}
+</span>
+item{{ total_results|pluralize }}
+</div>
+
 <div class="bg-base-100 rounded-lg shadow overflow-x-auto">
 <table class="table w-full">
     <thead class="bg-success text-white">
         <tr>
             {% for label, field_name in inventory_fields %}
             <th class="px-4 py-3 text-center">
-                <a class="cursor-pointer flex items-center gap-1"
-                   hx-get="{% url 'inventory_page' %}?sort={{ field_name }}&dir={{ next_dirs|get_item:field_name }}&q={{ search_query }}"
+                <a class="cursor-pointer flex items-center gap-1 {% if label == 'Actions' %}justify-center{% endif %}"
+                   hx-get="{% url 'inventory_page' %}?sort={{ field_name }}&dir={{ next_dirs|get_item:field_name }}&q={{ search_query }}&period={{ period }}&warehouse={{ warehouse }}&org={{ org_filter }}"
                    hx-target="#inventory-table"
                    hx-push-url="true"
                    hx-indicator="#htmx-loading">
@@ -76,7 +122,7 @@
             <td>{{ item.product_type }}</td>
             <td>{{ item.current_warehouse.name }}</td>
             <td>{{ item.days_in_current_warehouse }}</td>
-            <td class="flex flex-row items-center gap-2">
+            <td class="flex flex-row justify-center gap-2">
                 <a href="{% url 'inventory_detail' item.id %}"
                    class="btn btn-primary btn-sm text-white">
                    View<i class="fa-solid fa-binoculars"></i>
@@ -112,7 +158,7 @@
     <div class="flex justify-between mt-4 mb-2">
         {% if page_obj.has_previous %}
         <a
-            hx-get="{% url 'inventory_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}"
+            hx-get="{% url 'inventory_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&warehouse={{ warehouse }}&org={{ org_filter }}"
             hx-target="#inventory-table"
             hx-push-url="true"
             hx-indicator="#htmx-loading"
@@ -126,7 +172,7 @@
 
         {% if page_obj.has_next %}
         <a
-            hx-get="{% url 'inventory_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}"
+            hx-get="{% url 'inventory_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&warehouse={{ warehouse }}&org={{ org_filter }}"
             hx-target="#inventory-table"
             hx-indicator="#htmx-loading"
             hx-push-url="true"

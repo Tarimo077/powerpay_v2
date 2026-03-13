@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+{% load humanize %}
 {% include "partials/navbar.html" %}
 
 <div class="flex min-h-screen bg-base-200">
@@ -19,21 +20,18 @@
             </div>
         {% endif %}
         <!-- STATS -->
-        <div class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-            <div class="card bg-base-100 shadow p-4 border-l-4 border-success">
-                <p class="text-sm">Total Items</p>
-                <p class="text-2xl font-bold text-success">{{ total_items }}</p>
-            </div>
-
-            <div class="card bg-base-100 shadow p-4 border-l-4 border-info">
-                <p class="text-sm">New (30 days)</p>
-                <p class="text-2xl font-bold text-info">{{ new_items_30 }}</p>
+        <div class="w-full grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-4">
+            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+                    <div class="card-body flex flex-col justify-center">
+                        <div class="flex"><p class="text-sm uppercase text-gray-400">Total Items</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-boxes-stacked text-2xl text-green-500"></i></div></div>
+                        <p class="text-2xl font-bold text-gray-700">{{ total_items|intcomma }}</p>
+                    </div>
             </div>
         </div>
 
         <!-- CHARTS -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div id="itemsWarehouse" class="card bg-base-100 shadow p-4 border-none outline-none flex flex-col">
+            <div id="itemsWarehouse" class="card bg-green-50 border-2 border-green-200 shadow p-4 border-none outline-none flex flex-col">
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
                     <h3 class="text-lg font-semibold border-none">
                         Items Per Warehouse
@@ -54,7 +52,7 @@
                 </div>
             </div>
 
-            <div id="inventoryGrowth" class="card bg-base-100 shadow p-4 border-none outline-none">
+            <div id="inventoryGrowth" class="card bg-green-50 border-2 border-green-200 shadow p-4 border-none outline-none">
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
                     <h3 class="text-lg font-semibold border-none outline-none">
                         Inventory Growth
@@ -91,37 +89,6 @@
 Chart.defaults.font.family = "'Saira', sans-serif";
 Chart.defaults.font.size = 12;
 
-// 1. Define the Plugin
-const centerTotalPlugin = {
-    id: 'centerTotal',
-    afterDatasetsDraw(chart) {
-        const { ctx, data, chartArea: { top, bottom, left, right, width, height } } = chart;
-        
-        ctx.save();
-        
-        // Calculate the total sum of the data
-        const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
-        
-        // Set Font Styles
-        const fontSize = 10;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        const centerX = left + width / 2;
-        const centerY = top + height / 2;
-
-        // Draw "Total" Label
-        ctx.font = `${fontSize * 0.1}em 'Saira'`;
-        ctx.fillStyle = '#07783c';
-        ctx.fillText('TOTAL: ', centerX, centerY - 15);
-
-        // Draw the Sum Value
-        ctx.font = `bold ${fontSize * 0.2}em 'Saira'`;
-        ctx.fillStyle = '#07783c';
-        ctx.fillText(total.toLocaleString(), centerX, centerY + 15);
-        
-        ctx.restore();
-    }
-};
 new Chart(document.getElementById("inventoryGrowthChart"), {
     type: "line",
     data: {

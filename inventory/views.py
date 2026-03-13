@@ -4,11 +4,12 @@ from django.db.models.functions import TruncMonth
 from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, Count
 from .models import InventoryItem, Warehouse, InventoryMovement
 from django.contrib.auth.decorators import login_required
 from .forms import WarehouseForm, InventoryItemForm, InventoryMoveForm
 from notifications.utils import notify
+from organizations.models import Organization
 
 # =========================
 # WAREHOUSES
@@ -149,6 +150,43 @@ def inventory_page(request):
             Q(product_type__icontains=search_query)
         )
 
+    # ---------------- FILTERS ----------------
+    org_filter = request.GET.get("org", "")
+    warehouse_filter = request.GET.get("warehouse", "")
+    period = request.GET.get("period", "all")
+
+    # Organization filter (superadmins only)
+    if is_superadmin and org_filter:
+        qs = qs.filter(current_warehouse__organization_id=org_filter)
+
+    # Warehouse filter
+    if warehouse_filter:
+        qs = qs.filter(current_warehouse_id=warehouse_filter)
+
+    # Time filter
+    today = timezone.now().date()
+
+    if period == "7d":
+        qs = qs.filter(date_added__gte=today - timedelta(days=7))
+    elif period == "30d":
+        qs = qs.filter(date_added__gte=today - timedelta(days=30))
+    elif period == "90d":
+        qs = qs.filter(date_added__gte=today - timedelta(days=90))
+    elif period == "1d":
+        qs = qs.filter(date_added__gte=today - timedelta(days=1))
+    elif period == "3d":
+        qs = qs.filter(date_added__gte=today - timedelta(days=3))
+    elif period == "14d":
+        qs = qs.filter(date_added__gte=today - timedelta(days=14))
+    elif period == "60d":
+        qs = qs.filter(date_added__gte=today - timedelta(days=60))
+    elif period == "180d":
+        qs = qs.filter(date_added__gte=today - timedelta(days=180))
+    elif period == "365d":
+        qs = qs.filter(date_added__gte=today - timedelta(days=365))
+    else:
+        pass
+
     # ---------------- SORTING ----------------
     SORT_MAP = {
         "name": "name",
@@ -175,6 +213,7 @@ def inventory_page(request):
         sort_field = f"-{sort_field}"
 
     qs = qs.order_by(sort_field)
+    total_results = qs.count()
 
     # ---------------- NEXT SORT DIRECTIONS ----------------
     next_dirs = {}
@@ -183,6 +222,12 @@ def inventory_page(request):
             next_dirs[field] = "desc" if direction == "asc" else "asc"
         else:
             next_dirs[field] = "asc"
+
+    organizations = Organization.objects.all() if is_superadmin else None
+
+    warehouses = Warehouse.objects.all()
+    if not is_superadmin:
+        warehouses = warehouses.filter(organization=user.organization)
 
     # ---------------- PAGINATION ----------------
     paginator = Paginator(qs, 10)
@@ -200,6 +245,13 @@ def inventory_page(request):
                 "current_dir": direction,
                 "inventory_fields": inventory_fields,
                 "next_dirs": next_dirs,
+                "org_filter": org_filter,
+                "warehouse_filter": warehouse_filter,
+                "period": period,
+                "organizations": organizations,
+                "warehouses": warehouses,
+                "is_superadmin": is_superadmin,
+                "total_results": total_results
             },
         )
 
@@ -250,6 +302,12 @@ def inventory_page(request):
             "inventory_fields": inventory_fields,
             "next_dirs": next_dirs,
             "is_superadmin": is_superadmin,
+            "org_filter": org_filter,
+            "warehouse_filter": warehouse_filter,
+            "period": period,
+            "organizations": organizations,
+            "warehouses": warehouses,
+            "total_results": total_results
         },
     )
 
