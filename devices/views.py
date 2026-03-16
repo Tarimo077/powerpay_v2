@@ -34,6 +34,9 @@ def device_list(request):
     q = request.GET.get("q", "")
     status = request.GET.get("status", "all")
     org_id = request.GET.get("org")
+    
+    if org_id in [None, "", "None"]:
+        org_id = None
 
     # Role-based filtering
     if user.is_superuser or getattr(user, "role", None) == "superadmin":
@@ -41,8 +44,10 @@ def device_list(request):
         organizations = Organization.objects.all()
         is_admin = True
 
-        if org_id:
+        if org_id and org_id.isdigit():
             devices = devices.filter(organization_id=org_id)
+        else:
+            org_id = None
 
     else:
         devices = DeviceInfo.objects.filter(
