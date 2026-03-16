@@ -18,7 +18,9 @@
         <div class="flex flex-wrap gap-4 mb-6 items-center">
 
             <!-- TIME FILTER -->
-            <form method="get" class="flex gap-2">
+            <form method="get" class="flex gap-2 items-center">
+
+                <p class="font-semibold text-lg">Period:</p>
 
                 <select name="period" class="select select-success select-md"
                         onchange="this.form.submit()">
@@ -45,7 +47,9 @@
 
             {% if is_superadmin %}
             <!-- ORG FILTER -->
-            <form method="get">
+            <form method="get" class="flex items-center gap-2 ml-2">
+
+                <p class="font-semibold text-lg">Organization:</p>
 
                 <select name="org"
                         class="select select-success select-md"
@@ -72,19 +76,19 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
                 <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase text-gray-400">Devices</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-plug text-2xl text-green-500"></i></div></div>
+                    <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the number of devices for {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}."></i>Devices</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-plug text-2xl text-green-500"></i></div></div>
                     <p class="text-2xl font-bold text-green-700">{{ device_count }}</p>
                 </div>
             </div>
 
             <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
                 <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase text-gray-400">kWh ({{ period }})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-bolt text-2xl text-green-500"></i></div></div>
+                    <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the energy used in kWh by devices from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Energy ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-bolt text-2xl text-green-500"></i></div></div>
                     <div class="flex">
                         <p class="text-2xl font-bold text-green-700">{{ kwh_total|floatformat:2|intcomma }} kWh</p>
-                        <p class="text-sm
-                        {% if kwh_change > 0 %}text-success{% else %}text-error{% endif %}">
-                        {% if kwh_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ kwh_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ kwh_change|abs }}%{% endif %}
+                        <p class="text-md
+                        {% if kwh_change > 0 %}text-success{% elif kwh_change == 0 %}text-warning{% else %}text-error{% endif %}">
+                        {% if kwh_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ kwh_change }}% {% elif kwh_change == 0 %} <i class="fa-solid fa-square-minus"></i> {{ kwh_change }}%  {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ kwh_change|abs }}%{% endif %}
                         </p>
                     </div>
                 </div>
@@ -92,12 +96,12 @@
 
             <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
                 <div class="card-body justify-center">
-                    <div class="flex"><p class="text-sm uppercase text-gray-400">CO₂ Emissions ({{ period }})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-plug-circle-exclamation text-2xl text-green-500"></i></div></div>
+                    <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the amount of carbon released to the atmosphere in kgs by devices from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>CO₂ Emissions ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-plug-circle-exclamation text-2xl text-green-500"></i></div></div>
                     <div class="flex">
                         <p class="text-2xl font-bold text-green-700">{{ co2_total|floatformat:2 }} kgCO₂</p>
-                        <p class="text-sm
-                            {% if co2_change > 0 %}text-success{% else %}text-error{% endif %}">
-                            {% if co2_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ co2_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ co2_change|abs }}%{% endif %}
+                        <p class="text-md
+                            {% if co2_change > 0 %}text-success{% elif co2_change == 0 %}text-warning{% else %}text-error{% endif %}">
+                            {% if co2_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ co2_change }}% {% elif co2_change == 0 %} <i class="fa-solid fa-square-minus"></i> {{ co2_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ co2_change|abs }}%{% endif %}
                         </p>
                     </div>
                 </div>
@@ -108,7 +112,7 @@
             {% if is_superadmin %}
             <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
                 <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase text-gray-400">Organizations</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-industry text-2xl text-green-500"></i></div></div>
+                    <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the number of organizations in the system."></i>Organizations</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-industry text-2xl text-green-500"></i></div></div>
                     <p class="text-2xl font-bold text-green-700">{{ org_count }}</p>
                 </div>
             </div>
@@ -116,12 +120,12 @@
             
             <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
                 <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase text-gray-400">Total Money ({{ period }})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-piggy-bank text-2xl text-green-500"></i></div></div>
+                    <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the total income in Ksh logged by the system from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Total Money ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-piggy-bank text-2xl text-green-500"></i></div></div>
                     <div class="flex">
                         <p class="text-2xl font-bold text-green-700">Ksh. {{ total_money|intcomma }}</p>
-                        <p class="text-sm
-                            {% if money_change > 0 %}text-success{% else %}text-error{% endif %}">
-                            {% if money_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ money_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ money_change|abs }}%{% endif %}
+                        <p class="text-md
+                            {% if money_change > 0 %}text-success {% elif money_change == 0 %}text-warning{% else %}text-error{% endif %}">
+                            {% if money_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ money_change }}% {% elif money_change == 0 %} <i class="fa-solid fa-square-minus"></i> {{ money_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ money_change|abs }}%{% endif %}
                         </p>
                     </div>
                 </div>
@@ -129,12 +133,12 @@
 
             <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
                 <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase text-gray-400">Total Transactions ({{ period }})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-hand-holding-dollar text-2xl text-green-500"></i></div></div>
+                    <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the number of transactions logged by the system from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Total Transactions ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-hand-holding-dollar text-2xl text-green-500"></i></div></div>
                     <div class="flex">
                         <p class="text-2xl font-bold text-green-700">{{ total_transactions|intcomma }}</p>
-                        <p class="text-sm
-                            {% if tx_change > 0 %}text-success{% else %}text-error{% endif %}">
-                            {% if tx_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ tx_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ tx_change|abs }}%{% endif %}
+                        <p class="text-md
+                            {% if tx_change > 0 %}text-success {% elif tx_change == 0 %}text-warning{% else %}text-error{% endif %}">
+                            {% if tx_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ tx_change }}% {% elif tx_change == 0 %} <i class="fa-solid fa-square-minus"></i> {{ tx_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ tx_change|abs }}%{% endif %}
                         </p>
                     </div>
                 </div>
@@ -145,7 +149,7 @@
 
             <div id="deviceStatus" class="card bg-green-50 shadow p-4 flex flex-col border-2 border-green-200 outline-none">
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold">Device Status</h3>
+                    <h3 class="text-lg font-semibold uppercase">Device Status</h3>
                     <button data-ignore-download onclick="downloadCard('deviceStatus', 'device-status.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
                         <i class="fas fa-download mr-2"></i> Download
                     </button>
@@ -157,7 +161,7 @@
 
             <div id="energy7d" class="card bg-green-50 shadow p-4 flex flex-col border-2 border-green-200">
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold">Energy Use ({{ period }})</h3>
+                    <h3 class="text-lg font-semibold uppercase">Energy Use ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</h3>
                     <button data-ignore-download onclick="downloadCard('energy7d', 'energy-7d.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
                         <i class="fas fa-download mr-2"></i> Download
                     </button>
@@ -170,7 +174,7 @@
             {% if is_superadmin %}
             <div id="moneyOrg" class="card bg-green-50 shadow p-4 flex flex-col border-2 border-green-200 outline-none">
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold">Money by Organization</h3>
+                    <h3 class="text-lg font-semibold uppercase">Money by Organization</h3>
                     <button data-ignore-download onclick="downloadCard('moneyOrg', 'money-org.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
                         <i class="fas fa-download mr-2"></i> Download
                     </button>
@@ -182,7 +186,7 @@
 
             <div id="money-7d" class="card bg-green-50 shadow p-4 flex flex-col border-2 border-green-200 outline-none">
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold">Money In ({{ period }})</h3>
+                    <h3 class="text-lg font-semibold uppercase">Money In ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</h3>
                     <button data-ignore-download onclick="downloadCard('money-7d', 'money-7d.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
                         <i class="fas fa-download mr-2"></i> Download
                     </button>
@@ -261,7 +265,7 @@ if (kwhLineEl) {
                 label: "Total kWh",
                 // FIXED: use energy_line_data
                 data: {{ energy_line_data|safe }},
-                borderColor: '#3b82f6',
+                borderColor: '#22c55e',
                 tension: 0.3,
                 fill: false
             }] 
@@ -330,13 +334,18 @@ if (moneyLineEl) {
     const moneyLineDatasets = [];
     // This loop matches your Python: context["money_line_data"] = money_line_data
     {% for org_name, daily_values in money_line_data.items %}
-    moneyLineDatasets.push({
-        label: "{{ org_name }}",
-        data: {{ daily_values|safe }},
-        borderColor: `hsl(${ ({{ forloop.counter0 }} * 137) % 360 }, 70%, 50%)`,
-        tension: 0.3,
-        fill: false
-    });
+        moneyLineDatasets.push({
+            label: "{{ org_name }}",
+            data: {{ daily_values|safe }},
+            borderColor: (function(index) {
+                if (index === 0) return 'hsl(120, 70%, 50%)'; // Green
+                if (index === 1) return 'hsl(30, 70%, 50%)';  // Orange
+                // Start the rotation from a different offset for the rest
+                return `hsl(${ ((index * 137) + 200) % 360 }, 70%, 50%)`; 
+            })({{ forloop.counter0 }}),
+            tension: 0.3,
+            fill: false
+        });
     {% endfor %}
 
     new Chart(moneyLineEl.getContext('2d'), {

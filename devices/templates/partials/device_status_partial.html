@@ -1,13 +1,13 @@
 <div class="card-body" id="device-{{ device.deviceid }}">
-    <p class="text-sm text-gray-500">Status</p>
+    <p class="text-sm text-gray-500 uppercase mb-2"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the state of the device. Device {{ device.deviceid }} will{% if not device.active %} not{% endif %} operate as usual. "></i>Status</p>
 
-    <div class="flex items-center justify-between gap-3">
+    <div class="grid grid-cols-2 items-center w-full">
         <!-- Status badge -->
-        <span class="badge text-white {% if device.active %}badge-success{% else %}badge-error{% endif %}">
+        <span class="badge text-white justify-self-start {% if device.active %}badge-success{% else %}badge-error{% endif %}">
             {{ device.active|yesno:"ACTIVE, INACTIVE" }}
         </span>
 
-        <div class="flex items-center gap-3">
+        <div class="flex justify-self-end items-center gap-3">
 
             <!-- Toggle -->
             <input
@@ -37,6 +37,8 @@
             ></span>
         </div>
     </div>
+
+    <p class="flex justify-end italic text-gray-500 font-semibold text-xs mt-2">Last Used at {{ last_seen }}</p>
 </div>
 
 

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load math_filters %}
+{% load dict_extras %}
 {% block content %}
 
 {% include "partials/navbar.html" %}
@@ -19,6 +20,28 @@
          {{ device.deviceid }} data
         </h1>
 
+        <form method="get" class="flex gap-2 items-center">
+
+            <p class="font-semibold text-lg">Period:</p>
+
+            <select name="period" class="select select-success select-md"
+                        onchange="this.form.submit()">
+
+                    <option value="1d" {% if period == "1d" %}selected{% endif %}>Last 24 Hours</option>
+                    <option value="3d" {% if period == "3d" %}selected{% endif %}>Last 3 Days</option>
+                    <option value="7d" {% if period == "7d" %}selected{% endif %}>Last 1 Week</option>
+                    <option value="14d" {% if period == "14d" %}selected{% endif %}>Last 2 Weeks</option>
+                    <option value="30d" {% if period == "30d" %}selected{% endif %}>Last 1 Month</option>
+                    <option value="60d" {% if period == "60d" %}selected{% endif %}>Last 2 Months</option>
+                    <option value="90d" {% if period == "90d" %}selected{% endif %}>Last 3 Months</option>
+                    <option value="180d" {% if period == "180d" %}selected{% endif %}>Last 6 Months</option>
+                    <option value="365d" {% if period == "365d" %}selected{% endif %}>Last 1 Year</option>
+                    <option value="all" {% if period == "all" %}selected{% endif %}>All Time</option>
+
+            </select>
+
+        </form>
+
         <div class="flex justify-end w-full mb-4">
             <a href="{% url 'device_live' device.deviceid %}" class="btn btn-success text-white justify-end flex">
                 <i class="fa-solid fa-arrows-to-circle"></i> Live Window
@@ -26,98 +49,96 @@
         </div>
 
         <!-- SUMMARY CARDS -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6">
 
-            <div class="card bg-base-100 shadow border-l-4 border-primary">
-                {% include "partials/device_status_partial.html" %}
-            </div>
+        <div class="card bg-green-50 shadow border-2 border-green-200">
+        {% include "partials/device_status_partial.html" %}
+        </div>
 
-            <div class="card bg-base-100 shadow border-l-4 border-fg-pink">
-                <div class="card-body">
-                    <p class="text-sm text-gray-500">Total Energy</p>
-                    <p class="text-2xl font-bold" style="color: #ec4899 !important;">
-                        {{ total_kwh|floatformat:2|intcomma }} kWh
-                    </p>
-                </div>
-            </div>
+        <div class="card bg-green-50 shadow border-2 border-green-200">
+        <div class="card-body">
+        <p class="text-sm text-gray-500 uppercase"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the energy used in kWh by device {{ device.deviceid }}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Energy ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p>
+        <div class="flex">
+            <p class="text-2xl font-bold text-green-700">
+                {{ total_kwh|floatformat:2|intcomma }} kWh
+            </p>
+            <p class="text-sm
+                {% if kwh_change > 0 %}text-success {% elif kwh_change == 0 %}text-warning{% else %}text-error{% endif %}">
+                {% if kwh_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ kwh_change }}% {% elif kwh_change == 0 %} <i class="fa-solid fa-square-minus"></i> {{ kwh_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ kwh_change|abs }}%{% endif %}
+            </p>
+        </div>
+        </div>
+        </div>
 
-            <div class="card bg-base-100 shadow border-l-4 border-success">
-                <div class="card-body">
-                    <p class="text-sm text-gray-500">Total Cooking Events</p>
-                    <p class="text-2xl font-bold text-success">{{ cooking_events_today|intcomma }}</p>
-                </div>
-            </div>
+        <div class="card bg-green-50 shadow border-2 border-green-200">
+        <div class="card-body">
+        <p class="text-sm text-gray-500 uppercase"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the number of cooking events by device {{ device.deviceid }}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Cooking Events ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p>
+        <div class="flex">
+            <p class="text-2xl font-bold text-green-700">
+                {{ cooking_events|intcomma }}
+            </p>
+            <p class="text-sm
+                {% if events_change > 0 %}text-success {% elif events_change == 0 %} text-warning {% else %}text-error{% endif %}">
+                {% if events_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ events_change }}% {% elif events_change == 0 %}<i class="fa-solid fa-square-minus"></i> {{ events_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ events_change|abs }}%{% endif %}
+            </p>
+        </div>
+        </div>
+        </div>
 
-            <div class="card bg-base-100 shadow border-l-4 border-fg-purple">
-                <div class="card-body">
-                    <p class="text-sm text-gray-500">Total Cooking Time</p>
-                    <p class="text-2xl font-bold" style="color: #9333ea !important;">
-                        {{ total_cooking_time|divide:60|floatformat:1|intcomma }} hrs
-                    </p>
-                </div>
-            </div>
+        <div class="card bg-green-50 shadow border-2 border-green-200">
+        <div class="card-body">
+        <p class="text-sm text-gray-500 uppercase"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the total cooking time by device {{ device.deviceid }}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Cooking Time ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p>
+        <div class="flex">
+            <p class="text-2xl font-bold text-green-700">
+                {{ cooking_time|divide:60|floatformat:1 }} hrs
+            </p>
+            <p class="text-sm
+                {% if cooking_time_change > 0 %}text-success {% elif cooking_time_change == 0 %} text-warning{% else %}text-error{% endif %}">
+                {% if cooking_time_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ cooking_time_change }}% {% elif cooking_time_change == 0 %}<i class="fa-solid fa-square-minus"></i> {{ cooking_time_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ cooking_time_change|abs }}%{% endif %}
+            </p>
+        </div>
+        </div>
+        </div>
 
-            <div class="card bg-base-100 shadow border-l-4 border-red-500">
-                <div class="card-body">
-                    <p class="text-sm text-gray-500">Estimated Energy Cost</p>
-                    <p class="text-2xl font-bold" style="color: #dc2626 !important; -webkit-text-fill-color: #dc2626 !important;">
-                        Ksh. {{ total_kwh|multiply:14.32|floatformat:1|intcomma }}
-                    </p>
-                </div>
-            </div>
+        <div class="card bg-green-50 shadow border-2 border-green-200">
+        <div class="card-body">
+        <p class="text-sm text-gray-500 uppercase"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the estimated energy cost in Ksh used by device {{ device.deviceid }}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Estimated Energy Cost ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p>
+        <div class="flex">
+            <p class="text-2xl font-bold text-green-700">
+                Ksh {{ total_kwh|multiply:14.32|floatformat:1|intcomma }}
+            </p>
+            <p class="text-sm
+                {% if cost_change > 0 %}text-success {% elif cost_change == 0 %} text-warning {% else %}text-error{% endif %}">
+                {% if cost_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ cost_change }}% {% elif cost_change == 0 %}<i class="fa-solid fa-square-minus"></i> {{ cost_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ cost_change|abs }}%{% endif %}
+            </p>
+        </div>
+        </div>
+        </div>
 
-            <div class="card bg-base-100 shadow border-l-4 border-warning">
-                <div class="card-body">
-                    <p class="text-sm text-gray-500">Last Seen</p>
-                    <div class="flex flex-row text-warning">
-                        <p class="font-bold"> {{ last_seen|naturaltime }} </p>
-                        <p class="text-2xs">({{ last_seen|date:"j M Y h:i:s A"|default:"-" }})</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card bg-base-100 shadow border-l-4 border-info">
-                <div class="card-body">
-                    <p class="text-sm text-gray-500">Energy (7 Days)</p>
-                    <p class="text-2xl font-bold text-info">{{ total_kwh_7d|floatformat:2|intcomma }} kWh</p>
-                </div>
-            </div>
-
-
-            <div class="card bg-base-100 shadow border-l-4 border-accent">
-                <div class="card-body">
-                    <p class="text-sm text-gray-500">Cooking Events (7 Days)</p>
-                    <p class="text-2xl font-bold text-accent">{{ cooking_events_7d|intcomma }}</p>
-                </div>
-            </div>
-
-            <div class="card bg-base-100 shadow border-l-4 border-fg-cyan">
-                <div class="card-body">
-                    <p class="text-sm text-gray-500">Cooking Time (7 Days)</p>
-                    <p class="text-2xl font-bold" style="color: #0891b2 !important;">
-                        {{ cooking_time_7d|divide:60|floatformat:1|intcomma }} hrs
-                    </p>
-                </div>
-            </div>
-
-            <div class="card bg-base-100 shadow border-l-4 border-fg-indigo">
-                <div class="card-body">
-                    <p class="text-sm text-gray-500">Estimated Energy Cost (7 Days)</p>
-                    <p class="text-2xl font-bold" style="color: #4f46e5 !important;">
-                        Ksh. {{ total_kwh_7d|multiply:14.32|floatformat:1|intcomma }}
-                    </p>
-                </div>
-            </div>
+        <div class="card bg-green-50 shadow border-2 border-green-200">
+        <div class="card-body">
+        <p class="text-sm text-gray-500 uppercase"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the amount of carbon released in kgs by device {{ device.deviceid }}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>CO₂ Emissions ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p>
+        <div class="flex">
+            <p class="text-2xl font-bold text-green-700">
+                {{ co2_emissions|floatformat:2|intcomma }} kgCO₂
+            </p>
+            <p class="text-sm
+                {% if co2_change > 0 %}text-success {% elif co2_change == 0 %} text-warning {% else %}text-error{% endif %}">
+                {% if co2_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ co2_change }}% {% elif co2_change == 0 %}<i class="fa-solid fa-square-minus"></i> {{ co2_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ co2_change|abs }}%{% endif %}
+            </p>
+        </div>
+        </div>
+        </div>
 
         </div>
 
         <!-- CHARTS -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            <div id="energy7days" class="card bg-base-100 shadow p-4 flex flex-col border-none outline-none">
+            <div id="energy7days" class="card bg-green-50 shadow p-4 flex flex-col border-2 border-green-200 outline-none">
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
-                    <h3 class="text-lg font-semibold border-none outline-none">
-                        Energy Usage (7 days)
+                    <h3 class="text-lg uppercase font-semibold border-none outline-none">
+                        Energy Usage ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})
                     </h3>
 
                     <!-- This button will NOT appear in download -->
@@ -135,10 +156,10 @@
                 </div>
             </div>
 
-            <div id="cookingEvents7d" class="card bg-base-100 shadow p-4 flex flex-col">
+            <div id="cookingEvents7d" class="card bg-green-50 shadow border-2 border-green-200 p-4 flex flex-col">
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
-                    <h3 class="text-lg font-semibold border-none outline-none">
-                        Cooking Events (7 days)
+                    <h3 class="text-lg uppercase font-semibold border-none outline-none">
+                        Cooking Events ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})
                     </h3>
 
                     <!-- This button will NOT appear in download -->
