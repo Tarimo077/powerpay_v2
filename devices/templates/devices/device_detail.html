@@ -57,7 +57,7 @@
 
         <div class="card bg-green-50 shadow border-2 border-green-200">
         <div class="card-body">
-        <p class="text-sm text-gray-500 uppercase"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the energy used in kWh by device {{ device.deviceid }}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Energy ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p>
+        <p class="text-sm text-gray-500 uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the energy used in kWh by device {{ device.deviceid }}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Energy ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p>
         <div class="flex">
             <p class="text-2xl font-bold text-green-700">
                 {{ total_kwh|floatformat:2|intcomma }} kWh
@@ -72,7 +72,7 @@
 
         <div class="card bg-green-50 shadow border-2 border-green-200">
         <div class="card-body">
-        <p class="text-sm text-gray-500 uppercase"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the number of cooking events by device {{ device.deviceid }}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Cooking Events ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p>
+        <p class="text-sm text-gray-500 uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the number of cooking events by device {{ device.deviceid }}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Cooking Events ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p>
         <div class="flex">
             <p class="text-2xl font-bold text-green-700">
                 {{ cooking_events|intcomma }}
@@ -87,7 +87,7 @@
 
         <div class="card bg-green-50 shadow border-2 border-green-200">
         <div class="card-body">
-        <p class="text-sm text-gray-500 uppercase"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the total cooking time by device {{ device.deviceid }}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Cooking Time ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p>
+        <p class="text-sm text-gray-500 uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the total cooking time by device {{ device.deviceid }}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Cooking Time ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p>
         <div class="flex">
             <p class="text-2xl font-bold text-green-700">
                 {{ cooking_time|divide:60|floatformat:1 }} hrs
@@ -102,7 +102,7 @@
 
         <div class="card bg-green-50 shadow border-2 border-green-200">
         <div class="card-body">
-        <p class="text-sm text-gray-500 uppercase"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the estimated energy cost in Ksh used by device {{ device.deviceid }}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Estimated Energy Cost ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p>
+        <p class="text-sm text-gray-500 uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the estimated energy cost in Ksh used by device {{ device.deviceid }}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Estimated Energy Cost ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p>
         <div class="flex">
             <p class="text-2xl font-bold text-green-700">
                 Ksh {{ total_kwh|multiply:14.32|floatformat:1|intcomma }}
@@ -117,7 +117,7 @@
 
         <div class="card bg-green-50 shadow border-2 border-green-200">
         <div class="card-body">
-        <p class="text-sm text-gray-500 uppercase"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the amount of carbon released in kgs by device {{ device.deviceid }}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>CO₂ Emissions ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p>
+        <p class="text-sm text-gray-500 uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the amount of carbon released in kgs by device {{ device.deviceid }}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>CO₂ Emissions ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p>
         <div class="flex">
             <p class="text-2xl font-bold text-green-700">
                 {{ co2_emissions|floatformat:2|intcomma }} kgCO₂

@@ -76,14 +76,14 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
                 <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the number of devices for {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}."></i>Devices</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-plug text-2xl text-green-500"></i></div></div>
+                    <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the number of devices for {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}."></i>Devices</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-plug text-2xl text-green-500"></i></div></div>
                     <p class="text-2xl font-bold text-green-700">{{ device_count }}</p>
                 </div>
             </div>
 
             <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
                 <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the energy used in kWh by devices from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Energy ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-bolt text-2xl text-green-500"></i></div></div>
+                    <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the energy used in kWh by devices from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Energy ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-bolt text-2xl text-green-500"></i></div></div>
                     <div class="flex">
                         <p class="text-2xl font-bold text-green-700">{{ kwh_total|floatformat:2|intcomma }} kWh</p>
                         <p class="text-md
@@ -96,7 +96,7 @@
 
             <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
                 <div class="card-body justify-center">
-                    <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the amount of carbon released to the atmosphere in kgs by devices from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>CO₂ Emissions ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-plug-circle-exclamation text-2xl text-green-500"></i></div></div>
+                    <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the amount of carbon released to the atmosphere in kgs by devices from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>CO₂ Emissions ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-plug-circle-exclamation text-2xl text-green-500"></i></div></div>
                     <div class="flex">
                         <p class="text-2xl font-bold text-green-700">{{ co2_total|floatformat:2 }} kgCO₂</p>
                         <p class="text-md
@@ -112,7 +112,7 @@
             {% if is_superadmin %}
             <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
                 <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the number of organizations in the system."></i>Organizations</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-industry text-2xl text-green-500"></i></div></div>
+                    <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the number of organizations in the system."></i>Organizations</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-industry text-2xl text-green-500"></i></div></div>
                     <p class="text-2xl font-bold text-green-700">{{ org_count }}</p>
                 </div>
             </div>
@@ -120,7 +120,7 @@
             
             <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
                 <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the total income in Ksh logged by the system from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Total Money ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-piggy-bank text-2xl text-green-500"></i></div></div>
+                    <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the total income in Ksh logged by the system from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Total Money ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-piggy-bank text-2xl text-green-500"></i></div></div>
                     <div class="flex">
                         <p class="text-2xl font-bold text-green-700">Ksh. {{ total_money|intcomma }}</p>
                         <p class="text-md
@@ -133,7 +133,7 @@
 
             <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
                 <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the number of transactions logged by the system from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Total Transactions ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-hand-holding-dollar text-2xl text-green-500"></i></div></div>
+                    <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the number of transactions logged by the system from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Total Transactions ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-hand-holding-dollar text-2xl text-green-500"></i></div></div>
                     <div class="flex">
                         <p class="text-2xl font-bold text-green-700">{{ total_transactions|intcomma }}</p>
                         <p class="text-md
