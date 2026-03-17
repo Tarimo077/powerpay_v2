@@ -13,9 +13,9 @@ from core.org_checker import get_accessible_organizations
 
 
 
-CACHE_TIMEOUT = 60 * 5  # 5 minutes
+CACHE_TIMEOUT = 60 * 10  # 10 minutes
 CO2_PER_KWH = 0.139972  # kg CO2 per kWh (adjust if needed) ~0.4999(grid emmission factor) x 0.28 (efficiency deficit of cookers)
-
+COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
 
 def percent_change(current, previous):
     if previous == 0:
@@ -61,11 +61,10 @@ def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=
         transactions = Transaction.objects.filter(org_id__in=accessible_ids)
         organizations = accessible_orgs
 
-    device_ids = devices.values_list("deviceid", flat=True)
+    device_ids = list(devices.values_list("deviceid", flat=True))
 
     # -------- TIME HANDLING --------
     if period in ["all"]:
-        # Monthly aggregation
         forced_energy_start = date(2024, 9, 1)
         first_data = DeviceData.objects.aggregate(first=Min("time__date"))["first"]
         first_tx = Transaction.objects.aggregate(first=Min("time__date"))["first"]
@@ -77,7 +76,6 @@ def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=
         trunc_energy = TruncMonth("time")
         trunc_money = TruncMonth("time")
 
-        # Month buckets generator
         def generate_months(start):
             months = []
             delta = (today.year - start.year) * 12 + (today.month - start.month)
@@ -91,7 +89,6 @@ def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=
         money_days = generate_months(money_start_date)
 
     else:
-        # Daily aggregation
         start_date = today - timedelta(days=days_back)
         energy_start_date = start_date
         money_start_date = start_date
@@ -99,27 +96,106 @@ def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=
         trunc_energy = TruncDate("time")
         trunc_money = TruncDate("time")
 
-        energy_days = [start_date + timedelta(days=i) for i in range(days_back+1)]
+        energy_days = [start_date + timedelta(days=i) for i in range(days_back + 1)]
         money_days = energy_days
 
     # -------- CURRENT METRICS --------
-    kwh_current = DeviceData.objects.filter(deviceid__in=device_ids, time__date__gte=energy_start_date).aggregate(total=Sum("kwh"))["total"] or 0
-    money_current = transactions.filter(time__date__gte=money_start_date).aggregate(total=Sum("amount"))["total"] or 0
-    tx_current = transactions.filter(time__date__gte=start_date).count()
+    kwh_current = DeviceData.objects.filter(
+        deviceid__in=device_ids, time__date__gte=energy_start_date
+    ).aggregate(total=Sum("kwh"))["total"] or 0
+
+    money_current = transactions.filter(
+        time__date__gte=money_start_date
+    ).aggregate(total=Sum("amount"))["total"] or 0
+
+    tx_current = transactions.filter(
+        time__date__gte=start_date
+    ).count()
 
     # -------- PREVIOUS METRICS --------
     if days_back is None:
+        prev_start = prev_end = None
         kwh_previous = money_previous = tx_previous = 0
     else:
         prev_start = start_date - timedelta(days=days_back)
         prev_end = start_date - timedelta(days=1)
 
-        kwh_previous = DeviceData.objects.filter(deviceid__in=device_ids, time__date__range=(prev_start, prev_end)).aggregate(total=Sum("kwh"))["total"] or 0
-        money_previous = transactions.filter(time__date__range=(prev_start, prev_end)).aggregate(total=Sum("amount"))["total"] or 0
-        tx_previous = transactions.filter(time__date__range=(prev_start, prev_end)).count()
+        kwh_previous = DeviceData.objects.filter(
+            deviceid__in=device_ids,
+            time__date__range=(prev_start, prev_end)
+        ).aggregate(total=Sum("kwh"))["total"] or 0
+
+        money_previous = transactions.filter(
+            time__date__range=(prev_start, prev_end)
+        ).aggregate(total=Sum("amount"))["total"] or 0
+
+        tx_previous = transactions.filter(
+            time__date__range=(prev_start, prev_end)
+        ).count()
 
     co2_current = kwh_current * CO2_PER_KWH
     co2_previous = kwh_previous * CO2_PER_KWH
+
+    # -------- COOKING EVENTS LOGIC (FIXED) --------
+    def detect_cooking_events(readings):
+        events = []
+        current_event = []
+        prev_time = None
+
+        for r in readings:
+            if prev_time:
+                gap = (r.time - prev_time).total_seconds()
+                if gap > COOKING_GAP_SECONDS:
+                    if current_event:
+                        events.append(current_event)
+                    current_event = []
+
+            current_event.append(r)
+            prev_time = r.time
+
+        if current_event:
+            events.append(current_event)
+
+        return events
+
+    # -------- CURRENT COOKING --------
+    cooking_events_count = 0
+    total_cooking_time_minutes = 0
+
+    for device_id in device_ids:
+        readings = DeviceData.objects.filter(
+            deviceid=device_id,
+            time__date__gte=energy_start_date
+        ).order_by("time")
+
+        events = detect_cooking_events(readings)
+
+        cooking_events_count += len(events)
+
+        total_cooking_time_minutes += sum(
+            (timezone.localtime(e[-1].time) - timezone.localtime(e[0].time)).total_seconds() / 60
+            for e in events
+        )
+
+    # -------- PREVIOUS COOKING --------
+    prev_cooking_events_count = 0
+    prev_cooking_time_minutes = 0
+
+    if prev_start:
+        for device_id in device_ids:
+            prev_readings = DeviceData.objects.filter(
+                deviceid=device_id,
+                time__date__range=(prev_start, prev_end)
+            ).order_by("time")
+
+            prev_events = detect_cooking_events(prev_readings)
+
+            prev_cooking_events_count += len(prev_events)
+
+            prev_cooking_time_minutes += sum(
+                (timezone.localtime(e[-1].time) - timezone.localtime(e[0].time)).total_seconds() / 60
+                for e in prev_events
+            )
 
     # -------- CONTEXT --------
     context = {
@@ -127,15 +203,26 @@ def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=
         "organizations": accessible_orgs,
         "org_count": accessible_orgs.count(),
         "device_count": devices.count(),
+
         "kwh_total": round(kwh_current, 2),
         "kwh_change": percent_change(kwh_current, kwh_previous),
+
         "co2_total": round(co2_current, 2),
         "co2_change": percent_change(co2_current, co2_previous),
+
         "total_money": money_current,
         "money_change": percent_change(money_current, money_previous),
+
         "total_transactions": tx_current,
         "tx_change": percent_change(tx_current, tx_previous),
+
         "period": period,
+
+        # ✅ FIXED COOKING METRICS
+        "cooking_events_count": cooking_events_count,
+        "total_cooking_time_minutes": round(total_cooking_time_minutes, 1),
+        "cooking_events_change": percent_change(cooking_events_count, prev_cooking_events_count),
+        "cooking_time_change": percent_change(total_cooking_time_minutes, prev_cooking_time_minutes),
     }
 
     # -------- DEVICE STATUS --------
@@ -146,8 +233,10 @@ def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=
     }
 
     # -------- ENERGY LINE --------
-    energy_data = DeviceData.objects.filter(deviceid__in=device_ids, time__date__gte=energy_start_date)\
-        .annotate(day=trunc_energy).values("day").annotate(total_kwh=Sum("kwh"))
+    energy_data = DeviceData.objects.filter(
+        deviceid__in=device_ids,
+        time__date__gte=energy_start_date
+    ).annotate(day=trunc_energy).values("day").annotate(total_kwh=Sum("kwh"))
 
     energy_lookup = {
         (row["day"].date() if hasattr(row["day"], "date") else row["day"]): round(row["total_kwh"], 2)
@@ -155,6 +244,7 @@ def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=
     }
 
     context["energy_line_data"] = [energy_lookup.get(d, 0) for d in energy_days]
+
     if period in ["all", "365d"]:
         context["energy_line_labels"] = [d.strftime("%b %Y") for d in energy_days]
     else:
@@ -164,12 +254,17 @@ def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=
 
     # -------- SUPERADMIN MONEY CHART --------
     if is_superadmin:
-        money_by_org = transactions.filter(time__date__gte=money_start_date).values("org__name").annotate(total=Sum("amount")).order_by("org__name")
+        money_by_org = transactions.filter(
+            time__date__gte=money_start_date
+        ).values("org__name").annotate(total=Sum("amount")).order_by("org__name")
+
         context["money_by_org_labels"] = [x["org__name"] for x in money_by_org]
         context["money_by_org_data"] = [float(x["total"]) for x in money_by_org]
 
-        # Money line chart
-        daily_money = transactions.filter(time__date__gte=money_start_date).annotate(day=trunc_money).values("org__name", "day").annotate(total=Sum("amount"))
+        daily_money = transactions.filter(
+            time__date__gte=money_start_date
+        ).annotate(day=trunc_money).values("org__name", "day").annotate(total=Sum("amount"))
+
         money_lookup = {}
         for row in daily_money:
             day_key = row["day"].date() if hasattr(row["day"], "date") else row["day"]
@@ -177,10 +272,13 @@ def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=
 
         money_line_data = {}
         for org in organizations:
-            money_line_data[org.name] = [money_lookup.get(org.name, {}).get(d, 0) for d in money_days]
+            money_line_data[org.name] = [
+                money_lookup.get(org.name, {}).get(d, 0) for d in money_days
+            ]
 
         context["money_line_data"] = money_line_data
-        if period in ["all", "365d"]:
+
+        if period in ["all"]:
             context["money_line_labels"] = [d.strftime("%b %Y") for d in money_days]
         else:
             context["money_line_labels"] = [d.strftime("%b %d") for d in money_days]
