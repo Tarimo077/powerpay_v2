@@ -119,7 +119,7 @@
                 <div class="card-body justify-center">
                     <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the amount of cooking events by devices from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Cooking Events({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-mortar-pestle text-2xl text-green-500"></i></div></div>
                     <div class="flex">
-                        <p class="text-2xl font-bold text-green-700">{{ cooking_events_count }} </p>
+                        <p class="text-2xl font-bold text-green-700">{{ cooking_events_count|intcomma }} </p>
                         <p class="text-md
                             {% if cooking_events_change > 0 %}text-success{% elif cooking_events_change == 0 %}text-warning{% else %}text-error{% endif %}">
                             {% if cooking_events_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ cooking_events_change }}% {% elif cooking_events_change == 0 %} <i class="fa-solid fa-square-minus"></i> {{ cooking_events_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ cooking_events_change|abs }}%{% endif %}
@@ -168,7 +168,7 @@
                 <div class="card-body flex flex-col justify-center">
                     <div class="flex"><p class="text-sm uppercase text-gray-400"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the total cooking time logged by the system from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Cooking Time ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-stopwatch text-2xl text-green-500"></i></div></div>
                     <div class="flex">
-                        <p class="text-2xl font-bold text-green-700">{{ total_cooking_time_minutes|divide:60|floatformat:1 }} HRS</p>
+                        <p class="text-2xl font-bold text-green-700">{{ total_cooking_time_minutes|divide:60|floatformat:1|intcomma }} HRS</p>
                         <p class="text-md
                             {% if cooking_time_change > 0 %}text-success {% elif cooking_time_change == 0 %}text-warning{% else %}text-error{% endif %}">
                             {% if cooking_time_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ cooking_time_change }}% {% elif cooking_time_change == 0 %} <i class="fa-solid fa-square-minus"></i> {{ cooking_time_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ cooking_time_change|abs }}%{% endif %}
