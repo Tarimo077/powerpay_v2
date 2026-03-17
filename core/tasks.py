@@ -64,7 +64,7 @@ def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=
     device_ids = devices.values_list("deviceid", flat=True)
 
     # -------- TIME HANDLING --------
-    if period in ["all", "365d"]:
+    if period in ["all"]:
         # Monthly aggregation
         forced_energy_start = date(2024, 9, 1)
         first_data = DeviceData.objects.aggregate(first=Min("time__date"))["first"]
