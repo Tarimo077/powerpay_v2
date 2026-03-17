@@ -72,6 +72,25 @@
                     {% endif %}
                 </div>
 
+                <!-- Can View Other Orgs -->
+                <div>
+                    <label class="label font-semibold">Can View Other Organizations</label>
+                    {{ form.can_view_other_orgs }}
+                    {% if form.can_view_other_orgs.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.can_view_other_orgs.errors }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Allowed Organizations -->
+                <div id="allowed-orgs-container" {% if not form.can_view_other_orgs.value %}style="display:none"{% endif %}>
+                    <label class="label font-semibold">Select Organizations to Access</label>
+                    {{ form.allowed_orgs }}
+                    {% if form.allowed_orgs.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.allowed_orgs.errors }}</p>
+                    {% endif %}
+                </div>
+
+
                 <!-- Buttons -->
                 <div class="flex gap-3 pt-4">
                     <button type="submit" class="btn btn-success text-white">
@@ -89,4 +108,13 @@
     </div>
 </div>
 
+<script>
+    // Show/hide allowed_orgs if checkbox checked
+    const checkbox = document.querySelector('input[name="can_view_other_orgs"]');
+    const container = document.getElementById('allowed-orgs-container');
+
+    checkbox.addEventListener('change', () => {
+        container.style.display = checkbox.checked ? 'block' : 'none';
+    });
+</script>
 {% endblock %}

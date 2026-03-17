@@ -45,23 +45,30 @@
             </form>
 
 
-            {% if is_superadmin %}
+            {% if request.accessible_orgs|length > 1 %}
             <!-- ORG FILTER -->
             <form method="get" class="flex items-center gap-2 ml-2">
 
                 <p class="font-semibold text-lg">Organization:</p>
 
-                <select name="org"
-                        class="select select-success select-md"
-                        onchange="this.form.submit()">
+                <select name="org" class="select select-success select-md" onchange="this.form.submit()">
 
-                    <option value="">All Organizations</option>
-
-                    {% for org in organizations %}
-                    <option value="{{ org.id }}"
-                        {% if request.GET.org == org.id|stringformat:"s" %}selected{% endif %}>
-                        {{ org.name }}
+                    <option value=""
+                        {% if not request.selected_org %}
+                            selected
+                        {% endif %}
+                    >
+                        All Organizations
                     </option>
+
+                    {% for org in request.accessible_orgs %}
+                        <option value="{{ org.id }}"
+                            {% if request.selected_org and org.id == request.selected_org.id %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ org.name }}
+                        </option>
                     {% endfor %}
 
                 </select>

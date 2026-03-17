@@ -38,6 +38,9 @@ def transactions_page(request):
     period = request.GET.get("period", "all")
     org_filter = request.GET.get("org")
 
+    if org_filter in [None, "", "None"]:
+        org_filter = None
+
     # Organization filter (superadmin only)
     if is_superadmin and org_filter:
         qs = qs.filter(org_id=org_filter)

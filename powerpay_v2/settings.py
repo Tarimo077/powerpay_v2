@@ -61,7 +61,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'accounts.middleware.OTPRequiredMiddleware',
-    #'core.middleware.ActiveOrganizationMiddleware',
+    'core.middleware.OrganizationMiddleware',
 ]
 
 REST_FRAMEWORK = {

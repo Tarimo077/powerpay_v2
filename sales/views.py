@@ -25,6 +25,15 @@ def sales_page(request):
     purchase_mode = request.GET.get("mode")
     payment_plan = request.GET.get("plan")
 
+    if org_filter in [None, "", "None"]:
+        org_filter = None
+
+    if purchase_mode in [None, "", "None"]:
+        purchase_mode = None
+
+    if payment_plan in [None, "", "None"]:
+        payment_plan = None
+
     allowed_sorts = {
         "date": "date",
         "product_serial_number": "product_serial_number",

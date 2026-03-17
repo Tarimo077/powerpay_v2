@@ -56,6 +56,9 @@ def customers_page(request):
     # ---------------- ORGANIZATION FILTER ----------------
     org_filter = request.GET.get("org")
 
+    if org_filter in [None, "", "None"]:
+        org_filter = None
+
     if is_superadmin:
         organizations = Organization.objects.all()
 

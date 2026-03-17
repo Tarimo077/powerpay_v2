@@ -8,6 +8,8 @@ from organizations.models import Organization
 from devices.models import DeviceInfo
 from transactions.models import Transaction
 from devices.models import DeviceData
+from django.contrib.auth import get_user_model
+from core.org_checker import get_accessible_organizations
 
 
 
@@ -20,129 +22,110 @@ def percent_change(current, previous):
         return 0
     return round(((current - previous) / previous) * 100, 1)
 
-
-def build_dashboard_context(is_superadmin=False, organization=None, period="7d", org_id=None):
+# -------- CORE CONTEXT BUILDER --------
+def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=None):
     today = timezone.now().date()
 
     # -------- TIME FILTER --------
-    if period == "30d":
-        days_back = 30
-    elif period == "90d":
-        days_back = 90
-    elif period == "1d":
-        days_back = 1
-    elif period == "3d":
-        days_back = 3
-    elif period == "14d":
-        days_back = 14
-    elif period == "60d":
-        days_back = 60
-    elif period == "180d":
-        days_back = 180
-    elif period == "365d":
-        days_back = 365
-    elif period == "all":
-        days_back = None
-    else:
-        days_back = 7
+    period_map = {
+        "1d": 1, "3d": 3, "7d": 7, "14d": 14,
+        "30d": 30, "60d": 60, "90d": 90,
+        "180d": 180, "365d": 365, "all": None
+    }
+    days_back = period_map.get(period, 7)
 
-    # -------- HANDLE ALL TIME --------
-    if days_back is None:
+    # -------- ACCESSIBLE ORGS --------
+    if is_superadmin:
+        accessible_orgs = Organization.objects.all()
+    else:
+        accessible_orgs = get_accessible_organizations(user)
+
+    accessible_ids = list(accessible_orgs.values_list("id", flat=True))
+
+    # -------- SELECTED ORG --------
+    if org_id:
+        try:
+            org_id = int(org_id)
+            if org_id not in accessible_ids:
+                org_id = None
+        except:
+            org_id = None
+
+    # -------- QUERYSET BASE --------
+    if org_id:
+        devices = DeviceInfo.objects.filter(organization_id=org_id)
+        transactions = Transaction.objects.filter(org_id=org_id)
+        organizations = accessible_orgs.filter(id=org_id)
+    else:
+        devices = DeviceInfo.objects.filter(organization_id__in=accessible_ids)
+        transactions = Transaction.objects.filter(org_id__in=accessible_ids)
+        organizations = accessible_orgs
+
+    device_ids = devices.values_list("deviceid", flat=True)
+
+    # -------- TIME HANDLING --------
+    if period in ["all", "365d"]:
+        # Monthly aggregation
         forced_energy_start = date(2024, 9, 1)
         first_data = DeviceData.objects.aggregate(first=Min("time__date"))["first"]
         first_tx = Transaction.objects.aggregate(first=Min("time__date"))["first"]
 
-        # 1. Define specific starts first
         energy_start_date = max(forced_energy_start, first_data) if first_data else forced_energy_start
         money_start_date = first_tx if first_tx else today
-
-        # 2. Now define the general start_date (Fixes the UnboundLocalError)
         start_date = min(energy_start_date, money_start_date)
-
-        # -------- Generate month buckets --------
-        # Energy chart months
-        delta_months_energy = (today.year - energy_start_date.year) * 12 + (today.month - energy_start_date.month)
-        energy_days = []
-        for i in range(delta_months_energy + 1):
-            year = energy_start_date.year + (energy_start_date.month + i - 1) // 12
-            month = (energy_start_date.month + i - 1) % 12 + 1
-            energy_days.append(date(year, month, 1))
-
-        # Money chart months
-        delta_months_money = (today.year - money_start_date.year) * 12 + (today.month - money_start_date.month)
-        money_days = []
-        for i in range(delta_months_money + 1):
-            year = money_start_date.year + (money_start_date.month + i - 1) // 12
-            month = (money_start_date.month + i - 1) % 12 + 1
-            money_days.append(date(year, month, 1))
 
         trunc_energy = TruncMonth("time")
         trunc_money = TruncMonth("time")
 
+        # Month buckets generator
+        def generate_months(start):
+            months = []
+            delta = (today.year - start.year) * 12 + (today.month - start.month)
+            for i in range(delta + 1):
+                y = start.year + (start.month + i - 1) // 12
+                m = (start.month + i - 1) % 12 + 1
+                months.append(date(y, m, 1))
+            return months
+
+        energy_days = generate_months(energy_start_date)
+        money_days = generate_months(money_start_date)
+
     else:
-        # Standard period logic
-        start_date = today - timedelta(days=days_back - 1)
+        # Daily aggregation
+        start_date = today - timedelta(days=days_back)
         energy_start_date = start_date
         money_start_date = start_date
-
-        energy_days = [start_date + timedelta(days=i) for i in range(days_back)]
-        money_days = [start_date + timedelta(days=i) for i in range(days_back)]
 
         trunc_energy = TruncDate("time")
         trunc_money = TruncDate("time")
 
-    # -------- ORG FILTER --------
-    if is_superadmin:
-        organizations = Organization.objects.all()
-        if org_id:
-            devices = DeviceInfo.objects.filter(organization_id=org_id)
-            transactions = Transaction.objects.filter(org_id=org_id)
-        else:
-            devices = DeviceInfo.objects.all()
-            transactions = Transaction.objects.all()
-    else:
-        organizations = Organization.objects.filter(id=organization.id)
-        devices = DeviceInfo.objects.filter(organization=organization)
-        transactions = Transaction.objects.filter(org=organization)
+        energy_days = [start_date + timedelta(days=i) for i in range(days_back+1)]
+        money_days = energy_days
 
-    device_ids = devices.values_list("deviceid", flat=True)
-
-    # -------- CURRENT PERIOD --------
+    # -------- CURRENT METRICS --------
     kwh_current = DeviceData.objects.filter(deviceid__in=device_ids, time__date__gte=energy_start_date).aggregate(total=Sum("kwh"))["total"] or 0
     money_current = transactions.filter(time__date__gte=money_start_date).aggregate(total=Sum("amount"))["total"] or 0
     tx_current = transactions.filter(time__date__gte=start_date).count()
 
-    # -------- PREVIOUS PERIOD --------
+    # -------- PREVIOUS METRICS --------
     if days_back is None:
-        kwh_previous = 0
-        money_previous = 0
-        tx_previous = 0
+        kwh_previous = money_previous = tx_previous = 0
     else:
         prev_start = start_date - timedelta(days=days_back)
         prev_end = start_date - timedelta(days=1)
 
-        kwh_previous = DeviceData.objects.filter(
-            deviceid__in=device_ids,
-            time__date__range=(prev_start, prev_end)
-        ).aggregate(total=Sum("kwh"))["total"] or 0
+        kwh_previous = DeviceData.objects.filter(deviceid__in=device_ids, time__date__range=(prev_start, prev_end)).aggregate(total=Sum("kwh"))["total"] or 0
+        money_previous = transactions.filter(time__date__range=(prev_start, prev_end)).aggregate(total=Sum("amount"))["total"] or 0
+        tx_previous = transactions.filter(time__date__range=(prev_start, prev_end)).count()
 
-        money_previous = transactions.filter(
-            time__date__range=(prev_start, prev_end)
-        ).aggregate(total=Sum("amount"))["total"] or 0
-
-        tx_previous = transactions.filter(
-            time__date__range=(prev_start, prev_end)
-        ).count()
-
-    # -------- CO2 --------
     co2_current = kwh_current * CO2_PER_KWH
     co2_previous = kwh_previous * CO2_PER_KWH
 
     # -------- CONTEXT --------
     context = {
         "is_superadmin": is_superadmin,
-        "organizations": organizations,
-        "org_count": organizations.count(),
+        "organizations": accessible_orgs,
+        "org_count": accessible_orgs.count(),
         "device_count": devices.count(),
         "kwh_total": round(kwh_current, 2),
         "kwh_change": percent_change(kwh_current, kwh_previous),
@@ -162,16 +145,22 @@ def build_dashboard_context(is_superadmin=False, organization=None, period="7d",
         "OFF": next((x["count"] for x in status_counts if not x["active"]), 0),
     }
 
-    # -------- ENERGY LINE CHART --------
-    energy_data = DeviceData.objects.filter(deviceid__in=device_ids, time__date__gte=energy_start_date).annotate(day=trunc_energy).values("day").annotate(total_kwh=Sum("kwh"))
-    energy_lookup = {row["day"].date() if hasattr(row["day"], "date") else row["day"]: round(row["total_kwh"], 2) for row in energy_data}
-    context["energy_line_data"] = [energy_lookup.get(d, 0) for d in energy_days]
+    # -------- ENERGY LINE --------
+    energy_data = DeviceData.objects.filter(deviceid__in=device_ids, time__date__gte=energy_start_date)\
+        .annotate(day=trunc_energy).values("day").annotate(total_kwh=Sum("kwh"))
 
-    # Label formatting based on period
-    if period == "all":
+    energy_lookup = {
+        (row["day"].date() if hasattr(row["day"], "date") else row["day"]): round(row["total_kwh"], 2)
+        for row in energy_data
+    }
+
+    context["energy_line_data"] = [energy_lookup.get(d, 0) for d in energy_days]
+    if period in ["all", "365d"]:
         context["energy_line_labels"] = [d.strftime("%b %Y") for d in energy_days]
     else:
         context["energy_line_labels"] = [d.strftime("%b %d") for d in energy_days]
+
+    context["selected_org"] = org_id
 
     # -------- SUPERADMIN MONEY CHART --------
     if is_superadmin:
@@ -188,18 +177,61 @@ def build_dashboard_context(is_superadmin=False, organization=None, period="7d",
 
         money_line_data = {}
         for org in organizations:
-            values = [money_lookup.get(org.name, {}).get(d, 0) for d in money_days]
-            if any(v > 0 for v in values):
-                money_line_data[org.name] = values
+            money_line_data[org.name] = [money_lookup.get(org.name, {}).get(d, 0) for d in money_days]
 
         context["money_line_data"] = money_line_data
-
-        if period == "all":
+        if period in ["all", "365d"]:
             context["money_line_labels"] = [d.strftime("%b %Y") for d in money_days]
         else:
             context["money_line_labels"] = [d.strftime("%b %d") for d in money_days]
 
     return context
+
+# -------- USER CACHE --------
+@shared_task
+def cache_dashboard_for_user(user_id):
+    User = get_user_model()
+
+    user = User.objects.get(id=user_id)
+
+    for period in ["1d","3d","7d","14d","30d","60d","90d","180d","365d","all"]:
+
+        # ALL ORGS
+        context = build_dashboard_context(False, user, period, None)
+        cache.set(f"dashboard_context_user_{user.id}_all_{period}", context, CACHE_TIMEOUT)
+
+        # EACH ORG
+        accessible_orgs = get_accessible_organizations(user)
+        for org_id in accessible_orgs.values_list("id", flat=True):
+            context = build_dashboard_context(False, user, period, org_id)
+            cache.set(f"dashboard_context_user_{user.id}_org_{org_id}_{period}", context, CACHE_TIMEOUT)
+
+
+# -------- SUPERADMIN CACHE --------
+@shared_task
+def cache_dashboard_superadmin():
+    org_ids = list(Organization.objects.values_list("id", flat=True))
+
+    for period in ["1d","3d","7d","14d","30d","60d","90d","180d","365d","all"]:
+
+        # ALL
+        context = build_dashboard_context(True, None, period)
+        cache.set(f"dashboard_context_superadmin_all_{period}", context, CACHE_TIMEOUT)
+
+        # PER ORG
+        for org_id in org_ids:
+            context = build_dashboard_context(True, None, period, org_id)
+            cache.set(f"dashboard_context_superadmin_org_{org_id}_{period}", context, CACHE_TIMEOUT)
+
+
+@shared_task
+def cache_all_users_dashboards():
+    User = get_user_model()
+
+    users = User.objects.all()
+
+    for user in users:
+        cache_dashboard_for_user.delay(user.id)
 
 def build_transaction_context(user=None, is_superadmin=False, organization=None):
     """
@@ -303,63 +335,6 @@ def refresh_all_transaction_dashboards():
     for org in Organization.objects.all():
         cache_transaction_dashboard_for_org.delay(org.id)
     cache_transaction_dashboard_superadmin.delay()
-
-@shared_task
-def cache_dashboard_for_org(org_id):
-    organization = Organization.objects.get(id=org_id)
-    for period in ["1d", "3d", "7d", "14d", "30d", "60d", "90d", "180d", "365d", "all"]:
-        context = build_dashboard_context(
-            is_superadmin=False,
-            organization=organization,
-            period=period,
-            org_id=org_id,
-        )
-
-        cache.set(
-            f"dashboard_context_org_{org_id}_{period}",
-            context,
-            CACHE_TIMEOUT
-        )
-
-
-@shared_task
-def cache_dashboard_superadmin():
-
-    org_ids = list(Organization.objects.values_list("id", flat=True))
-
-    for period in ["1d", "3d", "7d", "14d", "30d", "60d", "90d", "180d", "365d", "all"]:
-
-        # Cache "All organizations"
-        context = build_dashboard_context(
-            is_superadmin=True,
-            period=period
-        )
-
-        cache.set(
-            f"dashboard_context_superadmin_all_{period}",
-            context,
-            CACHE_TIMEOUT
-        )
-
-        # Cache each organization
-        for org_id in org_ids:
-
-            context = build_dashboard_context(
-                is_superadmin=True,
-                period=period,
-                org_id=org_id
-            )
-
-            cache.set(
-                f"dashboard_context_superadmin_org_{org_id}_{period}",
-                context,
-                CACHE_TIMEOUT
-            )
-
-@shared_task
-def refresh_all_org_dashboards():
-    for org in Organization.objects.all():
-        cache_dashboard_for_org.delay(org.id)
 
 
 

@@ -26,7 +26,7 @@ from .forms import CustomerSalesImportForm, TransactionImportForm, ExportForm
 from decimal import Decimal
 from notifications.utils import notify
 from django.core.cache import cache
-from .tasks import cache_dashboard_for_org, cache_dashboard_superadmin
+from .tasks import cache_dashboard_for_user, cache_dashboard_superadmin, build_dashboard_context
 
 
 @login_required
@@ -35,29 +35,51 @@ def index(request):
     is_superadmin = user.is_superuser or getattr(user, "role", "") == "superadmin"
 
     period = request.GET.get("period", "7d")
-    org_id = request.GET.get("org")
-
-    # -------- CACHE KEY LOGIC --------
+    org_id = getattr(request, "org_id", None)  # ✅ FIXED
+    print(org_id)
+    # -------- CACHE KEY --------
     if is_superadmin:
         if org_id:
             cache_key = f"dashboard_context_superadmin_org_{org_id}_{period}"
         else:
             cache_key = f"dashboard_context_superadmin_all_{period}"
     else:
-        cache_key = f"dashboard_context_org_{user.organization.id}_{period}"
+        if org_id:
+            cache_key = f"dashboard_context_user_{user.id}_org_{org_id}_{period}"
+        else:
+            cache_key = f"dashboard_context_user_{user.id}_all_{period}"
 
     context = cache.get(cache_key)
 
+    # -------- CACHE HIT --------
     if context:
+        # 🔥 Always inject UI/global values
+        context["organizations"] = request.accessible_orgs
+        context["selected_org"] = org_id
+        context["period"] = period
+
         return render(request, "core/index.html", context)
 
-    # -------- REBUILD CACHE --------
+    # -------- CACHE MISS (fallback immediately) --------
+    context = build_dashboard_context(
+        is_superadmin=is_superadmin,
+        user=user,
+        period=period,
+        org_id=org_id
+    )
+
+    # 🔥 Inject UI/global values
+    context["organizations"] = request.accessible_orgs
+    context["selected_org"] = org_id
+    context["period"] = period
+
+    # -------- TRIGGER ASYNC CACHE BUILD --------
     if is_superadmin:
         cache_dashboard_superadmin.delay()
     else:
-        cache_dashboard_for_org.delay(user.organization.id)
+        cache_dashboard_for_user.delay(user.id)
 
-    return render(request, "core/loading.html")
+    return render(request, "core/index.html", context)
 
 def export_csv(user, queryset, is_superadmin, model, filename):
     response = HttpResponse(content_type="text/csv")
