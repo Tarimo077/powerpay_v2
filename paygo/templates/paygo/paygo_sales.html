@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block content %}
+{% load humanize %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content"
+         class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0">
+
+        <h2 class="text-2xl font-bold mb-4">PayGo Tracking</h2>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            {% for key, val in stats.items %}
+            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+                    <div class="card-body flex flex-col justify-center">
+                        <div class="flex"><p class="text-sm uppercase text-gray-400">{{ key }}</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid {% if key == 'Fully Paid' %} fa-clipboard-check {% elif key == 'At Risk' %} fa-triangle-exclamation {% elif key == 'On Track' %} fa-hourglass-half {% else %} fa-ban {% endif %}  text-2xl text-green-500"></i></div></div>
+                        <p class="text-2xl font-bold text-green-700">{{ val|intcomma }}</p>
+                    </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <form class="flex flex-wrap gap-2 mb-4">
+
+            <input type="text" name="q" value="{{ search_query }}"
+                placeholder="Search serial or customer"
+                class="input input-success" />
+
+            <select name="status" class="select select-success">
+                <option value="">All Status</option>
+                <option value="fully_paid" {% if status_filter == "fully_paid" %}selected{% endif %}>Fully Paid</option>
+                <option value="on_track" {% if status_filter == "on_track" %}selected{% endif %}>On Track</option>
+                <option value="at_risk" {% if status_filter == "at_risk" %}selected{% endif %}>At Risk</option>
+                <option value="overdue" {% if status_filter == "overdue" %}selected{% endif %}>Overdue</option>
+            </select>
+
+            <button class="btn btn-success text-white"><i class="fa-solid fa-magnifying-glass"></i>Filter</button>
+
+            {% if search_query or status_filter != "" %}
+                <a class="btn btn-error text-white flex items-center gap-1"
+                   href="{% url 'paygo_sales' %}">
+                        <i class="fa fa-times"></i> Reset
+                </a>
+
+            {% endif %}
+        </form>
+
+        <table class="table w-full">
+            <thead class="bg-success text-success-content text-sm uppercase tracking-wide">
+                <tr>
+                    <th class="px-4 py-3 text-left text-white rounded-tl-lg"><a href="?sort=serial&dir={{ next_dirs.serial }}">
+                        {% if current_sort == "serial" %}
+                            {% if current_dir == "asc" %}
+                                <i class="fa-solid fa-sort-up"></i>
+                            {% else %}
+                                <i class="fa-solid fa-sort-down"></i>
+                            {% endif %}
+                        {% endif %}
+                        Serial</a></th>
+                    <th class="px-4 py-3 text-center text-white"><a href="?sort=customer&dir={{ next_dirs.customer }}">
+                        {% if current_sort == "customer" %}
+                            {% if current_dir == "asc" %}
+                                <i class="fa-solid fa-sort-up"></i>
+                            {% else %}
+                                <i class="fa-solid fa-sort-down"></i>
+                            {% endif %}
+                        {% endif %}
+                        Customer</a></th>
+                    <th class="px-4 py-3 text-center text-white"><a href="?sort=paid&dir={{ next_dirs.paid }}">
+                        {% if current_sort == "paid" %}
+                            {% if current_dir == "asc" %}
+                                <i class="fa-solid fa-sort-up"></i>
+                            {% else %}
+                                <i class="fa-solid fa-sort-down"></i>
+                            {% endif %}
+                        {% endif %}
+                        Paid</a></th>
+                    <th class="px-4 py-3 text-center text-white"><a href="?sort=balance&dir={{ next_dirs.balance }}">
+                        {% if current_sort == "balance" %}
+                            {% if current_dir == "asc" %}
+                                <i class="fa-solid fa-sort-up"></i>
+                            {% else %}
+                                <i class="fa-solid fa-sort-down"></i>
+                            {% endif %}
+                        {% endif %}
+                        Balance</a></th>
+                    <th class="px-4 py-3 text-center text-white">Schedule</th>
+                    <th class="px-4 py-3 text-center text-white">Status</th>
+                    <th class="px-4 py-3 text-center text-white">Device</th>
+                    <th class="px-4 py-3 text-center text-white">Auto</th>
+                    <th class="px-4 py-3 text-center text-white rounded-tr-lg">Action</th>
+                </tr>
+            </thead>
+
+        <tbody>
+            {% for row in page_obj %}
+            <tr>
+                <td>{{ row.serial }}</td>
+                <td class="text-center">{{ row.customer }}</td>
+                <td class="text-center">{{ row.total_paid|intcomma }}</td>
+                <td class="text-center">{{ row.balance|intcomma }}</td>
+                <td class="text-center">{{ row.schedule }}</td>
+
+                <td class="text-center">
+                    <span class="badge text-white
+                    {% if row.color == 'green' %}badge-success
+                    {% elif row.color == 'orange' %}badge-warning
+                    {% elif row.color == 'red' %}badge-error
+                    {% else %}badge-info{% endif %}
+                    ">
+                    {{ row.status_label }}
+                    </span>
+                </td>
+
+                <td class="text-center">
+                    {% if row.device_active %}
+                    <span class="text-green-500">ON</span>
+                    {% else %}
+                    <span class="text-red-500">OFF</span>
+                    {% endif %}
+                </td>
+
+                <td class="text-center">
+                    {% if row.auto_disable %}
+                    <span class="text-red-500 font-bold">ON</span>
+                    {% else %}
+                    <span class="text-gray-400">OFF</span>
+                    {% endif %}
+                </td>
+
+                <td class="text-center">
+                    <a href="{% url 'toggle_auto_paygo' row.sale.id %}" class="btn btn-xs btn-outline">
+                    Toggle
+                    </a>
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+
+        </table>
+
+        {% if page_obj.has_other_pages %}
+        <div class="flex justify-between mt-4">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-soft btn-accent cursor-pointer hover:text-white"><i class="fa-solid fa-backward-step"></i> Previous</a>
+            {% else %}
+                <span class="btn btn-disabled">Previous</span>
+            {% endif %}
+
+            <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-soft btn-success cursor-pointer hover:text-white">Next <i class="fa-solid fa-forward-step"></i></a>
+            {% else %}
+                <span class="btn btn-disabled">Next</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

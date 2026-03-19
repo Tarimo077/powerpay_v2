@@ -7,6 +7,7 @@ urlpatterns = [
     path("devices/", include("devices.urls")),
     path("transactions/", include("transactions.urls")),
     path("customers/", include("customers.urls")),
+    path("paygo/", include("paygo.urls")),
     path("sales/", include("sales.urls")),
     path("inventory/", include("inventory.urls")),
     path("support/", include("support.urls")),
@@ -14,4 +15,5 @@ urlpatterns = [
     path("notifications/", include("notifications.urls")),
     path("api/", include("api.urls")),
     path("", include("core.urls")),
+    
 ]
