@@ -114,6 +114,7 @@ def paygo_sales_view(request):
         expected_paid = min(expected_paid, plan["total_price"])
         balance = max(plan["total_price"] - total_paid, 0)
 
+        paygo_balance = total_paid - expected_paid
         status_key, color = get_status(total_paid, expected_paid, plan["total_price"])
 
         # -------- SCHEDULE CALCULATION --------
@@ -151,6 +152,8 @@ def paygo_sales_view(request):
             "device_active": device_active,
             "auto_disable": paygo_settings.auto_disable if paygo_settings else False,
             "schedule": schedule_text,
+            "metered": sale.metered,
+            "paygo_balance": round(paygo_balance, 2)
         }
 
         rows.append(row)
@@ -170,7 +173,7 @@ def paygo_sales_view(request):
         stats[r["status"]] += 1
 
     # -------- SORTING --------
-    allowed_sorts = {"balance": "balance", "paid": "total_paid", "serial": "serial", "customer": "customer"}
+    allowed_sorts = {"balance": "balance", "paid": "total_paid", "serial": "serial", "customer": "customer", "paygo_balance": "paygo_balance"}
     sort_key = allowed_sorts.get(sort, "balance")
     reverse = direction == "desc"
     rows.sort(key=lambda x: x[sort_key], reverse=reverse)

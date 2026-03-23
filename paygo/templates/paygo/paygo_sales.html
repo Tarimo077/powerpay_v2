@@ -47,7 +47,7 @@
             {% endif %}
         </form>
 
-        <table class="table w-full">
+        <table class="table">
             <thead class="bg-success text-success-content text-sm uppercase tracking-wide">
                 <tr>
                     <th class="px-4 py-3 text-left text-white rounded-tl-lg"><a href="?sort=serial&dir={{ next_dirs.serial }}">
@@ -77,6 +77,16 @@
                             {% endif %}
                         {% endif %}
                         Paid</a></th>
+
+                    <th class="px-4 py-3 text-center text-white"><a href="?sort=paygo_balance&dir={{ next_dirs.paygo_balance }}">
+                        {% if current_sort == "paygo_balance" %}
+                            {% if current_dir == "asc" %}
+                                <i class="fa-solid fa-sort-up"></i>
+                            {% else %}
+                                <i class="fa-solid fa-sort-down"></i>
+                            {% endif %}
+                        {% endif %}
+                        Paygo Balance</a></th>
                     <th class="px-4 py-3 text-center text-white"><a href="?sort=balance&dir={{ next_dirs.balance }}">
                         {% if current_sort == "balance" %}
                             {% if current_dir == "asc" %}
@@ -100,11 +110,12 @@
                 <td>{{ row.serial }}</td>
                 <td class="text-center">{{ row.customer }}</td>
                 <td class="text-center">{{ row.total_paid|intcomma }}</td>
+                <td class="text-center">{{ row.paygo_balance|intcomma }}</td>
                 <td class="text-center">{{ row.balance|intcomma }}</td>
                 <td class="text-center">{{ row.schedule }}</td>
 
                 <td class="text-center">
-                    <span class="badge text-white
+                    <span class="badge text-white uppercase
                     {% if row.color == 'green' %}badge-success
                     {% elif row.color == 'orange' %}badge-warning
                     {% elif row.color == 'red' %}badge-error
@@ -115,25 +126,67 @@
                 </td>
 
                 <td class="text-center">
-                    {% if row.device_active %}
-                    <span class="text-green-500">ON</span>
+                    {% if row.metered %}
+                        {% if row.device_active %}
+                        <span class="badge badge-success text-white">ACTIVE</span>
+                        {% else %}
+                        <span class="badge badge-error text-white">INACTIVE</span>
+                        {% endif %}
                     {% else %}
-                    <span class="text-red-500">OFF</span>
+                        <span class="text-gray-400">N/A</span>
                     {% endif %}
                 </td>
 
                 <td class="text-center">
-                    {% if row.auto_disable %}
-                    <span class="text-red-500 font-bold">ON</span>
+                    {% if row.metered %}
+                        {% if row.auto_disable %}
+                        <span class="badge badge-success text-white font-bold">ON</span>
+                        {% else %}
+                        <span class="badge badge-error text-white">OFF</span>
+                        {% endif %}
                     {% else %}
-                    <span class="text-gray-400">OFF</span>
+                        <span class="text-gray-400">N/A</span>
                     {% endif %}
                 </td>
 
                 <td class="text-center">
-                    <a href="{% url 'toggle_auto_paygo' row.sale.id %}" class="btn btn-xs btn-outline">
-                    Toggle
-                    </a>
+                    {% if row.metered %}
+                        <div class="flex flex-col items-center gap-1">
+
+                            <!-- Label -->
+                            <span class="text-xs text-gray-500">
+                                Auto Shutoff
+                            </span>
+
+                            <!-- Toggle -->
+                            <form action="{% url 'toggle_auto_paygo' row.sale.id %}" method="POST">
+                                {% csrf_token %}
+                                <input 
+                                    type="checkbox" 
+                                    class="toggle toggle-sm {% if row.auto_disable %}toggle-error{% else %}toggle-success{% endif %}"
+                                    {% if row.auto_disable %}checked{% endif %}
+                                    onchange="
+                                        if(confirm('Are you sure you want to toggle auto shutoff for this device?')) {
+                                            this.form.submit();
+                                        } else {
+                                            this.checked = !this.checked;
+                                        }
+                                    "
+                                />
+                            </form>
+
+                            <!-- Status -->
+                            <span class="text-xs font-semibold 
+                                {% if row.auto_disable %}text-red-500{% else %}text-green-500{% endif %}">
+                                {{ row.auto_disable|yesno:"Enabled,Disabled" }}
+                            </span>
+
+                        </div>
+                    {% else %}
+                        <span class="text-gray-400 italic text-sm">
+                            N/A
+                        </span>
+                    {% endif %}
                 </td>
 
             </tr>
@@ -144,19 +197,29 @@
 
         {% if page_obj.has_other_pages %}
         <div class="flex justify-between mt-4">
+
             {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-soft btn-accent cursor-pointer hover:text-white"><i class="fa-solid fa-backward-step"></i> Previous</a>
+                <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}&sort={{ current_sort }}&dir={{ current_dir }}"
+                class="btn btn-soft btn-accent hover:text-white">
+                    <i class="fa-solid fa-backward-step"></i> Previous
+                </a>
             {% else %}
                 <span class="btn btn-disabled">Previous</span>
             {% endif %}
 
-            <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            <span>
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
 
             {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-soft btn-success cursor-pointer hover:text-white">Next <i class="fa-solid fa-forward-step"></i></a>
+                <a href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ status_filter }}&sort={{ current_sort }}&dir={{ current_dir }}"
+                class="btn btn-soft btn-success hover:text-white">
+                    Next <i class="fa-solid fa-forward-step"></i>
+                </a>
             {% else %}
                 <span class="btn btn-disabled">Next</span>
             {% endif %}
+
         </div>
         {% endif %}
 

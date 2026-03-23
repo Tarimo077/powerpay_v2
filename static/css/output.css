@@ -28,6 +28,7 @@
     --color-green-600: oklch(62.7% 0.194 149.214);
     --color-green-700: oklch(52.7% 0.154 150.069);
     --color-green-800: oklch(44.8% 0.119 151.328);
+    --color-green-900: oklch(39.3% 0.095 152.535);
     --color-blue-50: oklch(97% 0.014 254.604);
     --color-blue-100: oklch(93.2% 0.032 255.585);
     --color-blue-500: oklch(62.3% 0.214 259.815);
@@ -2919,6 +2920,9 @@
       }
     }
   }
+  .mx-2 {
+    margin-inline: calc(var(--spacing) * 2);
+  }
   .mx-3 {
     margin-inline: calc(var(--spacing) * 3);
   }
@@ -3017,6 +3021,18 @@
   }
   .ml-6 {
     margin-left: calc(var(--spacing) * 6);
+  }
+  .ml-8 {
+    margin-left: calc(var(--spacing) * 8);
+  }
+  .ml-9 {
+    margin-left: calc(var(--spacing) * 9);
+  }
+  .ml-16 {
+    margin-left: calc(var(--spacing) * 16);
+  }
+  .ml-auto {
+    margin-left: auto;
   }
   .status {
     @layer daisyui.l1.l2.l3 {
@@ -3506,11 +3522,17 @@
   .list-disc {
     list-style-type: disc;
   }
+  .list-none {
+    list-style-type: none;
+  }
   .grid-cols-1 {
     grid-template-columns: repeat(1, minmax(0, 1fr));
   }
   .grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .flex-col {
     flex-direction: column;
@@ -3523,6 +3545,9 @@
   }
   .items-center {
     align-items: center;
+  }
+  .items-end {
+    align-items: flex-end;
   }
   .items-start {
     align-items: flex-start;
@@ -3601,6 +3626,9 @@
       margin-inline-start: calc(calc(var(--spacing) * 2) * var(--tw-space-x-reverse));
       margin-inline-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-x-reverse)));
     }
+  }
+  .justify-self-center {
+    justify-self: center;
   }
   .justify-self-end {
     justify-self: flex-end;
@@ -4122,6 +4150,9 @@
   .text-error {
     color: var(--color-error);
   }
+  .text-gray-300 {
+    color: var(--color-gray-300);
+  }
   .text-gray-400 {
     color: var(--color-gray-400);
   }
@@ -4284,6 +4315,11 @@
   }
   .transition-opacity {
     transition-property: opacity;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
+  .transition-transform {
+    transition-property: transform, translate, scale, rotate;
     transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
     transition-duration: var(--tw-duration, var(--default-transition-duration));
   }
@@ -4464,11 +4500,23 @@
       }
     }
   }
+  .toggle-sm {
+    @layer daisyui.l1.l2 {
+      &:is([type="checkbox"]), &:has([type="checkbox"]) {
+        --size: calc(var(--size-selector, 0.25rem) * 5);
+      }
+    }
+  }
   .toggle-success {
     @layer daisyui.l1.l2 {
       &:checked, &[aria-checked="true"] {
         --input-color: var(--color-success);
       }
+    }
+  }
+  .group-open\:rotate-180 {
+    &:is(:where(.group):is([open], :popover-open, :open) *) {
+      rotate: 180deg;
     }
   }
   .hover\:bg-base-200 {
@@ -4588,6 +4636,13 @@
       }
     }
   }
+  .hover\:text-green-500 {
+    &:hover {
+      @media (hover: hover) {
+        color: var(--color-green-500);
+      }
+    }
+  }
   .hover\:text-orange-500 {
     &:hover {
       @media (hover: hover) {
@@ -4637,6 +4692,11 @@
       --tw-ring-color: var(--color-green-600);
     }
   }
+  .sm\:grid-cols-1 {
+    @media (width >= 40rem) {
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+  }
   .sm\:grid-cols-2 {
     @media (width >= 40rem) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4660,6 +4720,16 @@
   .md\:grid-cols-4 {
     @media (width >= 48rem) {
       grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .md\:grid-cols-5 {
+    @media (width >= 48rem) {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+  .md\:grid-cols-6 {
+    @media (width >= 48rem) {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
     }
   }
   .md\:flex-row {

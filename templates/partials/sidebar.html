@@ -27,7 +27,7 @@
     </div>
 
     <!-- Logo -->
-    <div class="flex items-center justify-center mt-6">
+    <div class="flex items-center justify-center mt-4">
         <img id="sidebar-image" src="{% static 'images/pp_no_bgcropped.png' %}" class="h-8 w-8">
         <!-- 
         <span id="sidebar-text" class="font-bold text-green-800 text-xl">
@@ -90,7 +90,14 @@
            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
            {% if 'sales' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
             <i class="fa-solid fa-cash-register w-5"></i>
-            <span class="link-text">Sales</span>
+            <span class="link-text">All Sales</span>
+        </a>
+
+        <a href="{% url 'paygo_sales' %}"
+           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
+           {% if 'paygo' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+            <i class="fa-solid fa-file-invoice-dollar w-5"></i>
+            <span class="link-text">Paygo Sales</span>
         </a>
 
         <!-- Inventory -->

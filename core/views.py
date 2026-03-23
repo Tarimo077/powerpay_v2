@@ -36,7 +36,7 @@ def index(request):
 
     period = request.GET.get("period", "7d")
     org_id = getattr(request, "org_id", None)  # ✅ FIXED
-    print(org_id)
+    
     # -------- CACHE KEY --------
     if is_superadmin:
         if org_id:
