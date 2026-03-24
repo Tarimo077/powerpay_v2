@@ -26,9 +26,7 @@ def percent_change(current, previous):
 def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=None):
     today = timezone.now().date()
 
-    today_dt = timezone.now() 
-    offset = today_dt.utcoffset()
-
+    today_dt = timezone.localtime(timezone.now())
     # -------- TIME FILTER --------
     period_map = {
         "1d": 1, "3d": 3, "7d": 7, "14d": 14,
@@ -220,7 +218,7 @@ def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=
         "tx_change": percent_change(tx_current, tx_previous),
 
         "period": period,
-        "time": offset,
+        "time": today_dt,
 
         # ✅ FIXED COOKING METRICS
         "cooking_events_count": cooking_events_count,
