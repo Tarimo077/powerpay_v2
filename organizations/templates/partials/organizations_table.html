@@ -46,7 +46,7 @@
             </thead>
             <tbody>
                 {% for org in page_obj %}
-                <tr>
+                <tr class="h-20">
                     <td>{{ org.name }}</td>
                     <td>{{ org.phone_number|default:"-" }}</td>
                     <td>{{ org.email|default:"-" }}</td>

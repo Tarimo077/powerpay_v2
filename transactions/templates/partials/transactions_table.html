@@ -104,7 +104,7 @@
 
             <tbody>
                 {% for txn in page_obj %}
-                    <tr>
+                    <tr class="h-20">
                         <td>{{ txn.time|date:"j M Y h:i:s A" }}</td>
                         <td>{{ txn.name }}</td>
                         <td>{{ txn.ref }}</td>

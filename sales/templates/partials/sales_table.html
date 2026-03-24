@@ -158,7 +158,7 @@
 
             <tbody>
                 {% for sale in page_obj %}
-                <tr>
+                <tr class="h-20">
                     <td>{{ sale.date|date:"j M Y h:i:s A" }}</td>
                     <td>{{ sale.product_serial_number }}</td>
                     <td>{{ sale.product_name }}</td>

@@ -3232,6 +3232,9 @@
   .h-16 {
     height: calc(var(--spacing) * 16);
   }
+  .h-20 {
+    height: calc(var(--spacing) * 20);
+  }
   .h-24 {
     height: calc(var(--spacing) * 24);
   }
@@ -3291,6 +3294,9 @@
   }
   .max-h-96 {
     max-height: calc(var(--spacing) * 96);
+  }
+  .min-h-\[70px\] {
+    min-height: 70px;
   }
   .min-h-screen {
     min-height: 100vh;
