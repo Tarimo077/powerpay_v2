@@ -46,6 +46,8 @@ def paygo_sales_view(request):
     # -------- QUERY PARAMS --------
     search_query = request.GET.get("q", "").strip()
     status_filter = request.GET.get("status", "")
+    mode = request.GET.get("mode", "")
+    metered_filter = request.GET.get("metered", "")
     sort = request.GET.get("sort", "balance")
     direction = request.GET.get("dir", "desc")
     page = request.GET.get("page", 1)
@@ -102,6 +104,7 @@ def paygo_sales_view(request):
         serial_last4 = sale.product_serial_number[-4:]
         key = (sale.organization_id, serial_last4)
         txns = txn_lookup.get(key, [])
+        txns_sorted = sorted(txns, key=lambda x:x["time"], reverse=True)
 
         total_paid = sum(float(t["amount"]) for t in txns)
         last_payment = max((t["time"] for t in txns), default=None)
@@ -153,7 +156,8 @@ def paygo_sales_view(request):
             "auto_disable": paygo_settings.auto_disable if paygo_settings else False,
             "schedule": schedule_text,
             "metered": sale.metered,
-            "paygo_balance": round(paygo_balance, 2)
+            "paygo_balance": round(paygo_balance, 2),
+            "transactions": txns_sorted,
         }
 
         rows.append(row)
@@ -167,6 +171,16 @@ def paygo_sales_view(request):
     if status_filter:
         rows = [r for r in rows if r["status"] == status_filter]
 
+    # -------- MODE FILTER --------
+    if mode:
+        # Directly assigns True if "auto", False otherwise
+        rows = [r for r in rows if r.get("auto_disable") == (mode == "auto") and r.get("metered")]
+
+    # -------- METERED FILTER --------
+    if metered_filter:
+        # Directly assigns True if "auto", False otherwise
+        rows = [r for r in rows if r.get("metered") == (metered_filter == "yes")]
+
     # -------- STATS --------
     stats = {k: 0 for k in STATUS_LABELS.keys()}
     for r in rows:
@@ -177,6 +191,8 @@ def paygo_sales_view(request):
     sort_key = allowed_sorts.get(sort, "balance")
     reverse = direction == "desc"
     rows.sort(key=lambda x: x[sort_key], reverse=reverse)
+
+    total_count = len(rows)
 
     # -------- PAGINATION --------
     paginator = Paginator(rows, 10)
@@ -192,9 +208,12 @@ def paygo_sales_view(request):
         "stats": {STATUS_LABELS[k]: v for k, v in stats.items()},
         "search_query": search_query,
         "status_filter": status_filter,
+        "mode": mode,
         "current_sort": sort,
         "current_dir": direction,
         "next_dirs": next_dirs,
+        "total_results": total_count,
+        "metered_filter": metered_filter,
     })
 
 

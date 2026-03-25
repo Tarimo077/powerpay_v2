@@ -29,16 +29,28 @@
                 class="input input-success" />
 
             <select name="status" class="select select-success">
-                <option value="">All Status</option>
+                <option value="">All Paygo Status</option>
                 <option value="fully_paid" {% if status_filter == "fully_paid" %}selected{% endif %}>Fully Paid</option>
                 <option value="on_track" {% if status_filter == "on_track" %}selected{% endif %}>On Track</option>
                 <option value="at_risk" {% if status_filter == "at_risk" %}selected{% endif %}>At Risk</option>
                 <option value="overdue" {% if status_filter == "overdue" %}selected{% endif %}>Overdue</option>
             </select>
 
+            <select name="mode" class="select select-success">
+                <option value="">All Auto Options</option>
+                <option value="auto" {% if mode == "auto" %}selected{% endif %}>Auto On</option>
+                <option value="noauto" {% if mode == "noauto" %}selected{% endif %}>Auto Off</option>
+            </select>
+
+            <select name="metered" class="select select-success">
+                <option value="">All Paygo Sales</option>
+                <option value="yes" {% if metered_filter == "yes" %}selected{% endif %}>Metered</option>
+                <option value="no" {% if metered_filter == "no" %}selected{% endif %}>Not Metered</option>
+            </select>
+
             <button class="btn btn-success text-white"><i class="fa-solid fa-magnifying-glass"></i>Filter</button>
 
-            {% if search_query or status_filter != "" %}
+            {% if search_query or status_filter or mode or metered_filter != "" %}
                 <a class="btn btn-error text-white flex items-center gap-1"
                    href="{% url 'paygo_sales' %}">
                         <i class="fa fa-times"></i> Reset
@@ -47,10 +59,18 @@
             {% endif %}
         </form>
 
+        <div class="text-sm text-gray-500 mb-3">
+            Showing
+            <span class="font-semibold text-success">
+            {{ total_results }}
+            </span>
+            result{{ total_results|pluralize }}
+        </div>
+
         <table class="table">
             <thead class="bg-success text-success-content text-sm uppercase tracking-wide">
                 <tr>
-                    <th class="px-4 py-3 text-left text-white rounded-tl-lg"><a href="?sort=serial&dir={{ next_dirs.serial }}">
+                    <th class="px-4 py-3 text-left text-white rounded-tl-lg"><a href="?sort=serial&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.serial }}">
                         {% if current_sort == "serial" %}
                             {% if current_dir == "asc" %}
                                 <i class="fa-solid fa-sort-up"></i>
@@ -59,7 +79,7 @@
                             {% endif %}
                         {% endif %}
                         Serial</a></th>
-                    <th class="px-4 py-3 text-center text-white"><a href="?sort=customer&dir={{ next_dirs.customer }}">
+                    <th class="px-4 py-3 text-center text-white"><a href="?sort=customer&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.customer }}">
                         {% if current_sort == "customer" %}
                             {% if current_dir == "asc" %}
                                 <i class="fa-solid fa-sort-up"></i>
@@ -68,7 +88,7 @@
                             {% endif %}
                         {% endif %}
                         Customer</a></th>
-                    <th class="px-4 py-3 text-center text-white"><a href="?sort=paid&dir={{ next_dirs.paid }}">
+                    <th class="px-4 py-3 text-center text-white"><a href="?sort=paid&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.paid }}">
                         {% if current_sort == "paid" %}
                             {% if current_dir == "asc" %}
                                 <i class="fa-solid fa-sort-up"></i>
@@ -78,7 +98,7 @@
                         {% endif %}
                         Paid</a></th>
 
-                    <th class="px-4 py-3 text-center text-white"><a href="?sort=paygo_balance&dir={{ next_dirs.paygo_balance }}">
+                    <th class="px-4 py-3 text-center text-white"><a href="?sort=paygo_balance&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.paygo_balance }}">
                         {% if current_sort == "paygo_balance" %}
                             {% if current_dir == "asc" %}
                                 <i class="fa-solid fa-sort-up"></i>
@@ -87,7 +107,7 @@
                             {% endif %}
                         {% endif %}
                         Paygo Balance</a></th>
-                    <th class="px-4 py-3 text-center text-white"><a href="?sort=balance&dir={{ next_dirs.balance }}">
+                    <th class="px-4 py-3 text-center text-white"><a href="?sort=balance&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.balance }}">
                         {% if current_sort == "balance" %}
                             {% if current_dir == "asc" %}
                                 <i class="fa-solid fa-sort-up"></i>
@@ -106,60 +126,93 @@
 
         <tbody>
             {% for row in page_obj %}
+
+            <!-- MAIN ROW -->
             <tr class="h-20">
-                <td>{{ row.serial }}</td>
-                <td class="text-center">{{ row.customer }}</td>
-                <td class="text-center">{{ row.total_paid|intcomma }}</td>
+
+                <td>
+                    <a class="underline hover:text-success"
+                    href="{% url 'sale_detail' row.sale.id %}"
+                    title="Click to see the sale details for device {{ row.serial }}"
+                    >
+                    {{ row.serial }}
+                    </a>
+                </td>
+
+                <td class="text-center">
+                    <a class="underline hover:text-success"
+                    href="{% url 'customer_detail' row.sale.customer.id %}"
+                    title="Click to see {{ row.customer }}'s customer details"
+                    >
+                    {{ row.customer }}
+                    </a>
+                </td>
+
+                <!-- PAID + BUTTON -->
+                <td class="text-center">
+                    <div class="flex items-center justify-center gap-2">
+
+                        <span>{{ row.total_paid|intcomma }}</span>
+
+                        {% if row.total_paid > 0 %}
+                        <button
+                            class="btn btn-xs btn-outline btn-success hover:text-white"
+                            onclick="toggleTxn('{{ row.sale.id }}')"
+                            id="payments-btn-{{ row.sale.id }}"
+                        >
+                            Show Payments
+                        </button>
+                        {% endif %}
+
+                    </div>
+                </td>
+
                 <td class="text-center">{{ row.paygo_balance|intcomma }}</td>
                 <td class="text-center">{{ row.balance|intcomma }}</td>
                 <td class="text-center">{{ row.schedule }}</td>
 
+                <!-- STATUS -->
                 <td class="text-center">
                     <span class="badge text-white uppercase
                     {% if row.color == 'green' %}badge-success
                     {% elif row.color == 'orange' %}badge-warning
                     {% elif row.color == 'red' %}badge-error
-                    {% else %}badge-info{% endif %}
-                    ">
-                    {{ row.status_label }}
+                    {% else %}badge-info{% endif %}">
+                        {{ row.status_label }}
                     </span>
                 </td>
 
+                <!-- DEVICE -->
                 <td class="text-center">
                     {% if row.metered %}
                         {% if row.device_active %}
-                        <span class="badge badge-success text-white">ACTIVE</span>
+                            <span class="badge badge-success text-white">ACTIVE</span>
                         {% else %}
-                        <span class="badge badge-error text-white">INACTIVE</span>
+                            <span class="badge badge-error text-white">INACTIVE</span>
                         {% endif %}
                     {% else %}
                         <span class="text-gray-400">N/A</span>
                     {% endif %}
                 </td>
 
+                <!-- AUTO -->
                 <td class="text-center">
                     {% if row.metered %}
-                        {% if row.auto_disable %}
-                        <span class="badge badge-success text-white font-bold">ON</span>
-                        {% else %}
-                        <span class="badge badge-error text-white">OFF</span>
-                        {% endif %}
+                        <span class="badge {% if row.auto_disable %}badge-success{% else %}badge-error{% endif %} text-white">
+                            {{ row.auto_disable|yesno:"ON,OFF" }}
+                        </span>
                     {% else %}
                         <span class="text-gray-400">N/A</span>
                     {% endif %}
                 </td>
 
+                <!-- ACTION -->
                 <td class="text-center">
-                    <div class="flex flex-col items-center justify-center gap-1 min-h-[70px]">
+                    <div class="flex flex-col items-center justify-center gap-1 min-h-17.5">
 
                         {% if row.metered %}
+                            <span class="text-xs text-gray-500">Auto Shutoff</span>
 
-                            <!-- Label -->
-                            <span class="text-xs text-gray-500">
-                                Auto Shutoff
-                            </span>
-
-                            <!-- Toggle -->
                             <form action="{% url 'toggle_auto_paygo' row.sale.id %}" method="POST">
                                 {% csrf_token %}
                                 <input 
@@ -167,7 +220,7 @@
                                     class="toggle toggle-sm {% if row.auto_disable %}toggle-error{% else %}toggle-success{% endif %}"
                                     {% if row.auto_disable %}checked{% endif %}
                                     onchange="
-                                        if(confirm('Are you sure you want to toggle auto shutoff for this device?')) {
+                                        if(confirm('Toggle auto shutoff?')) {
                                             this.form.submit();
                                         } else {
                                             this.checked = !this.checked;
@@ -176,25 +229,57 @@
                                 />
                             </form>
 
-                            <!-- Status -->
                             <span class="text-xs font-semibold 
                                 {% if row.auto_disable %}text-red-500{% else %}text-green-500{% endif %}">
                                 {{ row.auto_disable|yesno:"Enabled,Disabled" }}
                             </span>
 
                         {% else %}
-
-                            <!-- KEEP SAME STRUCTURE -->
                             <span class="text-xs text-gray-400">Auto Shutoff</span>
                             <span class="text-gray-400 text-sm">—</span>
                             <span class="text-xs text-gray-400">Not Metered</span>
-
                         {% endif %}
 
                     </div>
                 </td>
 
             </tr>
+
+            <!-- EXPANDABLE ROW -->
+            <tr id="txn-{{ row.sale.id }}" class="hidden bg-base-200">
+                <td colspan="10" class="p-4">
+
+                    {% if row.transactions %}
+                    <div class="card bg-base-300 overflow-x-auto">
+
+                        <table class="table table-xs">
+                            <thead class="bg-orange-400 text-success-content text-sm uppercase tracking-wide">
+                                <tr class="text-xs text-gray-500 uppercase">
+                                    <th class="px-4 py-3 text-white rounded-tl-md">Date</th>
+                                    <th class="px-4 py-3 text-white">Amount</th>
+                                    <th class="px-4 py-3 text-white rounded-tr-md">Reference</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for txn in row.transactions %}
+                                <tr>
+                                    <td class="px-4 py-3">{{ txn.time|date:"j M Y h:i:s A" }}</td>
+                                    <td class="px-4 py-3">{{ txn.amount|intcomma }}</td>
+                                    <td class="px-4 py-3">{{ txn.ref }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                    </div>
+                    {% else %}
+                        <p class="text-gray-400 text-sm text-center">No transactions found</p>
+                    {% endif %}
+
+                </td>
+            </tr>
+
             {% endfor %}
         </tbody>
 
@@ -204,7 +289,7 @@
         <div class="flex justify-between mt-4">
 
             {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}&sort={{ current_sort }}&dir={{ current_dir }}"
+                <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}&sort={{ current_sort }}&dir={{ current_dir }}&mode={{ mode }}&metered={{ metered_filter }}"
                 class="btn btn-soft btn-accent hover:text-white">
                     <i class="fa-solid fa-backward-step"></i> Previous
                 </a>
@@ -217,7 +302,7 @@
             </span>
 
             {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ status_filter }}&sort={{ current_sort }}&dir={{ current_dir }}"
+                <a href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ status_filter }}&sort={{ current_sort }}&dir={{ current_dir }}&mode={{ mode }}&metered={{ metered_filter }}"
                 class="btn btn-soft btn-success hover:text-white">
                     Next <i class="fa-solid fa-forward-step"></i>
                 </a>
@@ -231,5 +316,22 @@
     </div>
 
 </div>
+
+<script>
+function toggleTxn(id) {
+    const row = document.getElementById("txn-" + id);
+    const paymentbtn = document.getElementById("payments-btn-" + id); 
+
+    if (row.classList.contains("hidden")) {
+        row.classList.remove("hidden");
+        // Change text when showing the row
+        paymentbtn.innerText = "Hide Payments";
+    } else {
+        row.classList.add("hidden");
+        // Change text when hiding the row
+        paymentbtn.innerText = "Show Payments";
+    }
+}
+</script>
 
 {% endblock %}
