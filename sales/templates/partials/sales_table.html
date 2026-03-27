@@ -41,11 +41,11 @@
         </select>
 
         <!-- ORGANIZATION -->
-        {% if is_superadmin %}
+        {% if request.accessible_orgs|length > 1 %}
         <select name="org" class="select select-success select-md">
         <option value="">All Organizations</option>
         {% for org in organizations %}
-        <option value="{{ org.id }}" {% if org_filter == org.id|stringformat:"s" %}selected{% endif %}>
+        <option value="{{ org.id }}" {% if org_filter == org.id %}selected{% endif %}>
         {{ org.name }}
         </option>
         {% endfor %}

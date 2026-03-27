@@ -7,6 +7,7 @@ from .models import Transaction
 from organizations.models import Organization
 from django.utils import timezone
 from datetime import timedelta
+from core.org_checker import get_accessible_organizations
 
 
 @login_required
@@ -19,11 +20,18 @@ def transactions_page(request):
     is_superadmin = user.role == "superadmin" or user.is_superuser
     is_htmx = request.headers.get("HX-Request") == "true"
 
-    # Base queryset
+    # -------- ACCESSIBLE ORGS --------
     if is_superadmin:
-        qs = Transaction.objects.select_related("org")
+        accessible_orgs = Organization.objects.all()
     else:
-        qs = Transaction.objects.filter(org=user.organization)
+        accessible_orgs = get_accessible_organizations(user)
+
+    accessible_ids = list(accessible_orgs.values_list("id", flat=True))
+
+    # -------- BASE QUERYSET --------
+    qs = Transaction.objects.filter(
+        org_id__in=accessible_ids
+    ).select_related("org")
 
     # Search
     search_query = request.GET.get("q", "").strip()
@@ -41,9 +49,16 @@ def transactions_page(request):
     if org_filter in [None, "", "None"]:
         org_filter = None
 
-    # Organization filter (superadmin only)
-    if is_superadmin and org_filter:
-        qs = qs.filter(org_id=org_filter)
+    if org_filter and org_filter.isdigit():
+        org_filter = int(org_filter)
+        if org_filter in accessible_ids:
+            qs = qs.filter(org_id=org_filter)
+        else:
+            org_filter = None
+    else:
+        org_filter = None
+
+    organizations = accessible_orgs if is_superadmin else None
 
     # Date filter
     today = timezone.now()
@@ -83,8 +98,6 @@ def transactions_page(request):
     sort_field = allowed_sorts.get(sort, "time")
     order = f"-{sort_field}" if direction == "desc" else sort_field
     qs = qs.order_by(order)
-
-    organizations = Organization.objects.all() if is_superadmin else None
     total_results = qs.count()
 
     # Pagination

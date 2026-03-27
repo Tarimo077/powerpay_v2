@@ -37,7 +37,7 @@
         {% endif %}
     </td>
 
-    {% if is_superuser %}
+    {% if request.accessible_orgs|length > 1 %}
     <td class="text-center">
         {{ organization.name }}
     </td>

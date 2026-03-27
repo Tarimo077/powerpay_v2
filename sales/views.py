@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from .forms import SaleForm
 from notifications.utils import notify
 from organizations.models import Organization
+from core.org_utils import get_user_orgs, get_user_org_ids
 
 @login_required
 def sales_page(request):
@@ -49,16 +50,29 @@ def sales_page(request):
 
     order = f"-{allowed_sorts[sort]}" if direction == "desc" else allowed_sorts[sort]
 
-    if is_superadmin:
-        qs = Sale.objects.select_related("customer", "organization")
-        organizations = Organization.objects.all()
 
-        if org_filter:
-            qs = qs.filter(organization_id=org_filter)
+    # ---------------- ACCESSIBLE ORGS ----------------
+    accessible_orgs = get_user_orgs(request.user)
+    accessible_ids = get_user_org_ids(request.user)
 
-    else:
-        qs = Sale.objects.filter(organization=request.user.organization)
-        organizations = None
+    # ---------------- BASE QUERYSET ----------------
+    qs = Sale.objects.filter(
+        organization_id__in=accessible_ids
+    ).select_related("customer", "organization")
+
+    # ---------------- ORGANIZATION FILTER ----------------
+    if org_filter:
+        try:
+            org_filter = int(org_filter)
+            if org_filter in accessible_ids:
+                qs = qs.filter(organization_id=org_filter)
+            else:
+                org_filter = None  # prevent unauthorized access
+        except:
+            org_filter = None
+
+    # ---------------- ORGANIZATIONS DROPDOWN ----------------
+    organizations = accessible_orgs
 
     # ---------------- STATS ----------------
     total_sales = qs.count()

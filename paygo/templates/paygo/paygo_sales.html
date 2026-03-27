@@ -256,6 +256,7 @@
                             <thead class="bg-orange-400 text-success-content text-sm uppercase tracking-wide">
                                 <tr class="text-xs text-gray-500 uppercase">
                                     <th class="px-4 py-3 text-white rounded-tl-md">Date</th>
+                                    <th class="px-4 py-3 text-white">Transaction ID</th>
                                     <th class="px-4 py-3 text-white">Amount</th>
                                     <th class="px-4 py-3 text-white rounded-tr-md">Reference</th>
                                 </tr>
@@ -265,6 +266,7 @@
                                 {% for txn in row.transactions %}
                                 <tr>
                                     <td class="px-4 py-3">{{ txn.time|date:"j M Y h:i:s A" }}</td>
+                                    <td class="px-4 py-3">{{ txn.txn_id }}</td>
                                     <td class="px-4 py-3">{{ txn.amount|intcomma }}</td>
                                     <td class="px-4 py-3">{{ txn.ref }}</td>
                                 </tr>

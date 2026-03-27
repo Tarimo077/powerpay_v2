@@ -21,6 +21,7 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from .services.device_api import call_change_status_api
 from organizations.models import Organization
+from core.org_checker import get_accessible_organizations
 
 
 COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
@@ -38,25 +39,35 @@ def device_list(request):
     if org_id in [None, "", "None"]:
         org_id = None
 
-    # Role-based filtering
+    # -------- ACCESSIBLE ORGS --------
     if user.is_superuser or getattr(user, "role", None) == "superadmin":
-        devices = DeviceInfo.objects.all().select_related("organization")
-        organizations = Organization.objects.all()
+        accessible_orgs = Organization.objects.all()
         is_admin = True
+    else:
+        accessible_orgs = get_accessible_organizations(user)
+        is_admin = False
 
-        if org_id and org_id.isdigit():
+    accessible_ids = list(accessible_orgs.values_list("id", flat=True))
+
+    # -------- BASE QUERY --------
+    devices = DeviceInfo.objects.filter(
+        organization_id__in=accessible_ids
+    ).select_related("organization")
+
+    # -------- ORG FILTER --------
+    org_id = request.GET.get("org")
+
+    if org_id and org_id.isdigit():
+        org_id = int(org_id)
+        if org_id in accessible_ids:
             devices = devices.filter(organization_id=org_id)
         else:
             org_id = None
-
     else:
-        devices = DeviceInfo.objects.filter(
-            organization=user.organization
-        ).select_related("organization")
+        org_id = None
 
-        organizations = None
-        is_admin = False
-
+    organizations = accessible_orgs 
+    
     # Search
     if q:
         devices = devices.filter(deviceid__icontains=q)

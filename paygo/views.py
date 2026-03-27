@@ -1,16 +1,14 @@
 
 from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import Sum, Max
 from django.utils import timezone
 from sales.models import Sale
 from transactions.models import Transaction
 from devices.models import DeviceInfo
 from .models import PayGoSettings
-from .forms import PayGoSettingsForm
 from .utils import get_payment_plan_details
 from core.org_checker import get_accessible_organizations
 from django.core.paginator import Paginator
-from django.db.models import Q
+from organizations.models import Organization
 from django.shortcuts import render
 from django.utils import timezone
 
@@ -53,18 +51,20 @@ def paygo_sales_view(request):
     page = request.GET.get("page", 1)
 
     # -------- SALES BASE --------
+    # -------- ACCESSIBLE ORGS --------
     if is_superadmin:
-        sales = Sale.objects.filter(
-            purchase_mode="P",
-            payment_plan__in=["Plan_1", "Plan_2"]
-        ).select_related("customer", "organization")
+        accessible_orgs = Organization.objects.all()
     else:
-        orgs = get_accessible_organizations(user)
-        sales = Sale.objects.filter(
-            purchase_mode="P",
-            payment_plan__in=["Plan_1", "Plan_2"],
-            organization__in=orgs
-        ).select_related("customer", "organization")
+        accessible_orgs = get_accessible_organizations(user)
+
+    accessible_ids = list(accessible_orgs.values_list("id", flat=True))
+
+    # -------- SALES BASE --------
+    sales = Sale.objects.filter(
+        purchase_mode="P",
+        payment_plan__in=["Plan_1", "Plan_2"],
+        organization_id__in=accessible_ids
+    ).select_related("customer", "organization")
 
     today = timezone.now().date()
 
@@ -72,7 +72,7 @@ def paygo_sales_view(request):
     org_ids = sales.values_list("organization_id", flat=True)
     transactions = Transaction.objects.filter(
         org_id__in=org_ids
-    ).values("ref", "org_id", "amount", "time")
+    ).values("ref", "org_id", "amount", "time", "txn_id")
 
     txn_lookup = {}
     for t in transactions:

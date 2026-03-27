@@ -12,6 +12,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from notifications.utils import notify
 from organizations.models import Organization
+from core.org_utils import get_user_orgs, get_user_org_ids
 
 
 @login_required
@@ -20,11 +21,33 @@ def customers_page(request):
     is_superadmin = user.role == "superadmin"
     is_htmx = request.headers.get("HX-Request") == "true"
 
+    # ---------------- ACCESSIBLE ORGS ----------------
+    accessible_orgs = get_user_orgs(request.user)
+    accessible_ids = get_user_org_ids(request.user)
+
     # ---------------- BASE QUERYSET ----------------
-    if is_superadmin:
-        qs = Customer.objects.select_related("organization")
-    else:
-        qs = Customer.objects.filter(organization=user.organization)
+    qs = Customer.objects.filter(
+        organization_id__in=accessible_ids
+    ).select_related("organization")
+
+    # ---------------- ORGANIZATION FILTER ----------------
+    org_filter = request.GET.get("org")
+
+    if org_filter in [None, "", "None"]:
+        org_filter = None
+
+    if org_filter:
+        try:
+            org_filter = int(org_filter)
+            if org_filter in accessible_ids:
+                qs = qs.filter(organization_id=org_filter)
+            else:
+                org_filter = None
+        except:
+            org_filter = None
+
+    # ---------------- ORGANIZATIONS DROPDOWN ----------------
+    organizations = accessible_orgs
 
     # ---------------- PERIOD FILTER ----------------
     period = request.GET.get("period", "all")
@@ -52,21 +75,6 @@ def customers_page(request):
     else:
         pass
 
-
-    # ---------------- ORGANIZATION FILTER ----------------
-    org_filter = request.GET.get("org")
-
-    if org_filter in [None, "", "None"]:
-        org_filter = None
-
-    if is_superadmin:
-        organizations = Organization.objects.all()
-
-        if org_filter:
-            qs = qs.filter(organization_id=org_filter)
-
-    else:
-        organizations = None
 
     # ---------------- SEARCH ----------------
     search_query = request.GET.get("q", "").strip()

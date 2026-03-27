@@ -43,11 +43,11 @@
 
     </select>
 
-    {% if is_superadmin %}
+    {% if request.accessible_orgs|length > 1 %}
     <select name="org" class="select select-success select-md">
         <option value="">All Organizations</option>
         {% for org in organizations %}
-            <option value="{{ org.id }}" {% if org_filter == org.id|stringformat:"s" %}selected{% endif %}>
+            <option value="{{ org.id }}" {% if org_filter == org.id %}selected{% endif %}>
                 {{ org.name }}
             </option>
         {% endfor %}
@@ -98,11 +98,11 @@
                 {% if period == "365d" %}Last 1 Year{% endif %}
             {% endif %}
 
-            {% if org_filter and is_superadmin %}
+            {% if org_filter and request.accessible_orgs|length > 1 %}
                 • Organization:
                 <span class="badge badge-outline">
                     {% for org in organizations %}
-                        {% if org.id|stringformat:"s" == org_filter %}
+                        {% if org.id == org_filter %}
                             {{ org.name }}
                         {% endif %}
                     {% endfor %}
@@ -140,7 +140,7 @@
                         </th>
                     {% endfor %}
 
-                    {% if is_superadmin %}
+                    {% if request.accessible_orgs|length > 1 %}
                     <th>
                         <a
                             hx-get="{% url 'customers_page' %}?sort=org&dir={{ next_dirs.org }}&q={{ search_query }}"
@@ -171,7 +171,7 @@
                     </td>
                     <td>{{ c.household_size }}</td>
                     <td>{{ c.date|date:"j M Y" }}</td>
-                    {% if is_superadmin %}
+                    {% if request.accessible_orgs|length > 1 %}
                         <td>{{ c.organization.name }}</td>
                     {% endif %}
                     <td class="flex flex-row gap-2 justify-center">

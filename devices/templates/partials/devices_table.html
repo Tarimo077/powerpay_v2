@@ -35,11 +35,11 @@
     </select>
 
     <!-- ORGANIZATION FILTER -->
-    {% if is_admin %}
+    {% if request.accessible_orgs|length > 1 %}
     <select name="org" class="select select-success select-md">
         <option value="">All Organizations</option>
         {% for org in organizations %}
-            <option value="{{ org.id }}" {% if org_filter == org.id|stringformat:"s" %}selected{% endif %}>
+            <option value="{{ org.id }}" {% if org_filter == org.id %}selected{% endif %}>
                 {{ org.name }}
             </option>
         {% endfor %}
@@ -95,7 +95,7 @@
                         <th class="px-4 py-3 text-left text-white rounded-tl-lg">Device ID</th>
                         <th class="px-4 py-3 text-center text-white">Status</th>
                         <th class="px-4 py-3 text-center text-white">Last Seen</th>
-                        {% if is_superuser %}
+                        {% if request.accessible_orgs|length > 1 %}
                         <th class="px-4 py-3 text-center text-white">Organization</th>
                         {% endif %}
                         <th class="px-4 py-3 text-center text-white rounded-tr-lg">Actions</th>
