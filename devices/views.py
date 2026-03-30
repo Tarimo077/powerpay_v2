@@ -679,7 +679,7 @@ def trigger_schedule(request, pk):
         return redirect("device_schedule_list")
 
     for device in schedule.devices.all():
-        result = call_change_status_api(device.device_id, schedule.action)
+        result = call_change_status_api(device.deviceid, schedule.action)
 
         if result["success"]:
             messages.success(request, f"{schedule.action} sent to {device}")
