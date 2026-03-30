@@ -452,6 +452,7 @@ def change_device_status(request):
         
         device = get_object_or_404(DeviceInfo, deviceid=deviceid)
         kwh_today = kwh_for_device(device, start_of_day, now())
+        
         row = {
             "deviceid": deviceid,
             "active": new_status,
@@ -468,7 +469,8 @@ def change_device_status(request):
                 "active": row["active"],
                 "last_seen": row["last_seen"],
                 "kwh_today": row["kwh_today"],
-                "user": request.user
+                "user": request.user,
+                "organization": device.organization
             }
         )
 
