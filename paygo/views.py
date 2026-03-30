@@ -186,6 +186,69 @@ def paygo_sales_view(request):
     for r in rows:
         stats[r["status"]] += 1
 
+    # -------- PAYGO METRICS --------
+    total_receivable = 0
+    receivable_at_risk = 0
+    overdue_count = 0
+    active_sales = 0
+
+    for r in rows:
+        total_receivable += r["balance"]
+
+        if r["status"] in ["at_risk", "overdue"]:
+            receivable_at_risk += r["balance"]
+
+        if r["status"] == "overdue":
+            overdue_count += 1
+
+        if r["status"] != "fully_paid":
+            active_sales += 1
+
+    # -------- CHURN RATE --------
+    churn_rate = 0
+    if active_sales > 0:
+        churn_rate = round((overdue_count / active_sales) * 100, 2)
+
+    # -------- MONTH-ON-MONTH GROWTH --------
+    #current_month = timezone.now().month
+    #current_year = timezone.now().year
+
+    #prev_month = current_month - 1 or 12
+    #prev_year = current_year if current_month > 1 else current_year - 1
+
+    #current_month_paid = 0
+    #prev_month_paid = 0
+
+    #for r in rows:
+        #for txn in r["transactions"]:
+            #if txn["time"]:
+                #txn_date = txn["time"]
+
+                #if txn_date.month == current_month and txn_date.year == current_year:
+                    #current_month_paid += float(txn["amount"])
+
+                #elif txn_date.month == prev_month and txn_date.year == prev_year:
+                    #prev_month_paid += float(txn["amount"])
+
+    #mom_growth = 0
+    #if prev_month_paid > 0:
+        #mom_growth = round(((current_month_paid - prev_month_paid) / prev_month_paid) * 100, 2)
+
+    # -------- COLLECTION RATE --------
+    total_expected = 0
+    total_paid_all = 0
+
+    for r in rows:
+        total_paid_all += r["total_paid"]
+
+        # reconstruct expected from paygo balance
+        expected = r["total_paid"] - r["paygo_balance"]
+        total_expected += max(expected, 0)
+
+    collection_rate = 0
+    if total_expected > 0:
+        collection_rate = round((total_paid_all / total_expected) * 100, 2)
+
     # -------- SORTING --------
     allowed_sorts = {"balance": "balance", "paid": "total_paid", "serial": "serial", "customer": "customer", "paygo_balance": "paygo_balance"}
     sort_key = allowed_sorts.get(sort, "balance")
@@ -214,6 +277,12 @@ def paygo_sales_view(request):
         "next_dirs": next_dirs,
         "total_results": total_count,
         "metered_filter": metered_filter,
+        # NEW METRICS
+        "total_receivable": round(total_receivable, 2),
+        "receivable_at_risk": round(receivable_at_risk, 2),
+        "churn_rate": churn_rate,
+        #"mom_growth": mom_growth,
+        "collection_rate": collection_rate,
     })
 
 

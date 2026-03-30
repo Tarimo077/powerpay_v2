@@ -12,17 +12,106 @@
         <h2 class="text-2xl font-bold mb-4">PayGo Tracking</h2>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+
+            <!-- EXISTING STATUS CARDS -->
             {% for key, val in stats.items %}
             <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
-                    <div class="card-body flex flex-col justify-center">
-                        <div class="flex"><p class="text-sm uppercase text-gray-400">{{ key }}</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid {% if key == 'Fully Paid' %} fa-clipboard-check {% elif key == 'At Risk' %} fa-triangle-exclamation {% elif key == 'On Track' %} fa-hourglass-half {% else %} fa-ban {% endif %}  text-2xl text-green-500"></i></div></div>
-                        <p class="text-2xl font-bold text-green-700">{{ val|intcomma }}</p>
+                <div class="card-body flex flex-col justify-center">
+                    <div class="flex justify-between items-center">
+                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the number of devices whose payments are {{ key }}."></i><p class="text-sm uppercase text-gray-400">{{ key }}</p></div>
+                        <div class="flex p-2 items-center justify-center rounded-full bg-green-100">
+                            <i class="fa-solid 
+                                {% if key == 'Fully Paid' %} fa-clipboard-check 
+                                {% elif key == 'At Risk' %} fa-triangle-exclamation 
+                                {% elif key == 'On Track' %} fa-hourglass-half 
+                                {% else %} fa-ban 
+                                {% endif %}  
+                                text-2xl text-green-500"></i>
+                        </div>
                     </div>
+                    <p class="text-2xl font-bold text-green-700">{{ val|intcomma }}</p>
+                </div>
             </div>
             {% endfor %}
+
+            <!-- TOTAL RECEIVABLE -->
+            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+                <div class="card-body flex flex-col justify-center">
+                    <div class="flex justify-between items-center">
+                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the total receivable cash expected to be paid from all sales."></i><p class="text-sm uppercase text-gray-400">Total Receivables</p></div>
+                        <div class="flex p-2 rounded-full bg-green-100">
+                            <i class="fa-solid fa-coins text-2xl text-green-500"></i>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-bold text-green-700">
+                        Ksh. {{ total_receivable|intcomma }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- RAR -->
+            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+                <div class="card-body flex flex-col justify-center">
+                    <div class="flex justify-between items-center">
+                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the total cash that is at risk of defaulting."></i><p class="text-sm uppercase text-gray-400">Receivables At Risk(RAR)</p></div>
+                        <div class="flex p-2 rounded-full bg-green-100">
+                            <i class="fa-solid fa-exclamation-circle text-2xl text-green-500"></i>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-bold text-green-700">
+                        Ksh. {{ receivable_at_risk|intcomma }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- CHURN -->
+            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+                <div class="card-body flex flex-col justify-center">
+                    <div class="flex justify-between items-center">
+                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represent the percentage of sales that are behind on payments."></i><p class="text-sm uppercase text-gray-400">Delinquency Rate</p></div>
+                        <div class="flex p-2 rounded-full bg-green-100">
+                            <i class="fa-solid fa-user-slash text-2xl text-green-500"></i>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-bold text-green-700">
+                        {{ churn_rate|floatformat:1 }}%
+                    </p>
+                </div>
+            </div>
+
+            <!-- MOM GROWTH 
+            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+                <div class="card-body flex flex-col justify-center">
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm uppercase text-gray-400">Month On Month Growth</p>
+                        <div class="flex p-2 rounded-full bg-green-100">
+                            <i class="fa-solid fa-chart-line text-2xl text-green-500"></i>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-bold text-green-700">
+                        {{ mom_growth|floatformat:1 }}%
+                    </p>
+                </div>
+            </div> -->
+
+            <!-- COLLECTION RATE -->
+            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+                <div class="card-body flex flex-col justify-center">
+                    <div class="flex justify-between items-center">
+                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the percentage of money successfully collected from the sales."></i><p class="text-sm uppercase text-gray-400">Collection Rate</p></div>
+                        <div class="flex p-2 rounded-full bg-green-100">
+                            <i class="fa-solid fa-hand-holding-dollar text-2xl text-green-500"></i>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-bold text-green-700">
+                        {{ collection_rate|floatformat:1 }}%
+                    </p>
+                </div>
+            </div>
+
         </div>
 
-        <form class="flex flex-wrap gap-2 mb-4">
+        <form class="flex flex-wrap gap-2 mb-4 mt-6">
 
             <input type="text" name="q" value="{{ search_query }}"
                 placeholder="Search serial or customer"
