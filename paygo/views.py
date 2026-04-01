@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 import json
 import requests
-from django.conf import settings
+from decouple import config
 
 
 STATUS_LABELS = {
@@ -147,6 +147,8 @@ def paygo_sales_view(request):
         device_active = device_lookup.get(serial_last4, False)
         paygo_settings = settings_map.get(sale.id)
 
+        prefix = "254"
+
         row = {
             "sale": sale,
             "serial": sale.product_serial_number,
@@ -163,6 +165,7 @@ def paygo_sales_view(request):
             "metered": sale.metered,
             "paygo_balance": round(paygo_balance, 2),
             "transactions": txns_sorted,
+            "contact": f"{prefix}{sale.customer.phone_number[-9:]}"
         }
 
         rows.append(row)
@@ -324,9 +327,9 @@ def paygo_stk_push(request, sale_id):
     if not contact.startswith("254"):
         return JsonResponse({"success": False, "error": "Invalid phone format"})
 
-    ref = f"PAYGO-{sale.id}"
+    ref = sale.product_serial_number
 
-    url = getattr(settings, "MPESA_ENDPOINT")
+    url = config('MPESA_ENDPOINT')
 
     payload = {
         "amount": int(amount),

@@ -222,37 +222,32 @@
                 <td>
                     <a class="underline hover:text-success"
                     href="{% url 'sale_detail' row.sale.id %}"
-                    title="Click to see the sale details for device {{ row.serial }}"
-                    >
-                    {{ row.serial }}
+                    title="Click to see the sale details for device {{ row.serial }}">
+                        {{ row.serial }}
                     </a>
                 </td>
 
                 <td class="text-center">
                     <a class="underline hover:text-success"
                     href="{% url 'customer_detail' row.sale.customer.id %}"
-                    title="Click to see {{ row.customer }}'s customer details"
-                    >
-                    {{ row.customer }}
+                    title="Click to see {{ row.customer }}'s customer details">
+                        {{ row.customer }}
                     </a>
                 </td>
 
                 <!-- PAID + BUTTON -->
                 <td class="text-center">
                     <div class="flex items-center justify-center gap-2">
-
                         <span>{{ row.total_paid|intcomma }}</span>
 
                         {% if row.total_paid > 0 %}
                         <button
                             class="btn btn-xs btn-outline btn-success hover:text-white"
                             onclick="toggleTxn('{{ row.sale.id }}')"
-                            id="payments-btn-{{ row.sale.id }}"
-                        >
+                            id="payments-btn-{{ row.sale.id }}">
                             Show Payments
                         </button>
                         {% endif %}
-
                     </div>
                 </td>
 
@@ -263,10 +258,10 @@
                 <!-- STATUS -->
                 <td class="text-center">
                     <span class="badge text-white uppercase
-                    {% if row.color == 'green' %}badge-success
-                    {% elif row.color == 'orange' %}badge-warning
-                    {% elif row.color == 'red' %}badge-error
-                    {% else %}badge-info{% endif %}">
+                        {% if row.color == 'green' %}badge-success
+                        {% elif row.color == 'orange' %}badge-warning
+                        {% elif row.color == 'red' %}badge-error
+                        {% else %}badge-info{% endif %}">
                         {{ row.status_label }}
                     </span>
                 </td>
@@ -296,48 +291,56 @@
                 </td>
 
                 <!-- ACTION -->
-                <td class="text-center">
-                    <div class="flex flex-row items-center gap-1 min-h-17.5">
+                <td class="text-center align-middle">
+                    <div class="flex items-center justify-center gap-6">
 
-                        {% if row.metered %}
-                            <div class="flex flex-col items-center justify-center gap-1">
-                                <span class="text-xs text-gray-500">Auto Shutoff</span>
+                        <!-- AUTO CONTROL -->
+                        <div class="flex flex-col items-center gap-1">
+                            <span class="text-[10px] uppercase text-gray-400 font-semibold">
+                                Auto
+                            </span>
 
-                                <form action="{% url 'toggle_auto_paygo' row.sale.id %}" method="POST">
+                            {% if row.metered %}
+                                <form action="{% url 'toggle_auto_paygo' row.sale.id %}" method="POST" class="flex flex-col items-center">
                                     {% csrf_token %}
                                     <input 
                                         type="checkbox" 
                                         class="toggle toggle-sm {% if row.auto_disable %}toggle-error{% else %}toggle-success{% endif %}"
                                         {% if row.auto_disable %}checked{% endif %}
-                                        onchange="
-                                            if(confirm('Toggle auto shutoff?')) {
-                                                this.form.submit();
-                                            } else {
-                                                this.checked = !this.checked;
-                                            }
-                                        "
+                                        onchange="if(confirm('Toggle auto shutoff?')) { this.form.submit(); } else { this.checked = !this.checked; }"
                                     />
+                                    <span class="text-[10px] font-medium {% if row.auto_disable %}text-error{% else %}text-success{% endif %}">
+                                        {{ row.auto_disable|yesno:"On,Off" }}
+                                    </span>
                                 </form>
-
-                                <span class="text-xs font-semibold 
-                                    {% if row.auto_disable %}text-red-500{% else %}text-green-500{% endif %}">
-                                    {{ row.auto_disable|yesno:"Enabled,Disabled" }}
-                                </span>
-
                             {% else %}
-                                <span class="text-xs text-gray-400">Auto Shutoff</span>
-                                <span class="text-gray-400 text-sm">—</span>
-                                <span class="text-xs text-gray-400">Not Metered</span>
-                            </div>
-                        {% endif %}
-                        {% if row.status_label != 'Fully Paid' or row.status_label != 'On Track' %}
-                        <button
-                            class="btn btn-xs btn-primary text-white"
-                            onclick="openSTKModal('{{ row.sale.id }}', '{{ row.customer }}', '{{ row.balance }}')"
-                        >
-                            Pay
-                        </button>
-                        {% endif %}
+                                <div class="flex flex-col items-center opacity-40">
+                                    <input type="checkbox" class="toggle toggle-sm" disabled />
+                                    <span class="text-[10px]">N/A</span>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- DIVIDER -->
+                        <div class="h-10 border-l border-base-300"></div>
+
+                        <!-- PAYMENT ACTION -->
+                        <div class="flex flex-col items-center gap-1">
+                            
+
+                            {% if row.status_label != 'Fully Paid' %}
+                                <button
+                                    class="btn btn-sm btn-primary shadow-sm"
+                                    title="Click to prompt an mpesa stk push to {{ row.customer }}'s phone for payment"
+                                    onclick="openSTKModal('{{ row.sale.id }}', '{{ row.customer }}', '{{ row.balance }}', '{{ row.contact }}')">
+                                    Prompt
+                                </button>
+                            {% else %}
+                                <button class="btn btn-sm btn-disabled">
+                                    Paid
+                                </button>
+                            {% endif %}
+                        </div>
 
                     </div>
                 </td>
@@ -416,33 +419,57 @@
 
     </div>
 
-    <!-- STK MODAL -->
-    <div id="stk-modal" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 w-96 shadow-lg">
+</div>
 
-            <h3 class="text-lg font-bold mb-4">Send Payment Prompt</h3>
+    <!-- STK MODAL -->
+    <div id="stk-modal" class="fixed inset-0 z-[100] flex items-center justify-center opacity-0 pointer-events-none transition-all duration-200 backdrop-blur-sm bg-black/20">
+    
+        <div class="bg-base-100 rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-base-200 animate-in fade-in zoom-in duration-200">
+            
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-extrabold tracking-tight text-base-content">
+                    Send Payment
+                </h3>
+                <div class="badge badge-success badge-outline gap-1 text-[10px] font-bold">
+                    MPESA STK
+                </div>
+            </div>
 
             <input type="hidden" id="stk-sale-id">
 
-            <div class="mb-3">
-                <label class="text-sm">Phone Number</label>
-                <input id="stk-contact" class="input input-bordered w-full" placeholder="2547XXXXXXXX">
+            <div class="space-y-4">
+                <div class="form-control w-full">
+                    <label class="label py-1">
+                        <span class="label-text font-semibold text-gray-500">Phone Number</span>
+                    </label>
+                    <div class="relative">
+                        <input id="stk-contact" type="text" 
+                            class="input input-bordered w-full focus:input-primary pl-4" 
+                            placeholder="254XXXXXXXXX">
+                    </div>
+                </div>
+
+                <div class="form-control w-full">
+                    <label class="label py-1">
+                        <span class="label-text font-semibold text-gray-500">Amount (KES)</span>
+                    </label>
+                    <input id="stk-amount" type="number" 
+                        class="input input-bordered w-full focus:input-primary font-mono text-lg" 
+                        placeholder="0.00">
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label class="text-sm">Amount</label>
-                <input id="stk-amount" type="number" class="input input-bordered w-full">
-            </div>
-
-            <div class="flex justify-end gap-2 mt-4">
-                <button class="btn btn-sm" onclick="closeSTKModal()">Cancel</button>
-                <button class="btn btn-success text-white btn-sm" onclick="sendSTK()">Send</button>
+            <div class="flex flex-col sm:flex-row justify-end gap-3 mt-8">
+                <button class="btn btn-error text-white btn-sm sm:btn-md order-2 sm:order-1" onclick="closeSTKModal()">
+                    Cancel
+                </button>
+                <button class="btn btn-primary btn-sm sm:btn-md text-white shadow-md order-1 sm:order-2" onclick="sendSTK()">
+                    Prompt
+                </button>
             </div>
 
         </div>
     </div>
-
-</div>
 
 <script>
 function toggleTxn(id) {
@@ -462,19 +489,22 @@ function toggleTxn(id) {
 </script>
 
 <script>
-function openSTKModal(saleId, customer, amount) {
-    document.getElementById("stk-modal").classList.remove("hidden");
+function openSTKModal(saleId, customer, amount, contact) {
+    const modal = document.getElementById("stk-modal");
+
+    modal.classList.remove("opacity-0", "pointer-events-none");
+    modal.classList.add("opacity-100");
+
     document.getElementById("stk-sale-id").value = saleId;
-
-    // Default values
     document.getElementById("stk-amount").value = amount || 0;
-
-    // Optional: preload customer phone if available later
-    document.getElementById("stk-contact").value = "";
+    document.getElementById("stk-contact").value = contact || "";
 }
 
 function closeSTKModal() {
-    document.getElementById("stk-modal").classList.add("hidden");
+    const modal = document.getElementById("stk-modal");
+
+    modal.classList.remove("opacity-100");
+    modal.classList.add("opacity-0", "pointer-events-none");
 }
 
 function sendSTK() {
