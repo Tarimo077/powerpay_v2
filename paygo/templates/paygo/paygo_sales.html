@@ -297,36 +297,46 @@
 
                 <!-- ACTION -->
                 <td class="text-center">
-                    <div class="flex flex-col items-center justify-center gap-1 min-h-17.5">
+                    <div class="flex flex-row items-center gap-1 min-h-17.5">
 
                         {% if row.metered %}
-                            <span class="text-xs text-gray-500">Auto Shutoff</span>
+                            <div class="flex flex-col items-center justify-center gap-1">
+                                <span class="text-xs text-gray-500">Auto Shutoff</span>
 
-                            <form action="{% url 'toggle_auto_paygo' row.sale.id %}" method="POST">
-                                {% csrf_token %}
-                                <input 
-                                    type="checkbox" 
-                                    class="toggle toggle-sm {% if row.auto_disable %}toggle-error{% else %}toggle-success{% endif %}"
-                                    {% if row.auto_disable %}checked{% endif %}
-                                    onchange="
-                                        if(confirm('Toggle auto shutoff?')) {
-                                            this.form.submit();
-                                        } else {
-                                            this.checked = !this.checked;
-                                        }
-                                    "
-                                />
-                            </form>
+                                <form action="{% url 'toggle_auto_paygo' row.sale.id %}" method="POST">
+                                    {% csrf_token %}
+                                    <input 
+                                        type="checkbox" 
+                                        class="toggle toggle-sm {% if row.auto_disable %}toggle-error{% else %}toggle-success{% endif %}"
+                                        {% if row.auto_disable %}checked{% endif %}
+                                        onchange="
+                                            if(confirm('Toggle auto shutoff?')) {
+                                                this.form.submit();
+                                            } else {
+                                                this.checked = !this.checked;
+                                            }
+                                        "
+                                    />
+                                </form>
 
-                            <span class="text-xs font-semibold 
-                                {% if row.auto_disable %}text-red-500{% else %}text-green-500{% endif %}">
-                                {{ row.auto_disable|yesno:"Enabled,Disabled" }}
-                            </span>
+                                <span class="text-xs font-semibold 
+                                    {% if row.auto_disable %}text-red-500{% else %}text-green-500{% endif %}">
+                                    {{ row.auto_disable|yesno:"Enabled,Disabled" }}
+                                </span>
 
-                        {% else %}
-                            <span class="text-xs text-gray-400">Auto Shutoff</span>
-                            <span class="text-gray-400 text-sm">—</span>
-                            <span class="text-xs text-gray-400">Not Metered</span>
+                            {% else %}
+                                <span class="text-xs text-gray-400">Auto Shutoff</span>
+                                <span class="text-gray-400 text-sm">—</span>
+                                <span class="text-xs text-gray-400">Not Metered</span>
+                            </div>
+                        {% endif %}
+                        {% if row.status_label != 'Fully Paid' or row.status_label != 'On Track' %}
+                        <button
+                            class="btn btn-xs btn-primary text-white"
+                            onclick="openSTKModal('{{ row.sale.id }}', '{{ row.customer }}', '{{ row.balance }}')"
+                        >
+                            Pay
+                        </button>
                         {% endif %}
 
                     </div>
@@ -406,6 +416,32 @@
 
     </div>
 
+    <!-- STK MODAL -->
+    <div id="stk-modal" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-96 shadow-lg">
+
+            <h3 class="text-lg font-bold mb-4">Send Payment Prompt</h3>
+
+            <input type="hidden" id="stk-sale-id">
+
+            <div class="mb-3">
+                <label class="text-sm">Phone Number</label>
+                <input id="stk-contact" class="input input-bordered w-full" placeholder="2547XXXXXXXX">
+            </div>
+
+            <div class="mb-3">
+                <label class="text-sm">Amount</label>
+                <input id="stk-amount" type="number" class="input input-bordered w-full">
+            </div>
+
+            <div class="flex justify-end gap-2 mt-4">
+                <button class="btn btn-sm" onclick="closeSTKModal()">Cancel</button>
+                <button class="btn btn-success text-white btn-sm" onclick="sendSTK()">Send</button>
+            </div>
+
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -422,6 +458,66 @@ function toggleTxn(id) {
         // Change text when hiding the row
         paymentbtn.innerText = "Show Payments";
     }
+}
+</script>
+
+<script>
+function openSTKModal(saleId, customer, amount) {
+    document.getElementById("stk-modal").classList.remove("hidden");
+    document.getElementById("stk-sale-id").value = saleId;
+
+    // Default values
+    document.getElementById("stk-amount").value = amount || 0;
+
+    // Optional: preload customer phone if available later
+    document.getElementById("stk-contact").value = "";
+}
+
+function closeSTKModal() {
+    document.getElementById("stk-modal").classList.add("hidden");
+}
+
+function sendSTK() {
+    const saleId = document.getElementById("stk-sale-id").value;
+    let contact = document.getElementById("stk-contact").value;
+    const amount = document.getElementById("stk-amount").value;
+
+    if (!contact || !amount) {
+        alert("Fill all fields");
+        return;
+    }
+
+    // Normalize phone
+    if (contact.startsWith("0")) {
+        contact = "254" + contact.substring(1);
+    }
+    if (contact.startsWith("+")) {
+        contact = contact.substring(1);
+    }
+
+    fetch(`/paygo/stk/${saleId}/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({
+            contact: contact,
+            amount: amount
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert("STK push sent successfully");
+            closeSTKModal();
+        } else {
+            alert("Error: " + data.error);
+        }
+    })
+    .catch(err => {
+        alert("Request failed");
+    });
 }
 </script>
 

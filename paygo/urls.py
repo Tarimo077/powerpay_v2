@@ -1,8 +1,9 @@
 
 from django.urls import path
-from .views import paygo_sales_view, toggle_auto_paygo
+from . import views
 
 urlpatterns = [
-    path("", paygo_sales_view, name="paygo_sales"),
-    path("toggle/<int:sale_id>/", toggle_auto_paygo, name="toggle_auto_paygo"),
+    path("", views.paygo_sales_view, name="paygo_sales"),
+    path("toggle/<int:sale_id>/", views.toggle_auto_paygo, name="toggle_auto_paygo"),
+    path("stk/<int:sale_id>/", views.paygo_stk_push, name="paygo_stk_push"),
 ]

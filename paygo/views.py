@@ -1,4 +1,3 @@
-
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from sales.models import Sale
@@ -11,6 +10,12 @@ from django.core.paginator import Paginator
 from organizations.models import Organization
 from django.shortcuts import render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+import json
+import requests
+from django.conf import settings
 
 
 STATUS_LABELS = {
@@ -294,3 +299,53 @@ def toggle_auto_paygo(request, sale_id):
     settings.save()
 
     return redirect("paygo_sales")
+
+@login_required
+@require_POST
+def paygo_stk_push(request, sale_id):
+    try:
+        sale = Sale.objects.select_related("customer").get(id=sale_id)
+    except Sale.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Sale not found"})
+
+    try:
+        data = json.loads(request.body)
+        amount = float(data.get("amount"))
+        contact = str(data.get("contact"))
+    except Exception:
+        return JsonResponse({"success": False, "error": "Invalid data"})
+
+    # ✅ Normalize phone (force 254 format)
+    if contact.startswith("0"):
+        contact = "254" + contact[1:]
+    elif contact.startswith("+"):
+        contact = contact[1:]
+
+    if not contact.startswith("254"):
+        return JsonResponse({"success": False, "error": "Invalid phone format"})
+
+    ref = f"PAYGO-{sale.id}"
+
+    url = getattr(settings, "MPESA_ENDPOINT")
+
+    payload = {
+        "amount": int(amount),
+        "contact": contact,
+        "ref": ref
+    }
+
+    try:
+        r = requests.post(url, json=payload, timeout=15)
+        r.raise_for_status()
+
+        return JsonResponse({
+            "success": True,
+            "message": "STK push sent",
+            "response": r.json() if "json" in r.headers.get("content-type", "") else r.text
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "success": False,
+            "error": str(e)
+        })
