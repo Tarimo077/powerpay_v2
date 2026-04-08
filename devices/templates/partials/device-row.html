@@ -1,35 +1,38 @@
 {% load humanize %}
 <tr id="device-{{ deviceid }}" class="h-20">
-    <td class="text-left">{{ deviceid }}</td>
+    <td class="text-left align-middle">{{ deviceid }}</td>
 
-    <td class="text-center flex items-center gap-4 justify-center">
-        <!-- Status badge -->
-        <span class="badge text-white {% if active %}badge-success{% else %}badge-error{% endif %}">
-            {{ active|yesno:"ACTIVE, INACTIVE" }}
-        </span>
+    <!-- Status + Toggle -->
+    <td class="text-center align-middle">
+        <div class="flex items-center justify-center gap-4">
+            <!-- Status badge -->
+            <span class="badge text-white {% if active %}badge-success{% else %}badge-error{% endif %}">
+                {{ active|yesno:"ACTIVE, INACTIVE" }}
+            </span>
 
-        <!-- Toggle switch -->
-        <input
-            type="checkbox"
-            class="toggle status-switch
-            {% if active %} toggle-success {% else %} toggle-error{% endif %}"
-            {% if active %}checked{% endif %}
+            <!-- Toggle switch -->
+            <input
+                type="checkbox"
+                class="toggle status-switch
+                {% if active %} toggle-success {% else %} toggle-error{% endif %}"
+                {% if active %}checked{% endif %}
 
-            data-deviceid="{{ deviceid }}"
-            hx-post="{% url 'change_device_status' %}"
-            hx-trigger="change"
-            hx-target="#device-{{ deviceid }}"
-            hx-swap="outerHTML transition:true"
-            hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'
-            hx-vals='{
-                "deviceid":"{{ deviceid }}",
-                "active":"{{ active|yesno:"false,true" }}"
-            }'
-        />
-
+                data-deviceid="{{ deviceid }}"
+                hx-post="{% url 'change_device_status' %}"
+                hx-trigger="change"
+                hx-target="#device-{{ deviceid }}"
+                hx-swap="outerHTML transition:true"
+                hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'
+                hx-vals='{
+                    "deviceid":"{{ deviceid }}",
+                    "active":"{{ active|yesno:"false,true" }}"
+                }'
+            />
+        </div>
     </td>
 
-    <td class="text-center">
+    <!-- Last Seen -->
+    <td class="text-center align-middle">
         {% if last_seen %}
             {{ last_seen|naturaltime }}
         {% else %}
@@ -37,28 +40,33 @@
         {% endif %}
     </td>
 
+    <!-- Organization -->
     {% if request.accessible_orgs|length > 1 %}
-    <td class="text-center">
+    <td class="text-center align-middle">
         {{ organization.name }}
     </td>
-
     {% endif %}
 
-    <td class="text-center flex flex-row gap-2 justify-center">
-        <a href="{% url 'device_detail' deviceid %}" class="btn btn-sm btn-primary">View<i class="fa-solid fa-binoculars"></i></a>
-        
-        {% if is_superuser %}
-        <a href="{% url 'device_edit' deviceid %}"
-        class="btn btn-sm btn-accent text-white">
-            <i class="fa-solid fa-pen-to-square"></i> Edit
-        </a>
+    <!-- Actions -->
+    <td class="text-center align-middle">
+        <div class="flex flex-row gap-2 justify-center items-center">
+            <a href="{% url 'device_detail' deviceid %}" class="btn btn-sm btn-primary">
+                View <i class="fa-solid fa-binoculars"></i>
+            </a>
+            
+            {% if is_superuser %}
+            <a href="{% url 'device_edit' deviceid %}"
+               class="btn btn-sm btn-accent text-white">
+                <i class="fa-solid fa-pen-to-square"></i> Edit
+            </a>
 
-        <button
-            onclick="confirmDelete('{{ deviceid }}', '{{ deviceid }}')"
-            class="btn btn-sm btn-error text-white">
-            <i class="fa-solid fa-trash"></i> Delete
-        </button>
-        {% endif %}
+            <button
+                onclick="confirmDelete('{{ deviceid }}', '{{ deviceid }}')"
+                class="btn btn-sm btn-error text-white">
+                <i class="fa-solid fa-trash"></i> Delete
+            </button>
+            {% endif %}
+        </div>
     </td>
 </tr>
 
@@ -70,7 +78,7 @@ document.body.addEventListener('htmx:confirm', function(event) {
 
     if (!target.classList.contains("status-switch")) return;
 
-    event.preventDefault(); // Stop HTMX request until confirmation
+    event.preventDefault();
 
     const deviceID = target.dataset.deviceid;
     const isChecked = target.checked;
@@ -90,10 +98,10 @@ document.body.addEventListener('htmx:confirm', function(event) {
     }).then((result) => {
         if (result.isConfirmed) {
             if (event.detail && typeof event.detail.issueRequest === "function") {
-                event.detail.issueRequest(); // 🔥 Resume HTMX request
+                event.detail.issueRequest();
             }
         } else {
-            target.checked = !isChecked; // Revert toggle if cancelled
+            target.checked = !isChecked;
         }
     });
 });
@@ -130,7 +138,12 @@ function confirmDelete(deviceId, deviceName) {
 </script>
 
 <style>
-/* Customizing the SweetAlert buttons */
+/* Ensure proper vertical alignment everywhere */
+td {
+    vertical-align: middle;
+}
+
+/* SweetAlert buttons */
 .swal-confirm-btn {
     background-color: #28a745 !important;
     color: white !important;
@@ -158,9 +171,9 @@ function confirmDelete(deviceId, deviceName) {
     font-family: "Poppins", sans-serif !important;
 }
 
-/* Ensure the 'off' state also has a white circle against the red */
+/* Fix toggle off-state */
 .toggle.toggle-error:not(:checked) {
-    background-color: #ef4444 !important; /* The Red BG */
+    background-color: #ef4444 !important;
     border-color: #ef4444 !important;
     color: white !important;
     --tglbg: white !important;

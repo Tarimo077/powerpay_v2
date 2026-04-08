@@ -528,6 +528,7 @@ def change_device_status_partial(request):
             "partials/device_status_partial.html",
             {
                 "device": device,
+                "last_seen": last_energy_timestamp(device)
             }
         )
 
