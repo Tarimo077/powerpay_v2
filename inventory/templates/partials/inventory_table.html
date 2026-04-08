@@ -28,16 +28,16 @@
 
 <!-- Time Filter -->
 <select name="period" class="select select-success select-md">
-            <option value="1d" {% if period == "1d" %}selected{% endif %}>Last 24 Hours</option>
-            <option value="3d" {% if period == "3d" %}selected{% endif %}>Last 3 Days</option>
-            <option value="7d" {% if period == "7d" %}selected{% endif %}>Last 1 Week</option>
-            <option value="14d" {% if period == "14d" %}selected{% endif %}>Last 2 Weeks</option>
-            <option value="30d" {% if period == "30d" %}selected{% endif %}>Last 1 Month</option>
-            <option value="60d" {% if period == "60d" %}selected{% endif %}>Last 2 Months</option>
-            <option value="90d" {% if period == "90d" %}selected{% endif %}>Last 3 Months</option>
-            <option value="180d" {% if period == "180d" %}selected{% endif %}>Last 6 Months</option>
-            <option value="365d" {% if period == "365d" %}selected{% endif %}>Last 1 Year</option>
-            <option value="all" {% if period == "all" %}selected{% endif %}>All Time</option>
+    <option value="1d" {% if period == "1d" %}selected{% endif %}>Last 24 Hours</option>
+    <option value="3d" {% if period == "3d" %}selected{% endif %}>Last 3 Days</option>
+    <option value="7d" {% if period == "7d" %}selected{% endif %}>Last 1 Week</option>
+    <option value="14d" {% if period == "14d" %}selected{% endif %}>Last 2 Weeks</option>
+    <option value="30d" {% if period == "30d" %}selected{% endif %}>Last 1 Month</option>
+    <option value="60d" {% if period == "60d" %}selected{% endif %}>Last 2 Months</option>
+    <option value="90d" {% if period == "90d" %}selected{% endif %}>Last 3 Months</option>
+    <option value="180d" {% if period == "180d" %}selected{% endif %}>Last 6 Months</option>
+    <option value="365d" {% if period == "365d" %}selected{% endif %}>Last 1 Year</option>
+    <option value="all" {% if period == "all" %}selected{% endif %}>All Time</option>
 </select>
 
 <!-- Warehouse Filter -->
@@ -50,7 +50,6 @@
     {% endfor %}
 </select>
 
-<!-- Organization Filter (Superadmin only) -->
 {% if is_superadmin %}
 <select name="org" class="select select-success select-md">
     <option value="">All Organizations</option>
@@ -92,15 +91,13 @@ item{{ total_results|pluralize }}
     <thead class="bg-success text-white">
         <tr>
             {% for label, field_name in inventory_fields %}
-            <th class="px-4 py-3 text-center">
+            <th class="text-center">
                 <a class="cursor-pointer flex items-center gap-1 {% if label == 'Actions' %}justify-center{% endif %}"
                    hx-get="{% url 'inventory_page' %}?sort={{ field_name }}&dir={{ next_dirs|get_item:field_name }}&q={{ search_query }}&period={{ period }}&warehouse={{ warehouse }}&org={{ org_filter }}"
                    hx-target="#inventory-table"
                    hx-push-url="true"
                    hx-indicator="#htmx-loading">
-
                     {{ label }}
-
                     {% if current_sort == field_name %}
                         {% if current_dir == 'asc' %}
                             <i class="fa-solid fa-sort-up"></i>
@@ -117,72 +114,87 @@ item{{ total_results|pluralize }}
     <tbody>
         {% for item in page_obj %}
         <tr class="h-20">
-            <td>{{ item.name }}</td>
-            <td>{{ item.serial_number }}</td>
-            <td>{{ item.product_type }}</td>
-            <td>{{ item.current_warehouse.name }}</td>
-            <td>{{ item.days_in_current_warehouse }}</td>
-            <td class="flex flex-row justify-center gap-2">
-                <a href="{% url 'inventory_detail' item.id %}"
-                   class="btn btn-primary btn-sm text-white">
-                   View<i class="fa-solid fa-binoculars"></i>
-                </a>
-                <a href="{% url 'item_update' item.id %}"
-                   class="btn btn-accent btn-sm text-white">
-                   Edit<i class="fa-solid fa-pen-to-square"></i>
-                </a>
-                {% if is_superuser %}
-                <a href="{% url 'move_item' item.id %}"
-                   class="btn btn-warning btn-sm text-white">
-                   Move Item<i class="fa-solid fa-rotate"></i>
-                </a>
-                {% endif %}
-                <a href="{% url 'item_delete' item.id %}"
-                   class="btn btn-error btn-sm text-white">
-                   Delete<i class="fa-solid fa-trash"></i>
-                </a>
+            <td class="align-middle">{{ item.name }}</td>
+            <td class="align-middle">{{ item.serial_number }}</td>
+            <td class="align-middle">{{ item.product_type }}</td>
+            <td class="align-middle">{{ item.current_warehouse.name }}</td>
+            <td class="align-middle">{{ item.days_in_current_warehouse }}</td>
+
+            <td class="text-center align-middle">
+                <div class="flex flex-row justify-center gap-2 items-center">
+                    <a href="{% url 'inventory_detail' item.id %}"
+                       class="btn btn-primary btn-sm text-white">
+                       View <i class="fa-solid fa-binoculars"></i>
+                    </a>
+
+                    <a href="{% url 'item_update' item.id %}"
+                       class="btn btn-accent btn-sm text-white">
+                       Edit <i class="fa-solid fa-pen-to-square"></i>
+                    </a>
+
+                    {% if is_superuser %}
+                    <a href="{% url 'move_item' item.id %}"
+                       class="btn btn-warning btn-sm text-white">
+                       Move <i class="fa-solid fa-rotate"></i>
+                    </a>
+                    {% endif %}
+
+                    <a href="{% url 'item_delete' item.id %}"
+                       class="btn btn-error btn-sm text-white">
+                       Delete <i class="fa-solid fa-trash"></i>
+                    </a>
+                </div>
             </td>
         </tr>
+
         {% empty %}
         <tr>
-            <td colspan="6" class="text-center">No items found</td>
+            <td colspan="6" class="text-center py-6">No items found</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 </div>
 
-
 <!-- Pagination -->
-    {% if page_obj.has_other_pages %}
-    <div class="flex justify-between mt-4 mb-2">
-        {% if page_obj.has_previous %}
-        <a
-            hx-get="{% url 'inventory_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&warehouse={{ warehouse }}&org={{ org_filter }}"
-            hx-target="#inventory-table"
-            hx-push-url="true"
-            hx-indicator="#htmx-loading"
-            class="btn btn-soft btn-accent cursor-pointer hover:text-white"
-        ><i class="fa-solid fa-backward-step"></i> Previous</a>
-        {% else %}
-        <span class="btn btn-disabled">Previous</span>
-        {% endif %}
+{% if page_obj.has_other_pages %}
+<div class="flex justify-between mt-4 mb-2">
+    {% if page_obj.has_previous %}
+    <a
+        hx-get="{% url 'inventory_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&warehouse={{ warehouse }}&org={{ org_filter }}"
+        hx-target="#inventory-table"
+        hx-push-url="true"
+        hx-indicator="#htmx-loading"
+        class="btn btn-soft btn-accent hover:text-white"
+    >
+        <i class="fa-solid fa-backward-step"></i> Previous
+    </a>
+    {% else %}
+    <span class="btn btn-disabled">Previous</span>
+    {% endif %}
 
-        <span class="font-medium">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    <span class="font-medium">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
 
-        {% if page_obj.has_next %}
-        <a
-            hx-get="{% url 'inventory_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&warehouse={{ warehouse }}&org={{ org_filter }}"
-            hx-target="#inventory-table"
-            hx-indicator="#htmx-loading"
-            hx-push-url="true"
-            class="btn btn-soft btn-success cursor-pointer hover:text-white"
-        >Next <i class="fa-solid fa-forward-step"></i></a>
-        {% else %}
-        <span class="btn btn-disabled">Next</span>
-        {% endif %}
-    </div>
+    {% if page_obj.has_next %}
+    <a
+        hx-get="{% url 'inventory_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&warehouse={{ warehouse }}&org={{ org_filter }}"
+        hx-target="#inventory-table"
+        hx-indicator="#htmx-loading"
+        hx-push-url="true"
+        class="btn btn-soft btn-success hover:text-white"
+    >
+        Next <i class="fa-solid fa-forward-step"></i>
+    </a>
+    {% else %}
+    <span class="btn btn-disabled">Next</span>
     {% endif %}
 </div>
+{% endif %}
 
+</div>
 
+<style>
+td {
+    vertical-align: middle;
+}
+</style>

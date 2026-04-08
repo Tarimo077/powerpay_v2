@@ -16,14 +16,14 @@
         hx-target="#sales-table"
         hx-push-url="true"
         hx-indicator="#htmx-loading"
-        >
+    >
 
         <input
-        type="text"
-        name="q"
-        value="{{ search_query }}"
-        placeholder="Search serial, product, rep..."
-        class="input input-success min-w-48"
+            type="text"
+            name="q"
+            value="{{ search_query }}"
+            placeholder="Search serial, product, rep..."
+            class="input input-success min-w-48"
         />
 
         <!-- PERIOD -->
@@ -40,68 +40,65 @@
             <option value="all" {% if period == "all" %}selected{% endif %}>All Time</option>
         </select>
 
-        <!-- ORGANIZATION -->
         {% if request.accessible_orgs|length > 1 %}
         <select name="org" class="select select-success select-md">
-        <option value="">All Organizations</option>
-        {% for org in organizations %}
-        <option value="{{ org.id }}" {% if org_filter == org.id %}selected{% endif %}>
-        {{ org.name }}
-        </option>
-        {% endfor %}
+            <option value="">All Organizations</option>
+            {% for org in organizations %}
+            <option value="{{ org.id }}" {% if org_filter == org.id %}selected{% endif %}>
+                {{ org.name }}
+            </option>
+            {% endfor %}
         </select>
         {% endif %}
 
         <!-- PURCHASE MODE -->
         <select name="mode" class="select select-success select-md">
-        <option value="">All Modes</option>
-        <option value="C" {% if purchase_mode == "C" %}selected{% endif %}>Cash</option>
-        <option value="DA" {% if purchase_mode == "DA" %}selected{% endif %}>Deposit Account</option>
-        <option value="P" {% if purchase_mode == "P" %}selected{% endif %}>PayGo</option>
+            <option value="">All Modes</option>
+            <option value="C" {% if purchase_mode == "C" %}selected{% endif %}>Cash</option>
+            <option value="DA" {% if purchase_mode == "DA" %}selected{% endif %}>Deposit Account</option>
+            <option value="P" {% if purchase_mode == "P" %}selected{% endif %}>PayGo</option>
         </select>
 
-        <!-- PAYMENT PLAN -->
         {% if purchase_mode == "P" %}
         <select name="plan" class="select select-success select-md">
-        <option value="">All Plans</option>
-        <option value="Plan_1" {% if payment_plan == "Plan_1" %}selected{% endif %}>Plan 1</option>
-        <option value="Plan_2" {% if payment_plan == "Plan_2" %}selected{% endif %}>Plan 2</option>
+            <option value="">All Plans</option>
+            <option value="Plan_1" {% if payment_plan == "Plan_1" %}selected{% endif %}>Plan 1</option>
+            <option value="Plan_2" {% if payment_plan == "Plan_2" %}selected{% endif %}>Plan 2</option>
         </select>
         {% endif %}
 
         <button class="btn btn-success text-white">
-        <i class="fa fa-search"></i> Filter
+            <i class="fa fa-search"></i> Filter
         </button>
 
         {% if search_query or period != "all" or org_filter or purchase_mode or payment_plan %}
         <a
-        hx-get="{% url 'sales_page' %}"
-        hx-target="#sales-table"
-        hx-push-url="true"
-        hx-indicator="#htmx-loading"
-        class="btn btn-error text-white"
+            hx-get="{% url 'sales_page' %}"
+            hx-target="#sales-table"
+            hx-push-url="true"
+            hx-indicator="#htmx-loading"
+            class="btn btn-error text-white"
         >
-        <i class="fa fa-times"></i> Reset
+            <i class="fa fa-times"></i> Reset
         </a>
         {% endif %}
 
     </form>
 
     <div class="flex justify-between items-center mb-3 text-sm text-gray-500">
-
         <div>
-        Showing
-        <span class="font-semibold text-success">
-        {{ page_obj.paginator.count }}
-        </span>
-        sale{{ page_obj.paginator.count|pluralize }}
+            Showing
+            <span class="font-semibold text-success">
+                {{ page_obj.paginator.count }}
+            </span>
+            sale{{ page_obj.paginator.count|pluralize }}
 
-        {% if search_query %}
-        for "<span class="font-medium">{{ search_query }}</span>"
-        {% endif %}
+            {% if search_query %}
+                for "<span class="font-medium">{{ search_query }}</span>"
+            {% endif %}
 
-        {% if period != "all" %}
-        •
+            {% if period != "all" %}
+                •
                 {% if period == "1d" %}Last 24 Hours{% endif %}
                 {% if period == "3d" %}Last 3 Days{% endif %}
                 {% if period == "7d" %}Last 1 Week{% endif %}
@@ -111,35 +108,32 @@
                 {% if period == "90d" %}Last 3 Months{% endif %}
                 {% if period == "180d" %}Last 6 Months{% endif %}
                 {% if period == "365d" %}Last 1 Year{% endif %}
-        {% endif %}
+            {% endif %}
 
-        {% if purchase_mode %}
-        • Mode:
-        <span class="badge badge-outline">
-        {% if purchase_mode == "C" %}Cash{% endif %}
-        {% if purchase_mode == "DA" %}Deposit Account{% endif %}
-        {% if purchase_mode == "P" %}PayGo{% endif %}
-        </span>
-        {% endif %}
-
+            {% if purchase_mode %}
+                • Mode:
+                <span class="badge badge-outline">
+                    {% if purchase_mode == "C" %}Cash{% endif %}
+                    {% if purchase_mode == "DA" %}Deposit Account{% endif %}
+                    {% if purchase_mode == "P" %}PayGo{% endif %}
+                </span>
+            {% endif %}
         </div>
-
     </div>
 
-    <!-- Table -->
+    <!-- TABLE -->
     <div class="bg-base-300 rounded-lg shadow-sm overflow-x-auto">
         <table class="table w-full">
             <thead class="bg-success text-success-content text-sm uppercase">
                 <tr>
                     {% for field, label in fields %}
-                    <th class="px-4 py-3 text-left text-white">
+                    <th class="text-left text-white">
                         <a
                             hx-get="{% url 'sales_page' %}?sort={{ field }}&dir={{ next_dirs|get_item:field }}&q={{ search_query }}&period={{ period }}&org={{ org_filter }}&mode={{ purchase_mode }}&plan={{ payment_plan }}"
                             hx-target="#sales-table"
                             hx-push-url="true"
                             hx-indicator="#htmx-loading"
                             class="flex items-center gap-1 cursor-pointer"
-                            title="Click to sort by {{ label }}"
                         >
                             {{ label }}
                             {% if current_sort == field %}
@@ -152,37 +146,42 @@
                         </a>
                     </th>
                     {% endfor %}
-                    <th class="px-4 py-3 text-center text-white">Actions</th>
+                    <th class="text-center text-white">Actions</th>
                 </tr>
             </thead>
 
             <tbody>
                 {% for sale in page_obj %}
                 <tr class="h-20">
-                    <td>{{ sale.date|date:"j M Y h:i:s A" }}</td>
-                    <td>{{ sale.product_serial_number }}</td>
-                    <td>{{ sale.product_name }}</td>
-                    <td>{{ sale.sales_rep }}</td>
-                    <td>{% if sale.customer %} {{ sale.customer.name }} {% else %} - {% endif %} </td>
-                    <td class="flex flex-row gap-2 justify-center">
-                        <a href="{% url 'sale_detail' sale.id %}"
-                        class="btn btn-primary btn-sm text-white" title="View {{ sale.product_serial_number }}'s data">
-                           View <i class="fa-solid fa-binoculars"></i>
-                        </a>
-                        <a href="{% url 'sale_update' sale.id %}"
-                            class="btn btn-accent btn-sm text-white" title="Edit {{ sale.product_serial_number }}'s data">
-                            <i class="fa-solid fa-user-pen"></i> Edit
-                        </a>
+                    <td class="align-middle">{{ sale.date|date:"j M Y h:i:s A" }}</td>
+                    <td class="align-middle">{{ sale.product_serial_number }}</td>
+                    <td class="align-middle">{{ sale.product_name }}</td>
+                    <td class="align-middle">{{ sale.sales_rep }}</td>
+                    <td class="align-middle">
+                        {% if sale.customer %}{{ sale.customer.name }}{% else %}-{% endif %}
+                    </td>
 
-                        <button
-                            onclick="confirmDelete({{ sale.id }})"
-                            title="Delete {{ sale.product_serial_number }}'s data"
-                            class="btn btn-error btn-sm text-white">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
+                    <td class="text-center align-middle">
+                        <div class="flex flex-row gap-2 justify-center items-center">
+                            <a href="{% url 'sale_detail' sale.id %}"
+                               class="btn btn-primary btn-sm text-white">
+                                View <i class="fa-solid fa-binoculars"></i>
+                            </a>
 
+                            <a href="{% url 'sale_update' sale.id %}"
+                               class="btn btn-accent btn-sm text-white">
+                                <i class="fa-solid fa-user-pen"></i> Edit
+                            </a>
+
+                            <button
+                                onclick="confirmDelete({{ sale.id }})"
+                                class="btn btn-error btn-sm text-white">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
                     </td>
                 </tr>
+
                 {% empty %}
                 <tr>
                     <td colspan="6" class="text-center py-6">No sales found.</td>
@@ -192,7 +191,7 @@
         </table>
     </div>
 
-    <!-- Pagination -->
+    <!-- PAGINATION -->
     {% if page_obj.has_other_pages %}
     <div class="flex justify-between mt-4">
         {% if page_obj.has_previous %}
@@ -201,8 +200,10 @@
             hx-target="#sales-table"
             hx-push-url="true"
             hx-indicator="#htmx-loading"
-            class="btn btn-soft btn-accent cursor-pointer hover:text-white"
-        ><i class="fa-solid fa-backward-step"></i> Previous</a>
+            class="btn btn-soft btn-accent hover:text-white"
+        >
+            <i class="fa-solid fa-backward-step"></i> Previous
+        </a>
         {% else %}
         <span class="btn btn-disabled">Previous</span>
         {% endif %}
@@ -215,14 +216,18 @@
             hx-target="#sales-table"
             hx-indicator="#htmx-loading"
             hx-push-url="true"
-            class="btn btn-soft btn-success cursor-pointer hover:text-white"
-        >Next <i class="fa-solid fa-forward-step"></i></a>
+            class="btn btn-soft btn-success hover:text-white"
+        >
+            Next <i class="fa-solid fa-forward-step"></i>
+        </a>
         {% else %}
         <span class="btn btn-disabled">Next</span>
         {% endif %}
     </div>
     {% endif %}
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 function confirmDelete(id) {
@@ -231,7 +236,6 @@ function confirmDelete(id) {
         text: "This action cannot be undone",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: "#dc2626",
         confirmButtonText: "Yes, delete",
         customClass: {
             confirmButton: "swal-confirm-btn",
@@ -248,16 +252,13 @@ function confirmDelete(id) {
         }
     })
 }
-function getCSRFToken() {
-    return document.querySelector('[name=csrfmiddlewaretoken]')?.value
-        || document.cookie
-            .split('; ')
-            .find(row => row.startsWith('csrftoken='))
-            ?.split('=')[1];
-}
 </script>
+
 <style>
-/* Customizing the SweetAlert buttons */
+td {
+    vertical-align: middle;
+}
+
 .swal-confirm-btn {
     background-color: #28a745 !important;
     color: white !important;

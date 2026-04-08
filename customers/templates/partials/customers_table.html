@@ -29,7 +29,6 @@
 
     <!-- PERIOD FILTER -->
     <select name="period" class="select select-success select-md">
-
         <option value="1d" {% if period == "1d" %}selected{% endif %}>Last 24 Hours</option>
         <option value="3d" {% if period == "3d" %}selected{% endif %}>Last 3 Days</option>
         <option value="7d" {% if period == "7d" %}selected{% endif %}>Last 1 Week</option>
@@ -40,7 +39,6 @@
         <option value="180d" {% if period == "180d" %}selected{% endif %}>Last 6 Months</option>
         <option value="365d" {% if period == "365d" %}selected{% endif %}>Last 1 Year</option>
         <option value="all" {% if period == "all" %}selected{% endif %}>All Time</option>
-
     </select>
 
     {% if request.accessible_orgs|length > 1 %}
@@ -55,25 +53,24 @@
     {% endif %}
 
     <button class="btn btn-success text-white">
-    <i class="fa fa-search"></i> Filter
+        <i class="fa fa-search"></i> Filter
     </button>
 
     {% if search_query or period != "all" or org_filter %}
     <a
-    hx-get="{% url 'customers_page' %}"
-    hx-target="#customers-table"
-    hx-push-url="true"
-    hx-indicator="#htmx-loading"
-    class="btn btn-error text-white"
+        hx-get="{% url 'customers_page' %}"
+        hx-target="#customers-table"
+        hx-push-url="true"
+        hx-indicator="#htmx-loading"
+        class="btn btn-error text-white"
     >
-    <i class="fa fa-times"></i> Reset
+        <i class="fa fa-times"></i> Reset
     </a>
     {% endif %}
 
     </form>
 
     <div class="flex justify-between items-center mb-3 text-sm text-gray-500">
-
         <div>
             Showing
             <span class="font-semibold text-success">
@@ -108,9 +105,7 @@
                     {% endfor %}
                 </span>
             {% endif %}
-
         </div>
-
     </div>
 
     <!-- TABLE -->
@@ -126,7 +121,6 @@
                                 hx-push-url="true"
                                 hx-indicator="#htmx-loading"
                                 class="flex items-center gap-1 cursor-pointer"
-                                title="Click to sort by {{ label }}" 
                             >
                                 {{ label }}
                                 {% if current_sort == field %}
@@ -141,16 +135,7 @@
                     {% endfor %}
 
                     {% if request.accessible_orgs|length > 1 %}
-                    <th>
-                        <a
-                            hx-get="{% url 'customers_page' %}?sort=org&dir={{ next_dirs.org }}&q={{ search_query }}"
-                            hx-target="#customers-table"
-                            hx-push-url="true"
-                            hx-indicator="#htmx-loading"
-                        >
-                            Organization
-                        </a>
-                    </th>
+                    <th>Organization</th>
                     {% endif %}
 
                     <th class="text-center">Actions</th>
@@ -160,37 +145,40 @@
             <tbody>
                 {% for c in page_obj %}
                 <tr class="h-20">
-                    <td>{{ c.name }}</td>
-                    <td>{{ c.phone_number }}</td>
-                    <td>{{ c.location }}</td>
-                    <td>
+                    <td class="align-middle">{{ c.name }}</td>
+                    <td class="align-middle">{{ c.phone_number }}</td>
+                    <td class="align-middle">{{ c.location }}</td>
+                    <td class="align-middle">
                         {% if c.gender == "M" %}Male
                         {% elif c.gender == "F" %}Female
                         {% elif c.gender == "P" %}Prefer not to say
                         {% else %}Other{% endif %}
                     </td>
-                    <td>{{ c.household_size }}</td>
-                    <td>{{ c.date|date:"j M Y" }}</td>
+                    <td class="align-middle">{{ c.household_size }}</td>
+                    <td class="align-middle">{{ c.date|date:"j M Y" }}</td>
+
                     {% if request.accessible_orgs|length > 1 %}
-                        <td>{{ c.organization.name }}</td>
+                        <td class="align-middle">{{ c.organization.name }}</td>
                     {% endif %}
-                    <td class="flex flex-row gap-2 justify-center">
-                        <a href="{% url 'customer_detail' c.id %}"
-                        class="btn btn-primary btn-sm text-white" title="View {{ c.name|truncatewords:1|slice:"-2" }}'s data">
-                           View <i class="fa-solid fa-binoculars"></i>
-                        </a>
-                        <a href="{% url 'customer_update' c.id %}"
-                            class="btn btn-accent btn-sm text-white" title="Edit {{ c.name|truncatewords:1|slice:"-2" }}'s data">
-                            <i class="fa-solid fa-user-pen"></i> Edit
-                        </a>
 
-                        <button
-                            onclick="confirmDeleteCustomer({{ c.id }}, '{{ c.name|escapejs }}')"
-                            title="Delete {{ c.name|truncatewords:1|slice:"-2" }}'s data"
-                            class="btn btn-error btn-sm text-white">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
+                    <td class="text-center align-middle">
+                        <div class="flex flex-row gap-2 justify-center items-center">
+                            <a href="{% url 'customer_detail' c.id %}"
+                               class="btn btn-primary btn-sm text-white">
+                                View <i class="fa-solid fa-binoculars"></i>
+                            </a>
 
+                            <a href="{% url 'customer_update' c.id %}"
+                               class="btn btn-accent btn-sm text-white">
+                                <i class="fa-solid fa-user-pen"></i> Edit
+                            </a>
+
+                            <button
+                                onclick="confirmDeleteCustomer({{ c.id }}, '{{ c.name|escapejs }}')"
+                                class="btn btn-error btn-sm text-white">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
@@ -212,7 +200,7 @@
                 hx-push-url="true"
                 hx-indicator="#htmx-loading"
                 class="btn btn-soft hover:text-white btn-accent"
-            ><i class="fa fa-backward-step"></i>Previous</a>
+            ><i class="fa fa-backward-step"></i> Previous</a>
         {% else %}
             <span class="btn btn-disabled">Previous</span>
         {% endif %}
@@ -226,13 +214,15 @@
                 hx-push-url="true"
                 hx-indicator="#htmx-loading"
                 class="btn btn-soft hover:text-white btn-success"
-            >Next<i class="fa fa-forward-step"></i></a>
+            >Next <i class="fa fa-forward-step"></i></a>
         {% else %}
             <span class="btn btn-disabled">Next</span>
         {% endif %}
     </div>
     {% endif %}
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 function confirmDeleteCustomer(customerId, customerName) {
@@ -288,8 +278,12 @@ function getCSRFToken() {
             ?.split('=')[1];
 }
 </script>
+
 <style>
-/* Customizing the SweetAlert buttons */
+td {
+    vertical-align: middle;
+}
+
 .swal-confirm-btn {
     background-color: #28a745 !important;
     color: white !important;
@@ -317,4 +311,3 @@ function getCSRFToken() {
     font-family: "Poppins", sans-serif !important;
 }
 </style>
-
