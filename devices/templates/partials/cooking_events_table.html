@@ -117,7 +117,7 @@
                     <div class="flex justify-between mt-4 items-center mb-4">
                         {% if cooking_event_rows.has_previous %}
                             <a
-                                hx-get="{% url 'devices:device_detail' device.deviceid %}?page={{ cooking_event_rows.previous_page_number }}&sort={{ current_sort }}&dir={{ current_dir }}"
+                                hx-get="{% url 'devices:device_detail' device.deviceid %}?page={{ cooking_event_rows.previous_page_number }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}"
                                 hx-target="#cooking-events-table"
                                 hx-push-url="true"
                                 hx-indicator="#htmx-loading"
@@ -137,7 +137,7 @@
 
                         {% if cooking_event_rows.has_next %}
                             <a
-                                hx-get="{% url 'devices:device_detail' device.deviceid %}?page={{ cooking_event_rows.next_page_number }}&sort={{ current_sort }}&dir={{ current_dir }}"
+                                hx-get="{% url 'devices:device_detail' device.deviceid %}?page={{ cooking_event_rows.next_page_number }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}"
                                 hx-target="#cooking-events-table"
                                 hx-push-url="true"
                                 hx-indicator="#htmx-loading"
