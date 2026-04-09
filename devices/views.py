@@ -549,7 +549,7 @@ def device_create(request):
 
     if request.method == "POST" and form.is_valid():
         form.save()
-        return redirect("device_list")
+        return redirect("devices:device_list")
 
     return render(request, "devices/device_form.html", {
         "form": form,
@@ -564,7 +564,7 @@ def device_edit(request, deviceid):
 
     if request.method == "POST" and form.is_valid():
         form.save()
-        return redirect("device_list")
+        return redirect("devices:device_list")
 
     return render(request, "devices/device_form.html", {
         "form": form,
@@ -577,7 +577,7 @@ def device_edit(request, deviceid):
 def device_delete(request, deviceid):
     device = get_object_or_404(DeviceInfo, deviceid=deviceid)
     device.delete()
-    return redirect("device_list")
+    return redirect("devices:device_list")
 
 @login_required
 def device_live_view(request, deviceid):
@@ -679,7 +679,7 @@ def trigger_schedule(request, pk):
 
     if schedule.executed:
         messages.warning(request, "Schedule already executed!")
-        return redirect("device_schedule_list")
+        return redirect("devices:device_schedule_list")
 
     for device in schedule.devices.all():
         result = call_change_status_api(device.deviceid, schedule.action)
@@ -692,4 +692,4 @@ def trigger_schedule(request, pk):
     schedule.executed = True
     schedule.save()
 
-    return redirect("device_schedule_list")
+    return redirect("devices:device_schedule_list")

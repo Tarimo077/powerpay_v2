@@ -15,7 +15,7 @@
         <div class="bg-white shadow-lg rounded-xl p-6 w-full">
 
             <div class="flex justify-end mb-4">
-                <a href="{% url 'create_ticket' %}" 
+                <a href="{% url 'support:create_ticket' %}" 
                 class="btn bg-green-600 text-white font-bold p-2 rounded-lg shadow-lg hover:bg-green-700 transition">
                     <i class="fa-solid fa-ticket"></i> New Support Ticket
                 </a>
@@ -63,7 +63,7 @@
                             </td>
 
                             <td class="px-6 py-4">
-                                <a href="{% url 'ticket_detail' ticket.id %}" class="btn rounded-lg text-white text-sm bg-blue-500 p-2">
+                                <a href="{% url 'support:ticket_detail' ticket.id %}" class="btn rounded-lg text-white text-sm bg-blue-500 p-2">
                                     Details
                                 </a>
                             </td>

@@ -53,7 +53,7 @@
                         rounded-box w-52 border border-base-300">
 
                     <li class="mt-4">
-                        <a href="{% url 'profile' %}" class="flex items-center gap-2">
+                        <a href="{% url 'accounts:profile' %}" class="flex items-center gap-2">
                             <i class="fa-solid fa-user"></i>
                             Profile
                         </a>
@@ -61,28 +61,32 @@
 
                     <li class="mt-4">
                         {% if is_superuser %}
-                            <a href="{% url 'admin_ticket_list' %}" class="flex items-center gap-2">
+                            <a href="{% url 'support:admin_ticket_list' %}" class="flex items-center gap-2">
                                 <i class="fa-solid fa-headset"></i>
                                 Support
                             </a>
                         {% else %}
-                            <a href="{% url 'support_ticket_list' %}" class="flex items-center gap-2">
+                            <a href="{% url 'support:support_ticket_list' %}" class="flex items-center gap-2">
                                 <i class="fa-solid fa-headset"></i>
                                 Support
                             </a>
                         {% endif %}
                     </li>
 
+                    {% if 'api' in allowed_apps %}
+
                     <li class="mt-4">
-                        <a href="{% url 'swagger-ui' %}" class="flex items-center gap-2" target="_blank" rel="noopener noreferrer">
+                        <a href="{% url 'api:swagger-ui' %}" class="flex items-center gap-2" target="_blank" rel="noopener noreferrer">
                             <i class="fa-solid fa-code"></i>
                             APIs
                         </a>
                     </li>
 
+                    {% endif %}
+
                     {% if request.user.role == 'superadmin' or request.user.role == 'admin' %}
                     <li class="mt-4">
-                        <a href="{% url 'invite_user' %}" class="flex items-center gap-2">
+                        <a href="{% url 'accounts:invite_user' %}" class="flex items-center gap-2">
                             <i class="fa-solid fa-person-circle-plus"></i>
                             Add User
                         </a>
@@ -90,7 +94,7 @@
                     {% endif %}
 
                     <li class="mt-4">
-                        <a href="{% url 'terms' %}" class="flex items-center gap-2">
+                        <a href="{% url 'accounts:terms' %}" class="flex items-center gap-2">
                             <i class="fa-solid fa-file-contract"></i>
                             Terms Of Service
                         </a>
@@ -105,7 +109,7 @@
                     </li>
 
                     <li class="border-t-2 border-base-200 mt-4">
-                        <form method="post" action="{% url 'logout' %}">
+                        <form method="post" action="{% url 'accounts:logout' %}">
                             {% csrf_token %}
                             <button type="submit"
                                     class="flex items-center gap-2 text-error cursor-pointer mt-1">

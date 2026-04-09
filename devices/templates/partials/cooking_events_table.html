@@ -14,7 +14,7 @@
                         <tr>
                             <th class="text-white">
                                 <a
-                                    hx-get="{% url 'device_detail' device.deviceid %}?sort=start&dir={{ next_dirs.start }}"
+                                    hx-get="{% url 'devices:device_detail' device.deviceid %}?sort=start&dir={{ next_dirs.start }}"
                                     hx-target="#cooking-events-table"
                                     hx-push-url="true"
                                     hx-indicator="#htmx-loading"
@@ -33,7 +33,7 @@
 
                             <th class="text-white">
                                 <a
-                                    hx-get="{% url 'device_detail' device.deviceid %}?sort=end&dir={{ next_dirs.end }}"
+                                    hx-get="{% url 'devices:device_detail' device.deviceid %}?sort=end&dir={{ next_dirs.end }}"
                                     hx-target="#cooking-events-table"
                                     hx-push-url="true"
                                     hx-indicator="#htmx-loading"
@@ -52,7 +52,7 @@
 
                             <th class="text-white">
                                 <a
-                                    hx-get="{% url 'device_detail' device.deviceid %}?sort=duration&dir={{ next_dirs.duration }}"
+                                    hx-get="{% url 'devices:device_detail' device.deviceid %}?sort=duration&dir={{ next_dirs.duration }}"
                                     hx-target="#cooking-events-table"
                                     hx-push-url="true"
                                     hx-indicator="#htmx-loading"
@@ -71,7 +71,7 @@
 
                             <th class="text-white">
                                 <a
-                                    hx-get="{% url 'device_detail' device.deviceid %}?sort=energy&dir={{ next_dirs.energy }}"
+                                    hx-get="{% url 'devices:device_detail' device.deviceid %}?sort=energy&dir={{ next_dirs.energy }}"
                                     hx-target="#cooking-events-table"
                                     hx-push-url="true"
                                     hx-indicator="#htmx-loading"
@@ -117,7 +117,7 @@
                     <div class="flex justify-between mt-4 items-center mb-4">
                         {% if cooking_event_rows.has_previous %}
                             <a
-                                hx-get="{% url 'device_detail' device.deviceid %}?page={{ cooking_event_rows.previous_page_number }}&sort={{ current_sort }}&dir={{ current_dir }}"
+                                hx-get="{% url 'devices:device_detail' device.deviceid %}?page={{ cooking_event_rows.previous_page_number }}&sort={{ current_sort }}&dir={{ current_dir }}"
                                 hx-target="#cooking-events-table"
                                 hx-push-url="true"
                                 hx-indicator="#htmx-loading"
@@ -137,7 +137,7 @@
 
                         {% if cooking_event_rows.has_next %}
                             <a
-                                hx-get="{% url 'device_detail' device.deviceid %}?page={{ cooking_event_rows.next_page_number }}&sort={{ current_sort }}&dir={{ current_dir }}"
+                                hx-get="{% url 'devices:device_detail' device.deviceid %}?page={{ cooking_event_rows.next_page_number }}&sort={{ current_sort }}&dir={{ current_dir }}"
                                 hx-target="#cooking-events-table"
                                 hx-push-url="true"
                                 hx-indicator="#htmx-loading"

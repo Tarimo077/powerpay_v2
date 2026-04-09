@@ -288,14 +288,14 @@ function switchTab(tab) {
 /* ================= CUSTOMER SALES SUBMIT ================= */
 document.getElementById("csForm").addEventListener("submit", function(e) {
     e.preventDefault();
-    submitImport(this, "{% url 'import_customers_sales' %}", 
+    submitImport(this, "{% url 'core:import_customers_sales' %}", 
         "This will create customers and sales.");
 });
 
 /* ================= TRANSACTIONS SUBMIT ================= */
 document.getElementById("txForm").addEventListener("submit", function(e) {
     e.preventDefault();
-    submitImport(this, "{% url 'import_transactions' %}", 
+    submitImport(this, "{% url 'core:import_transactions' %}", 
         "This will create transactions.");
 });
 

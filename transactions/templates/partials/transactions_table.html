@@ -10,7 +10,7 @@
 
     <!-- SEARCH + SORT BAR -->
     <form class="mb-4 flex flex-wrap items-center gap-2"
-        hx-get="{% url 'transactions_page' %}"
+        hx-get="{% url 'transactions:transactions_page' %}"
         hx-target="#transactions-table"
         hx-push-url="true"
         hx-indicator="#htmx-loading">
@@ -58,7 +58,7 @@
     {% if search_query or period != "all" or org_filter %}
     <button type="button"
             class="btn btn-error text-white flex items-center gap-1"
-            hx-get="{% url 'transactions_page' %}"
+            hx-get="{% url 'transactions:transactions_page' %}"
             hx-target="#transactions-table"
             hx-push-url="true"
             hx-indicator="#htmx-loading">
@@ -83,7 +83,7 @@
                 <tr>
                     {% for field, label, next_dir in fields_with_dir %}
                         <th class="px-4 py-3 text-left text-white">
-                            <a hx-get="{% url 'transactions_page' %}?sort={{ field }}&dir={{ next_dir }}&q={{ search_query }}&period={{ period }}&org={{ org_filter }}"
+                            <a hx-get="{% url 'transactions:transactions_page' %}?sort={{ field }}&dir={{ next_dir }}&q={{ search_query }}&period={{ period }}&org={{ org_filter }}"
                                hx-target="#transactions-table"
                                hx-push-url="true"
                                hx-indicator="#htmx-loading"
@@ -127,7 +127,7 @@
     {% if page_obj.has_other_pages %}
         <div class="flex justify-between mt-4 items-center flex-wrap gap-2">
             {% if page_obj.has_previous %}
-                <a hx-get="{% url 'transactions_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&org={{ org_filter }}"
+                <a hx-get="{% url 'transactions:transactions_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&org={{ org_filter }}"
                    hx-target="#transactions-table"
                    hx-push-url="true"
                    hx-indicator="#htmx-loading"
@@ -141,7 +141,7 @@
             <span class="font-medium">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
 
             {% if page_obj.has_next %}
-                <a hx-get="{% url 'transactions_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&org={{ org_filter }}"
+                <a hx-get="{% url 'transactions:transactions_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&org={{ org_filter }}"
                    hx-target="#transactions-table"
                    hx-push-url="true"
                    hx-indicator="#htmx-loading"

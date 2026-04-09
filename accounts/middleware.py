@@ -29,7 +29,7 @@ class OTPRequiredMiddleware:
             
             if otp_verified and not request.user.terms_accepted:
                 if request.path not in allowed_paths:
-                    return redirect("accept-terms")
+                    return redirect("accounts:accept-terms")
 
         response = self.get_response(request)
         return response

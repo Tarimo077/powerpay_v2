@@ -308,7 +308,7 @@ def customer_create(request):
         if form.is_valid():
             form.save()
             notify(request.user, "New Customer", f"{form.cleaned_data['name']} has been added as a customer.", "info")
-            return redirect("customers_page")
+            return redirect("customers:customers_page")
     else:
         form = CustomerForm(user=request.user)
 
@@ -327,7 +327,7 @@ def customer_update(request, pk):
     if form.is_valid():
         form.save()
         notify(request.user, "Customer Update", f"{customer.name}'s details have been updated.", "info")
-        return redirect("customer_detail", pk=pk)
+        return redirect("customers:customer_detail", pk=pk)
 
     return render(request, "customers/customer_form.html", {
         "form": form,

@@ -90,6 +90,14 @@
                     {% endif %}
                 </div>
 
+                <!-- Allowed Apps -->
+                <div>
+                    <label class="label font-semibold">Allowed Apps</label>
+                    {{ form.allowed_apps }}
+                    {% if form.allowed_apps.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.allowed_apps.errors }}</p>
+                    {% endif %}
+                </div>
 
                 <!-- Buttons -->
                 <div class="flex gap-3 pt-4">
@@ -97,7 +105,7 @@
                         <i class="fa-solid fa-save"></i> Save
                     </button>
 
-                    <a href="{% url 'organizations_page' %}" class="btn btn-outline">
+                    <a href="{% url 'organizations:organizations_page' %}" class="btn btn-outline">
                         Cancel
                     </a>
                 </div>

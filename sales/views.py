@@ -243,7 +243,7 @@ def sale_create(request):
         if form.is_valid():
             form.save()
             notify(request.user, "New Sale", f"{form.cleaned_data['product_serial_number']}({form.cleaned_data['product_name']}) sale has been created.", "success")
-            return redirect("sales_page")
+            return redirect("sales:sales_page")
     else:
         form = SaleForm(user=request.user)
 
@@ -261,7 +261,7 @@ def sale_update(request, pk):
         if form.is_valid():
             form.save()
             notify(request.user, "Sale Updated", f"{sale.product_serial_number}({sale.product_name}) has been updated.", "info")
-            return redirect("sales_page")
+            return redirect("sales:sales_page")
     else:
         form = SaleForm(instance=sale, user=request.user)
 
@@ -277,7 +277,7 @@ def sale_delete(request, pk):
     if request.method == "POST":
         sale.delete()
         notify(request.user, "Sale Deleted", f"{sale.product_serial_number}({sale.product_name}) has been deleted.", "warning")
-        return redirect("sales_page")
+        return redirect("sales:sales_page")
 
-    return redirect("sales_page")
+    return redirect("sales:sales_page")
 

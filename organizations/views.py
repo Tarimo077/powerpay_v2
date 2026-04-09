@@ -17,7 +17,7 @@ def is_admin_user(user):
 def organizations_page(request):
     if not is_admin_user(request.user):
         messages.error(request, "You are not allowed to view organizations.")
-        return redirect("index")
+        return redirect("core:index")
 
     q = request.GET.get("q", "")
 
@@ -51,14 +51,14 @@ def organizations_page(request):
 def organization_create(request):
     if not is_admin_user(request.user):
         messages.error(request, "You are not allowed to add organizations.")
-        return redirect("organizations_page")
+        return redirect("organizations:organizations_page")
 
     if request.method == "POST":
         form = OrganizationForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             notify(request.user, "New Organization", f"{form.cleaned_data['name']} organization has been created.", "success")
-            return redirect("organizations_page")
+            return redirect("organizations:organizations_page")
     else:
         form = OrganizationForm()
 
@@ -69,7 +69,7 @@ def organization_create(request):
 def organization_update(request, pk):
     if not is_admin_user(request.user):
         messages.error(request, "You are not allowed to edit organizations.")
-        return redirect("organizations_page")
+        return redirect("organizations:organizations_page")
 
     org = get_object_or_404(Organization, pk=pk)
 
@@ -78,7 +78,7 @@ def organization_update(request, pk):
         if form.is_valid():
             form.save()
             notify(request.user, "Organization Updated", f"{org.name} organization has been updated.", "info")
-            return redirect("organizations_page")
+            return redirect("organizations:organizations_page")
     else:
         form = OrganizationForm(instance=org)
 

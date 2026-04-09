@@ -18,7 +18,7 @@ def create_ticket(request):
             ticket = form.save(commit=False)
             ticket.user = request.user
             ticket.save()
-            return redirect('support_ticket_list')
+            return redirect('support:support_ticket_list')
     else:
         form = TicketForm()
     return render(request, 'support/create_ticket.html', {'form': form})
@@ -63,7 +63,7 @@ def ticket_detail(request, ticket_id):
                     type="warning"
                 )
 
-        return redirect('ticket_detail', ticket_id=ticket_id)
+        return redirect('support:ticket_detail', ticket_id=ticket_id)
 
     return render(request, "support/ticket_detail.html", {
         "ticket": ticket
@@ -131,7 +131,7 @@ def admin_ticket_detail(request, ticket_id):
                 type="success"
             )
 
-        return redirect("admin_ticket_detail", ticket_id=ticket_id)
+        return redirect("support:admin_ticket_detail", ticket_id=ticket_id)
 
     messages_page = ticket.messages.all()
     return render(request, "support/admin_ticket_detail.html", {

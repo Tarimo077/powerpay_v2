@@ -15,7 +15,7 @@
 
         <div class="flex justify-between items-center">
             <h1 class="text-2xl font-bold">Sale: {{ sale.product_serial_number }}</h1>
-            <a href="{% url 'sales_page' %}" class="btn btn-ghost btn-accent hover:text-white"><i class="fa-solid fa-backward-step"></i> Back To Sales</a>
+            <a href="{% url 'sales:sales_page' %}" class="btn btn-ghost btn-accent hover:text-white"><i class="fa-solid fa-backward-step"></i> Back To Sales</a>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -42,7 +42,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
                     <span class="text-gray-500">Customer</span>
-                    <div class="font-medium">{% if sale.customer %}{{ sale.customer.name }} <a href="{% url 'customer_detail' sale.customer_id %}"class="btn btn-primary text-white" title="{{ sale.customer.name|truncatewords:1|slice:"-2" }}'s data">View <i class="fa-solid fa-binoculars"></i></a>{% else %}-{% endif %}</div>
+                    <div class="font-medium">{% if sale.customer %}{{ sale.customer.name }} <a href="{% url 'customers:customer_detail' sale.customer_id %}"class="btn btn-primary text-white" title="{{ sale.customer.name|truncatewords:1|slice:"-2" }}'s data">View <i class="fa-solid fa-binoculars"></i></a>{% else %}-{% endif %}</div>
                 </div>
                 <div>
                     <span class="text-gray-500">Product Type</span>
@@ -59,7 +59,7 @@
                 <div>
                     <span class="text-gray-500">Metered</span>
                     <div class="font-medium">
-                        {% if sale.metered %}Yes <a href="{% url 'device_detail' sale.product_serial_number %}"class="btn btn-primary text-white" title="{{ sale.customer.name|truncatewords:1|slice:"-2" }}'s device data">View <i class="fa-solid fa-binoculars"></i></a>
+                        {% if sale.metered %}Yes <a href="{% url 'devices:device_detail' sale.product_serial_number %}"class="btn btn-primary text-white" title="{{ sale.customer.name|truncatewords:1|slice:"-2" }}'s device data">View <i class="fa-solid fa-binoculars"></i></a>
                         {% else %}No {% endif %}
                     </div>
                 </div>

@@ -141,7 +141,7 @@
 
             {% if search_query or status_filter or mode or metered_filter != "" %}
                 <a class="btn btn-error text-white flex items-center gap-1"
-                   href="{% url 'paygo_sales' %}">
+                   href="{% url 'paygo:paygo_sales' %}">
                         <i class="fa fa-times"></i> Reset
                 </a>
 
@@ -221,7 +221,7 @@
 
                 <td>
                     <a class="underline hover:text-success"
-                    href="{% url 'sale_detail' row.sale.id %}"
+                    href="{% url 'sales:sale_detail' row.sale.id %}"
                     title="Click to see the sale details for device {{ row.serial }}">
                         {{ row.serial }}
                     </a>
@@ -229,7 +229,7 @@
 
                 <td class="text-center">
                     <a class="underline hover:text-success"
-                    href="{% url 'customer_detail' row.sale.customer.id %}"
+                    href="{% url 'customers:customer_detail' row.sale.customer.id %}"
                     title="Click to see {{ row.customer }}'s customer details">
                         {{ row.customer }}
                     </a>
@@ -301,7 +301,7 @@
                             </span>
 
                             {% if row.metered %}
-                                <form action="{% url 'toggle_auto_paygo' row.sale.id %}" method="POST" class="flex flex-col items-center">
+                                <form action="{% url 'paygo:toggle_auto_paygo' row.sale.id %}" method="POST" class="flex flex-col items-center">
                                     {% csrf_token %}
                                     <input 
                                         type="checkbox" 

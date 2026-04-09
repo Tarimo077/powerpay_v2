@@ -17,7 +17,7 @@
 
                 data-deviceid="{{ device.deviceid }}"
 
-                hx-post="{% url 'change_device_status_partial' %}"
+                hx-post="{% url 'devices:change_device_status_partial' %}"
                 hx-trigger="change"
                 hx-disabled-elt="this"
                 hx-target="#device-{{ device.deviceid }}"

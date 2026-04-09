@@ -1,6 +1,9 @@
 from django.urls import path
 from . import views
 
+
+app_name = "inventory"
+
 urlpatterns = [
     path("", views.inventory_page, name="inventory_page"),
     path("items/<int:pk>/", views.inventory_detail, name="inventory_detail"),

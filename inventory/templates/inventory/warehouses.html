@@ -12,7 +12,7 @@
 
 {% if is_superuser %}
   <div class="flex justify-end w-full mb-4">
-    <a href="{% url 'warehouse_create' %}"
+    <a href="{% url 'inventory:warehouse_create' %}"
       class="btn btn-success text-white">
       <i class="fa-solid fa-square-plus"></i> Add Warehouse
     </a>

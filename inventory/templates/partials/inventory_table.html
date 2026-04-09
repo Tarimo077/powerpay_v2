@@ -12,7 +12,7 @@
 
 <form
     class="flex flex-wrap gap-2 mt-2 mb-2"
-    hx-get="{% url 'inventory_page' %}"
+    hx-get="{% url 'inventory:inventory_page' %}"
     hx-target="#inventory-table"
     hx-push-url="true"
     hx-indicator="#htmx-loading"
@@ -68,7 +68,7 @@
 {% if search_query or time_filter or warehouse_filter or org_filter %}
 <a
     class="btn btn-error text-white"
-    hx-get="{% url 'inventory_page' %}"
+    hx-get="{% url 'inventory:inventory_page' %}"
     hx-target="#inventory-table"
     hx-push-url="true"
     hx-indicator="#htmx-loading">
@@ -93,7 +93,7 @@ item{{ total_results|pluralize }}
             {% for label, field_name in inventory_fields %}
             <th class="text-center">
                 <a class="cursor-pointer flex items-center gap-1 {% if label == 'Actions' %}justify-center{% endif %}"
-                   hx-get="{% url 'inventory_page' %}?sort={{ field_name }}&dir={{ next_dirs|get_item:field_name }}&q={{ search_query }}&period={{ period }}&warehouse={{ warehouse }}&org={{ org_filter }}"
+                   hx-get="{% url 'inventory:inventory_page' %}?sort={{ field_name }}&dir={{ next_dirs|get_item:field_name }}&q={{ search_query }}&period={{ period }}&warehouse={{ warehouse }}&org={{ org_filter }}"
                    hx-target="#inventory-table"
                    hx-push-url="true"
                    hx-indicator="#htmx-loading">
@@ -122,24 +122,24 @@ item{{ total_results|pluralize }}
 
             <td class="text-center align-middle">
                 <div class="flex flex-row justify-center gap-2 items-center">
-                    <a href="{% url 'inventory_detail' item.id %}"
+                    <a href="{% url 'inventory:inventory_detail' item.id %}"
                        class="btn btn-primary btn-sm text-white">
                        View <i class="fa-solid fa-binoculars"></i>
                     </a>
 
-                    <a href="{% url 'item_update' item.id %}"
+                    <a href="{% url 'inventory:item_update' item.id %}"
                        class="btn btn-accent btn-sm text-white">
                        Edit <i class="fa-solid fa-pen-to-square"></i>
                     </a>
 
                     {% if is_superuser %}
-                    <a href="{% url 'move_item' item.id %}"
+                    <a href="{% url 'inventory:move_item' item.id %}"
                        class="btn btn-warning btn-sm text-white">
                        Move <i class="fa-solid fa-rotate"></i>
                     </a>
                     {% endif %}
 
-                    <a href="{% url 'item_delete' item.id %}"
+                    <a href="{% url 'inventory:item_delete' item.id %}"
                        class="btn btn-error btn-sm text-white">
                        Delete <i class="fa-solid fa-trash"></i>
                     </a>
@@ -161,7 +161,7 @@ item{{ total_results|pluralize }}
 <div class="flex justify-between mt-4 mb-2">
     {% if page_obj.has_previous %}
     <a
-        hx-get="{% url 'inventory_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&warehouse={{ warehouse }}&org={{ org_filter }}"
+        hx-get="{% url 'inventory:inventory_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&warehouse={{ warehouse }}&org={{ org_filter }}"
         hx-target="#inventory-table"
         hx-push-url="true"
         hx-indicator="#htmx-loading"
@@ -177,7 +177,7 @@ item{{ total_results|pluralize }}
 
     {% if page_obj.has_next %}
     <a
-        hx-get="{% url 'inventory_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&warehouse={{ warehouse }}&org={{ org_filter }}"
+        hx-get="{% url 'inventory:inventory_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&warehouse={{ warehouse }}&org={{ org_filter }}"
         hx-target="#inventory-table"
         hx-indicator="#htmx-loading"
         hx-push-url="true"

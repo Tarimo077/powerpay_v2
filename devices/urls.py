@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 
+app_name = "devices"
+
 urlpatterns = [
     # Device list and details
     path("", views.device_list, name="device_list"),

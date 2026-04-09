@@ -9,7 +9,7 @@
 
     <!-- Search -->
     <form class="mb-4 flex gap-2"
-          hx-get="{% url 'organizations_page' %}"
+          hx-get="{% url 'organizations:organizations_page' %}"
           hx-target="#organizations-table"
           hx-push-url="true"
           hx-indicator="#htmx-loading">
@@ -52,7 +52,7 @@
                     <td>{{ org.email|default:"-" }}</td>
                     <td>{{ org.created_at|date:"j M Y" }}</td>
                     <td class="flex gap-2 justify-center">
-                        <a href="{% url 'organization_update' org.id %}"
+                        <a href="{% url 'organizations:organization_update' org.id %}"
                            class="btn btn-accent btn-sm text-white">
                            <i class="fa-solid fa-user-pen"></i>Edit
                         </a>
@@ -76,7 +76,7 @@
     {% if page_obj.has_other_pages %}
     <div class="flex justify-between mt-4">
         {% if page_obj.has_previous %}
-        <a hx-get="{% url 'organizations_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}"
+        <a hx-get="{% url 'organizations:organizations_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}"
            hx-target="#organizations-table"
            hx-push-url="true"
            class="btn btn-soft btn-accent">Previous</a>
@@ -87,7 +87,7 @@
         <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
 
         {% if page_obj.has_next %}
-        <a hx-get="{% url 'organizations_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}"
+        <a hx-get="{% url 'organizations:organizations_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}"
            hx-target="#organizations-table"
            hx-push-url="true"
            class="btn btn-soft btn-success">Next</a>

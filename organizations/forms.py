@@ -1,44 +1,115 @@
 from django import forms
-from .models import Organization, OrganizationAccess
+from .models import Organization, OrganizationAccess, OrganizationAppAccess
+
 
 class OrganizationForm(forms.ModelForm):
-    # Multi-select for allowed orgs
+    # -------------------------------
+    # ORG → ORG ACCESS
+    # -------------------------------
     allowed_orgs = forms.ModelMultipleChoiceField(
         queryset=Organization.objects.all(),
         required=False,
-        widget=forms.SelectMultiple(attrs={"class": "select select-bordered w-full", "size": 5}),
+        widget=forms.SelectMultiple(
+            attrs={"class": "select select-bordered w-full", "size": 5}
+        ),
         label="Can Access Organizations"
     )
 
+    # -------------------------------
+    # ORG → APP ACCESS (NEW)
+    # -------------------------------
+    allowed_apps = forms.MultipleChoiceField(
+        choices=OrganizationAppAccess.APP_CHOICES,
+        required=False,
+        widget=forms.SelectMultiple(
+            attrs={"class": "select select-bordered w-full", "size": 6}
+        ),
+        label="Allowed Apps"
+    )
+
+    # -------------------------------
+    # META
+    # -------------------------------
     class Meta:
         model = Organization
-        fields = ["name", "address", "phone_number", "email", "logo", "can_view_other_orgs"]
+        fields = [
+            "name",
+            "address",
+            "phone_number",
+            "email",
+            "logo",
+            "can_view_other_orgs",
+        ]
         widgets = {
             "name": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
-            "address": forms.Textarea(attrs={"class": "textarea textarea-bordered w-full", "rows": 3}),
+            "address": forms.Textarea(
+                attrs={"class": "textarea textarea-bordered w-full", "rows": 3}
+            ),
             "phone_number": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
             "email": forms.EmailInput(attrs={"class": "input input-bordered w-full"}),
-            "can_view_other_orgs": forms.CheckboxInput(attrs={"class": "checkbox checkbox-success"}),
+            "can_view_other_orgs": forms.CheckboxInput(
+                attrs={"class": "checkbox checkbox-success"}
+            ),
         }
 
+    # -------------------------------
+    # INIT (PRE-FILL VALUES)
+    # -------------------------------
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         if self.instance.pk:
-            # Pre-fill allowed_orgs based on OrganizationAccess
+            # Pre-fill ORG access
             self.fields["allowed_orgs"].initial = [
-                access.target_org.id for access in self.instance.source_access.all()
+                access.target_org.id
+                for access in self.instance.source_access.all()
             ]
 
+            # Pre-fill APP access
+            self.fields["allowed_apps"].initial = list(
+                OrganizationAppAccess.objects.filter(
+                    organization=self.instance
+                ).values_list("app_name", flat=True)
+            )
+
+    # -------------------------------
+    # SAVE LOGIC
+    # -------------------------------
     def save(self, commit=True):
         org = super().save(commit)
 
-        # Save allowed_orgs as OrganizationAccess
+        # ===============================
+        # 1. HANDLE ORG ACCESS
+        # ===============================
         selected_orgs = self.cleaned_data.get("allowed_orgs", [])
-        # Remove old access
-        OrganizationAccess.objects.filter(source_org=org).exclude(target_org__in=selected_orgs).delete()
-        # Add new access
+
+        # Remove unselected
+        OrganizationAccess.objects.filter(source_org=org).exclude(
+            target_org__in=selected_orgs
+        ).delete()
+
+        # Add new
         for target_org in selected_orgs:
-            OrganizationAccess.objects.get_or_create(source_org=org, target_org=target_org)
+            OrganizationAccess.objects.get_or_create(
+                source_org=org,
+                target_org=target_org
+            )
+
+        # ===============================
+        # 2. HANDLE APP ACCESS (NEW)
+        # ===============================
+        selected_apps = self.cleaned_data.get("allowed_apps", [])
+
+        # Remove unselected apps
+        OrganizationAppAccess.objects.filter(
+            organization=org
+        ).exclude(app_name__in=selected_apps).delete()
+
+        # Add new apps
+        for app in selected_apps:
+            OrganizationAppAccess.objects.get_or_create(
+                organization=org,
+                app_name=app
+            )
 
         return org

@@ -13,7 +13,7 @@
     <!-- SEARCH BAR -->
     <form
         class="mb-4 flex flex-wrap items-center gap-2"
-        hx-get="{% url 'customers_page' %}"
+        hx-get="{% url 'customers:customers_page' %}"
         hx-target="#customers-table"
         hx-push-url="true"
         hx-indicator="#htmx-loading"
@@ -58,7 +58,7 @@
 
     {% if search_query or period != "all" or org_filter %}
     <a
-        hx-get="{% url 'customers_page' %}"
+        hx-get="{% url 'customers:customers_page' %}"
         hx-target="#customers-table"
         hx-push-url="true"
         hx-indicator="#htmx-loading"
@@ -116,7 +116,7 @@
                     {% for field,label in fields %}
                         <th>
                             <a
-                                hx-get="{% url 'customers_page' %}?sort={{ field }}&dir={{ next_dirs|get_item:field }}&q={{ search_query }}&period={{ period }}&org={{ org_filter }}"
+                                hx-get="{% url 'customers:customers_page' %}?sort={{ field }}&dir={{ next_dirs|get_item:field }}&q={{ search_query }}&period={{ period }}&org={{ org_filter }}"
                                 hx-target="#customers-table"
                                 hx-push-url="true"
                                 hx-indicator="#htmx-loading"
@@ -163,12 +163,12 @@
 
                     <td class="text-center align-middle">
                         <div class="flex flex-row gap-2 justify-center items-center">
-                            <a href="{% url 'customer_detail' c.id %}"
+                            <a href="{% url 'customers:customer_detail' c.id %}"
                                class="btn btn-primary btn-sm text-white">
                                 View <i class="fa-solid fa-binoculars"></i>
                             </a>
 
-                            <a href="{% url 'customer_update' c.id %}"
+                            <a href="{% url 'customers:customer_update' c.id %}"
                                class="btn btn-accent btn-sm text-white">
                                 <i class="fa-solid fa-user-pen"></i> Edit
                             </a>
@@ -195,7 +195,7 @@
     <div class="flex justify-between mt-4">
         {% if page_obj.has_previous %}
             <a
-                hx-get="{% url 'customers_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&org={{ org_filter }}"
+                hx-get="{% url 'customers:customers_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&org={{ org_filter }}"
                 hx-target="#customers-table"
                 hx-push-url="true"
                 hx-indicator="#htmx-loading"
@@ -209,7 +209,7 @@
 
         {% if page_obj.has_next %}
             <a
-                hx-get="{% url 'customers_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&org={{ org_filter }}"
+                hx-get="{% url 'customers:customers_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&org={{ org_filter }}"
                 hx-target="#customers-table"
                 hx-push-url="true"
                 hx-indicator="#htmx-loading"
@@ -261,7 +261,7 @@ function deleteCustomer(customerId) {
                 timer: 1200,
                 showConfirmButton: false
             }).then(() => {
-                window.location.href = "{% url 'customers_page' %}";
+                window.location.href = "{% url 'customers:customers_page' %}";
             });
         }
     })

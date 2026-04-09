@@ -5,7 +5,6 @@ from django.contrib.auth import login
 from .models import EmailOTP, User, UserInvite
 from .forms import LoginForm, InviteUserForm
 import random
-from django.contrib import messages
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.contrib.auth.views import PasswordResetView
@@ -43,7 +42,7 @@ def login_view(request):
                 messages.success(request, "An OTP has been sent to your email.")
 
                 request.session["otp_user_id"] = user.id
-                return redirect("verify_otp")
+                return redirect("accounts:verify_otp")
 
             else:
                 messages.error(request, "Invalid username or password")
@@ -56,7 +55,7 @@ def resend_otp(request):
     user_id = request.session.get("otp_user_id")
     if not user_id:
         messages.error(request, "Session expired. Please login again.")
-        return redirect("login")
+        return redirect("accounts:login")
 
     user = User.objects.get(id=user_id)
 
@@ -69,28 +68,28 @@ def resend_otp(request):
 
     send_otp_email(user, otp)
     messages.success(request, "A new OTP has been sent to your email.")
-    return redirect("verify_otp")
+    return redirect("accounts:verify_otp")
 
 def verify_otp(request):
     user_id = request.session.get("otp_user_id")
     if not user_id:
         messages.error(request, "Session expired. Please login again.")
-        return redirect("login")
+        return redirect("accounts:login")
 
     otp_obj = EmailOTP.objects.filter(user_id=user_id).order_by('-created_at').first()
     if not otp_obj:
         messages.error(request, "No OTP found. Please resend OTP.")
-        return redirect("resend_otp")
+        return redirect("accounts:resend_otp")
 
     if request.method == "POST":
         otp_input = request.POST.get("otp")
         if otp_obj.is_expired():
             messages.error(request, "OTP expired. Please resend OTP.")
-            return redirect("resend_otp")
+            return redirect("accounts:resend_otp")
 
         if otp_obj.attempts >= MAX_ATTEMPTS:
             messages.error(request, "Maximum attempts reached. OTP locked. Resend OTP.")
-            return redirect("resend_otp")
+            return redirect("accounts:resend_otp")
 
         if otp_input == otp_obj.otp:
             # Successful login
@@ -102,7 +101,7 @@ def verify_otp(request):
             request.session.pop("otp_user_id", None)
             otp_obj.delete()
             messages.success(request, "Login successful!")
-            return redirect("index")  # Default landing page
+            return redirect("core:index")  # Default landing page
 
         else:
             otp_obj.attempts += 1
@@ -171,7 +170,7 @@ def send_invite_email(invite):
 def invite_user(request):
     if not (request.user.is_superuser or request.user.role == "admin"):
         messages.error(request, "You are not allowed to invite users.")
-        return redirect("index")
+        return redirect("core:index")
 
     if request.method == "POST":
         form = InviteUserForm(request.POST, user=request.user)
@@ -186,7 +185,7 @@ def invite_user(request):
 
             send_invite_email(invite)
             notify(request.user, "Invitation Sent", f"An email invite was sent to {invite.email} to join the {invite.organization} organization.", "info")
-            return redirect("invite_user")
+            return redirect("accounts:invite_user")
     else:
         form = InviteUserForm(user=request.user)
 
@@ -201,7 +200,7 @@ def accept_invite(request, token):
 
     if not invite.is_valid():
         messages.error(request, "Invite link expired or already used.")
-        return redirect("login")
+        return redirect("accounts:login")
 
     if request.method == "POST":
         password = request.POST.get("password")
@@ -219,7 +218,7 @@ def accept_invite(request, token):
 
         notify(user, "Welcome", f"Welcome to the {invite.organization} organization.", "success")
         notify(invite.invited_by, "Invite Accepted", f"Your invite to {invite.email} has been accepted.", "success")
-        return redirect("login")
+        return redirect("accounts:login")
 
     return render(request, "accounts/accept_invite.html")
 
@@ -242,7 +241,7 @@ def profile_view(request):
 def accept_terms(request):
 
     if request.user.terms_accepted:
-        return redirect("index")  # or your home page
+        return redirect("core:index")  # or your home page
 
     if request.method == "POST":
         request.user.terms_accepted = True

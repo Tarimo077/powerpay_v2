@@ -13,7 +13,7 @@
     <!-- SEARCH BAR -->
     <form
         class="mb-4 flex flex-wrap items-center gap-2"
-        hx-get="{% url 'device_list' %}"
+        hx-get="{% url 'devices:device_list' %}"
         hx-target="#devices-table"
         hx-push-url="true"
         hx-indicator="#htmx-loading"
@@ -52,7 +52,7 @@
 
     {% if search_query or status_filter != "all" or org_filter %}
     <a
-        hx-get="{% url 'device_list' %}"
+        hx-get="{% url 'devices:device_list' %}"
         hx-target="#devices-table"
         hx-push-url="true"
         hx-indicator="#htmx-loading"
@@ -119,7 +119,7 @@
     <div class="flex justify-between mt-4">
         {% if page_obj.has_previous %}
             <a
-                hx-get="{% url 'device_list' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}"
+                hx-get="{% url 'devices:device_list' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}"
                 hx-target="#devices-table"
                 hx-push-url="true"
                 hx-indicator="#htmx-loading"
@@ -133,7 +133,7 @@
 
         {% if page_obj.has_next %}
             <a
-                hx-get="{% url 'device_list' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}"
+                hx-get="{% url 'devices:device_list' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}"
                 hx-target="#devices-table"
                 hx-push-url="true"
                 hx-indicator="#htmx-loading"

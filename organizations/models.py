@@ -39,3 +39,32 @@ class OrganizationAccess(models.Model):
 
     def __str__(self):
         return f"{self.source_org} -> {self.target_org}"
+    
+
+class OrganizationAppAccess(models.Model):
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name="app_access",
+        db_column="organization_id"
+    )
+
+    APP_CHOICES = [
+        ("paygo", "PayGo"),
+        ("inventory", "Inventory"),
+        ("transactions", "Transactions"),
+        ("customers", "Customers"),
+        ("sales", "Sales"),
+        ("organizations", "Organizations"),
+        ("api", "API"),
+    ]
+
+    app_name = models.CharField(max_length=50, choices=APP_CHOICES)
+
+    class Meta:
+        db_table = "organization_app_access"
+        managed = False
+        unique_together = ("organization", "app_name")
+
+    def __str__(self):
+        return f"{self.organization} -> {self.app_name}"

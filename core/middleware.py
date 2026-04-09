@@ -1,5 +1,7 @@
 from .org_checker import get_accessible_organizations
 from organizations.models import Organization
+from django.http import HttpResponseForbidden
+from organizations.utils import get_allowed_apps
 
 
 class OrganizationMiddleware:
@@ -92,5 +94,68 @@ class OrganizationMiddleware:
         request.accessible_orgs = accessible_orgs
         request.selected_org = selected_org
         request.org_id = org_id  # 🔥 This is what your cache + views should use
+
+        return self.get_response(request)
+
+
+class AppAccessMiddleware:
+    """
+    Restrict access to Django apps based on organization permissions
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+        # Apps that should NEVER be blocked
+        self.exempt_apps = [
+            "accounts",
+            "admin",
+            "auth",
+            "contenttypes",
+            "sessions",
+            "static",
+            "devices",
+            "core",
+            "notifications",
+            "support",
+        ]
+
+    def __call__(self, request):
+
+        # Skip if not logged in
+        if not request.user.is_authenticated:
+            return self.get_response(request)
+
+        # Skip superadmins (IMPORTANT)
+        if request.user.role == "superadmin":
+            return self.get_response(request)
+
+        # Get current app
+        resolver = request.resolver_match
+
+        if not resolver:
+            return self.get_response(request)
+
+        app_name = resolver.app_name
+
+        # Skip if no app name
+        if not app_name:
+            return self.get_response(request)
+
+        # Skip exempt apps
+        if app_name in self.exempt_apps:
+            return self.get_response(request)
+
+        # Get user's organization
+        org = request.user.organization
+
+        # Get allowed apps
+        allowed_apps = get_allowed_apps(org)
+
+        # 🚫 BLOCK ACCESS
+        if app_name not in allowed_apps:
+            return HttpResponseForbidden(
+                f"You do not have access to the '{app_name}' module."
+            )
 
         return self.get_response(request)

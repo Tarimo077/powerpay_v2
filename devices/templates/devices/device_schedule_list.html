@@ -8,7 +8,7 @@
         <h2 class="text-2xl font-bold mb-6">Device Schedules</h2>
 
         <div class="flex justify-end w-full mb-4">
-            <a href="{% url 'device_schedule_add' %}" class="btn btn-success text-white"><i class="fa-solid fa-calendar-plus"></i>Add Schedule</a>
+            <a href="{% url 'devices:device_schedule_add' %}" class="btn btn-success text-white"><i class="fa-solid fa-calendar-plus"></i>Add Schedule</a>
         </div>
 
         <div class="bg-base-300 rounded-lg shadow overflow-x-auto">
@@ -36,9 +36,9 @@
                         <td class="text-center">{{ sched.executed }}</td>
                         <td class="text-center">{{ sched.created_by }}</td>
                         <td class="flex justify-center gap-4">
-                            <a class="btn btn-primary text-white text-xs" href="{% url 'device_schedule_edit' sched.id %}"><i class="fa-solid fa-pen-to-square"></i>Edit</a>
-                            <a class="btn btn-warning text-white text-xs" href="{% url 'device_schedule_trigger' sched.id %}"><i class="fa-solid fa-plug-circle-bolt"></i>Trigger Now</a>
-                            <a class="btn btn-error text-white text-xs mr-2" href="{% url 'device_schedule_delete' sched.id %}"><i class="fa-solid fa-trash"></i>Delete</a>
+                            <a class="btn btn-primary text-white text-xs" href="{% url 'devices:device_schedule_edit' sched.id %}"><i class="fa-solid fa-pen-to-square"></i>Edit</a>
+                            <a class="btn btn-warning text-white text-xs" href="{% url 'devices:device_schedule_trigger' sched.id %}"><i class="fa-solid fa-plug-circle-bolt"></i>Trigger Now</a>
+                            <a class="btn btn-error text-white text-xs mr-2" href="{% url 'devices:device_schedule_delete' sched.id %}"><i class="fa-solid fa-trash"></i>Delete</a>
                         </td>
                     </tr>
                     {% empty %}

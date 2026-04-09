@@ -301,7 +301,7 @@ def toggle_auto_paygo(request, sale_id):
     settings.auto_disable = not settings.auto_disable
     settings.save()
 
-    return redirect("paygo_sales")
+    return redirect("paygo:paygo_sales")
 
 @login_required
 @require_POST

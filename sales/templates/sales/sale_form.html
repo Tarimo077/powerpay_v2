@@ -17,7 +17,7 @@
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-2xl font-bold">{{ title }}</h1>
 
-            <a href="{% url 'sales_page' %}"
+            <a href="{% url 'sales:sales_page' %}"
                class="btn btn-ghost btn-accent hover:text-white">
                 <i class="fa-solid fa-backward-step"></i> Back
             </a>
@@ -117,7 +117,7 @@
 
                 <!-- ACTIONS -->
                 <div class="flex justify-end gap-2 mt-6">
-                    <a href="{% url 'sales_page' %}"
+                    <a href="{% url 'sales:sales_page' %}"
                        class="btn btn-error text-white">
                         <i class="fa-solid fa-ban"></i> Cancel
                     </a>
