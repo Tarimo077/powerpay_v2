@@ -229,7 +229,7 @@ def profile_view(request):
         form = UserProfileForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
-            return redirect("profile")
+            return redirect("accounts:profile")
     else:
         form = UserProfileForm(instance=request.user)
 
