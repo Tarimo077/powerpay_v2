@@ -24,7 +24,7 @@ class StyledPasswordResetForm(PasswordResetForm):
                 "class": (
                     "input input-bordered w-full border-green-300 "
                     "focus:border-green-500 focus:ring focus:ring-green-200 "
-                    "rounded-lg transition bg-white dark:bg-gray-800"
+                    "rounded-lg transition bg-base-100"
                 )
             }
         )
@@ -38,13 +38,13 @@ class StyledSetPasswordForm(SetPasswordForm):
             "placeholder": "Enter new password",
             "class": "input input-bordered w-full border-green-300 "
                      "focus:border-green-500 focus:ring focus:ring-green-200 "
-                     "rounded-lg bg-white dark:bg-gray-800 transition"
+                     "rounded-lg bg-base-100 transition"
         })
         self.fields["new_password2"].widget.attrs.update({
             "placeholder": "Confirm new password",
             "class": "input input-bordered w-full border-green-300 "
                      "focus:border-green-500 focus:ring focus:ring-green-200 "
-                     "rounded-lg bg-white dark:bg-gray-800 transition"
+                     "rounded-lg bg-base-100 transition"
         })
 
 
