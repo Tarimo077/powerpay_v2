@@ -9,7 +9,7 @@
   <div class="absolute w-72 h-72 bg-orange-300 rounded-full opacity-30 animate-none -bottom-36 -right-36"></div>
 
   <!-- OTP Card -->
-  <div class="card w-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 transform transition duration-500 z-10">
+  <div class="card w-96 bg-base-100 rounded-2xl shadow-2xl p-8 transform transition duration-500 z-10">
 
     <!-- Logo -->
     <div class="flex justify-center mb-4">
@@ -17,7 +17,7 @@
     </div>
 
     <!-- Tagline -->
-    <p class="text-center text-lg font-bold text-green-700 dark:text-green-400 mb-6">
+    <p class="text-center text-lg font-bold text-success mb-6">
       Appliances for the next billion
     </p>
 
@@ -25,7 +25,7 @@
     <form method="POST" class="space-y-5">
       {% csrf_token %}
 
-      <p class="text-center text-gray-700 dark:text-gray-200 mb-2">
+      <p class="text-center mb-2">
         We sent a 6-digit code to <span class="font-semibold text-orange-500">{{ email }}</span><br> Enter it below:
       </p>
 
@@ -44,16 +44,16 @@
 
       <div class="flex justify-center">
         <button type="submit" 
-                class="btn bg-green-500 hover:bg-green-700 text-white font-bold w-1/2 rounded-lg shadow-lg">
+                class="btn bg-success hover:bg-green-700 text-white font-bold w-1/2 rounded-lg shadow-lg">
           <i class="fa-solid fa-lock fa-flip m-2"></i> Verify OTP
         </button>
       </div>
 
     </form>
 
-    <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-300">
+    <p class="mt-4 text-center text-sm">
         Didn't receive the code? 
-        <a href="{% url 'accounts:resend_otp' %}" class="text-green-600 dark:text-green-400 hover:text-orange-500 font-semibold">Resend OTP</a>
+        <a href="{% url 'accounts:resend_otp' %}" class="text-success hover:text-warning font-semibold">Resend OTP</a>
     </p>
 
   </div>

@@ -19,7 +19,7 @@
 
             <h2 class="text-2xl font-bold mb-6">Customer + Sales Import</h2>
 
-            <div class="card bg-white shadow-lg mb-8">
+            <div class="card bg-base-100 shadow-lg mb-8">
                 <div class="card-body">
 
                     <h3 class="text-2xl font-semibold mb-2">
@@ -79,11 +79,11 @@
 
                     <h4 class="text-2xl font-semibold mb-2">📌 Allowed Values</h4>
                     <div class="text-sm space-y-4">
-                        <div class="flex gap-4"><strong>gender:</strong> M, F, P, O <p class="text-sm text-gray-500">(Male, Female, Prefer Not To Say, Other)</p></div>
-                        <div class="flex gap-4"><strong>household_type:</strong> M, F, C, P, O <p class="text-sm text-gray-500">(Male Headed, Female Headed, Child Headed, Prefer Not To Say, Other)</p></div>
-                        <div class="flex gap-4"><strong>preferred_language:</strong> EN, SW, NA <p class="text-sm text-gray-500">(English, Swahili, Native Language)</p></div>
-                        <div class="flex gap-4"><strong>product_type:</strong> EPC, IC, O <p class="text-sm text-gray-500">(Electric Pressure Cooker, Induction Cooker, Other)</p></div>
-                        <div class="flex gap-4"><strong>purchase_mode:</strong> C, DA, P <p class="text-sm text-gray-500">(Cash, Deposit Account, Paygo)</p></div>
+                        <div class="flex gap-4"><strong>gender:</strong> M, F, P, O <p class="text-sm">(Male, Female, Prefer Not To Say, Other)</p></div>
+                        <div class="flex gap-4"><strong>household_type:</strong> M, F, C, P, O <p class="text-sm">(Male Headed, Female Headed, Child Headed, Prefer Not To Say, Other)</p></div>
+                        <div class="flex gap-4"><strong>preferred_language:</strong> EN, SW, NA <p class="text-sm">(English, Swahili, Native Language)</p></div>
+                        <div class="flex gap-4"><strong>product_type:</strong> EPC, IC, O <p class="text-sm">(Electric Pressure Cooker, Induction Cooker, Other)</p></div>
+                        <div class="flex gap-4"><strong>purchase_mode:</strong> C, DA, P <p class="text-sm">(Cash, Deposit Account, Paygo)</p></div>
                         <div><strong>type_of_use:</strong> Domestic, Business, Other</div>
                     </div>
 
@@ -150,7 +150,7 @@
                 </div>
             </div>
 
-            <div class="card bg-white shadow-lg">
+            <div class="card bg-base-100 shadow-lg">
                 <div class="card-body">
                     <form id="csForm" method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
@@ -170,7 +170,7 @@
 
             <h2 class="text-2xl font-bold mb-6">Transactions Import</h2>
 
-            <div class="card bg-white shadow-lg mb-8">
+            <div class="card bg-base-100 shadow-lg mb-8">
                 <div class="card-body">
 
                     <h3 class="text-2xl font-semibold mb-2">📋 File Requirements & Format</h3>
@@ -241,7 +241,7 @@
                 </div>
             </div>
 
-            <div class="card bg-white shadow-lg">
+            <div class="card bg-base-100 shadow-lg">
                 <div class="card-body">
                     <form id="txForm" method="POST" enctype="multipart/form-data">
                         {% csrf_token %}

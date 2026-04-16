@@ -16,7 +16,7 @@
     </h2>
 
     <!-- Ticket Summary Card -->
-    <div class="grid md:grid-cols-2 gap-4 bg-green-100 rounded-lg p-6">
+    <div class="grid md:grid-cols-2 gap-4 bg-base-100 rounded-lg p-6">
 
         <div class="space-y-2">
             <p><strong>User:</strong> {{ ticket.user.email }}</p>
@@ -52,13 +52,13 @@
     <div class="border rounded-lg bg-gray-50 p-0">
 
         <!-- Fixed Avatar Header -->
-        <div class="sticky top-0 z-10 bg-green-200 border-b px-4 py-3 flex items-center gap-3">
-            <div class="w-12 h-12 flex items-center justify-center rounded-full bg-green-100 text-green-600 font-bold text-xl">
+        <div class="sticky top-0 z-10 bg-base-200 border-b px-4 py-3 flex items-center gap-3">
+            <div class="w-12 h-12 flex items-center justify-center rounded-full bg-base-100 text-success font-bold text-xl">
                 {{ ticket.user.email|first|upper }}
             </div>
             <div>
-                <p class="font-semibold text-gray-700">{{ ticket.user.username }}</p>
-                <p class="text-xs text-gray-500">Support Conversation</p>
+                <p class="font-semibold">{{ ticket.user.username }}</p>
+                <p class="text-xs">Support Conversation</p>
             </div>
         </div>
 
@@ -75,7 +75,7 @@
                     {% endif %}">
                     {{ msg.message }}
                 </div>
-                <p class="text-xs text-gray-400">{{ msg.created_at|naturaltime }}</p>
+                <p class="text-xs">{{ msg.created_at|naturaltime }}</p>
             </div>
             {% endfor %}
         </div>
@@ -98,7 +98,7 @@
             {% endfor %}
         </select>
 
-        <button type="submit" class="bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
+        <button type="submit" class="bg-success text-white py-2 rounded-lg hover:bg-green-700">
             Send Reply & Update
         </button>
     </form>

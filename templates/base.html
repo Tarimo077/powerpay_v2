@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="en" data-theme="light">  <!-- enables DaisyUI themes -->
+<html lang="en">  <!-- enables DaisyUI themes -->
 <head>
     <script src="https://kit.fontawesome.com/69d2af506e.js" crossorigin="anonymous"></script>
     <link rel="icon" href="{% static 'images/pp_no_bgcropped.png' %}">
@@ -22,7 +22,7 @@
 
 </head>
 
-<body class="min-h-screen bg-base-200">
+<body class="min-h-screen bg-base-300">
 
     <!-- Toast Container appended directly to body -->
     <div id="toast-container" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] flex flex-col items-center space-y-2 pointer-events-none"></div>
@@ -150,6 +150,37 @@ function downloadCard(cardId, fileName) {
         card.style.boxShadow = originalBoxShadow;
         card.style.border = originalBorder; // Restore original
         ignored.forEach(el => el.style.display = '');
+    });
+}
+</script>
+<script>
+const THEME_KEY = "theme";
+
+// Apply theme
+function setTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem(THEME_KEY, theme);
+}
+
+// Toggle handler
+const toggle = document.getElementById("themeToggle");
+
+// Load saved theme
+document.addEventListener("DOMContentLoaded", () => {
+    const savedTheme = localStorage.getItem(THEME_KEY) || "bumblebee";
+    setTheme(savedTheme);
+
+    // Sync toggle state
+    if (toggle) {
+        toggle.checked = savedTheme === "halloween";
+    }
+});
+
+// On toggle change
+if (toggle) {
+    toggle.addEventListener("change", () => {
+        const newTheme = toggle.checked ? "halloween" : "bumblebee";
+        setTheme(newTheme);
     });
 }
 </script>

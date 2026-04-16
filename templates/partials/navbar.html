@@ -5,10 +5,23 @@
         <!-- Right: Actions -->
         <div class="flex items-center gap-4">
 
+            <div class="p-2">
+                <label class="swap swap-rotate cursor-pointer" title="Click to switch theme">
+                    <!-- hidden checkbox controls state -->
+                    <input type="checkbox" id="themeToggle" />
+
+                    <!-- Sun icon (bumblebee) -->
+                    <i class="fa-solid fa-sun swap-off text-2xl text-yellow-500"></i>
+
+                    <!-- Moon icon (halloween) -->
+                    <i class="fa-solid fa-moon swap-on text-2xl text-orange-500"></i>
+                </label>
+            </div>
+
             <!-- Notifications -->
             <button 
                     id="notifDropdownBtn"
-                    class="flex flex-col items-center text-green-600 hover:text-orange-500 cursor-pointer"
+                    class="flex flex-col items-center text-success hover:text-warning cursor-pointer"
                     hx-get="{% url 'notifications:dropdown' %}"
                     hx-trigger="click"
                     hx-target="#notifDropdown"
@@ -33,7 +46,7 @@
                     class="btn btn-ghost flex items-center gap-2 px-2">
 
                     <!-- Avatar -->
-                    <div class="w-9 h-9 rounded-full bg-green-600 
+                    <div class="w-9 h-9 rounded-full bg-success 
                                 flex items-center justify-center">
                         <span class="text-white font-bold text-xl">
                             {% if request.user.first_name and request.user.last_name %}

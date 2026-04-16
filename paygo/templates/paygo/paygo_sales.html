@@ -15,95 +15,95 @@
 
             <!-- EXISTING STATUS CARDS -->
             {% for key, val in stats.items %}
-            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+            <div class="card bg-base-100 shadow border-2 border-success">
                 <div class="card-body flex flex-col justify-center">
                     <div class="flex justify-between items-center">
-                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the number of devices whose payments are {{ key }}."></i><p class="text-sm uppercase text-gray-400">{{ key }}</p></div>
-                        <div class="flex p-2 items-center justify-center rounded-full bg-green-100">
+                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the number of devices whose payments are {{ key }}."></i><p class="text-sm uppercase">{{ key }}</p></div>
+                        <div class="flex p-2 items-center justify-center rounded-full bg-base-100">
                             <i class="fa-solid 
                                 {% if key == 'Fully Paid' %} fa-clipboard-check 
                                 {% elif key == 'At Risk' %} fa-triangle-exclamation 
                                 {% elif key == 'On Track' %} fa-hourglass-half 
                                 {% else %} fa-ban 
                                 {% endif %}  
-                                text-2xl text-green-500"></i>
+                                text-2xl text-success"></i>
                         </div>
                     </div>
-                    <p class="text-2xl font-bold text-green-700">{{ val|intcomma }}</p>
+                    <p class="text-2xl font-bold text-success">{{ val|intcomma }}</p>
                 </div>
             </div>
             {% endfor %}
 
             <!-- TOTAL RECEIVABLE -->
-            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+            <div class="card bg-base-100 shadow border-2 border-success">
                 <div class="card-body flex flex-col justify-center">
                     <div class="flex justify-between items-center">
-                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the total receivable cash expected to be paid from all sales."></i><p class="text-sm uppercase text-gray-400">Total Receivables</p></div>
-                        <div class="flex p-2 rounded-full bg-green-100">
-                            <i class="fa-solid fa-coins text-2xl text-green-500"></i>
+                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the total receivable cash expected to be paid from all sales."></i><p class="text-sm uppercase">Total Receivables</p></div>
+                        <div class="flex p-2 rounded-full bg-base-100">
+                            <i class="fa-solid fa-coins text-2xl text-success"></i>
                         </div>
                     </div>
-                    <p class="text-2xl font-bold text-green-700">
+                    <p class="text-2xl font-bold text-success">
                         Ksh. {{ total_receivable|intcomma }}
                     </p>
                 </div>
             </div>
 
             <!-- RAR -->
-            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+            <div class="card bg-base-100 shadow border-2 border-success">
                 <div class="card-body flex flex-col justify-center">
                     <div class="flex justify-between items-center">
-                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the total cash that is at risk of defaulting."></i><p class="text-sm uppercase text-gray-400">Receivables At Risk(RAR)</p></div>
-                        <div class="flex p-2 rounded-full bg-green-100">
-                            <i class="fa-solid fa-exclamation-circle text-2xl text-green-500"></i>
+                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the total cash that is at risk of defaulting."></i><p class="text-sm uppercase">Receivables At Risk(RAR)</p></div>
+                        <div class="flex p-2 rounded-full bg-base-100">
+                            <i class="fa-solid fa-exclamation-circle text-2xl text-success"></i>
                         </div>
                     </div>
-                    <p class="text-2xl font-bold text-green-700">
+                    <p class="text-2xl font-bold text-success">
                         Ksh. {{ receivable_at_risk|intcomma }}
                     </p>
                 </div>
             </div>
 
             <!-- CHURN -->
-            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+            <div class="card bg-base-100 shadow border-2 border-success">
                 <div class="card-body flex flex-col justify-center">
                     <div class="flex justify-between items-center">
-                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represent the percentage of sales that are behind on payments."></i><p class="text-sm uppercase text-gray-400">Delinquency Rate</p></div>
-                        <div class="flex p-2 rounded-full bg-green-100">
-                            <i class="fa-solid fa-user-slash text-2xl text-green-500"></i>
+                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represent the percentage of sales that are behind on payments."></i><p class="text-sm uppercase">Delinquency Rate</p></div>
+                        <div class="flex p-2 rounded-full bg-base-100">
+                            <i class="fa-solid fa-user-slash text-2xl text-success"></i>
                         </div>
                     </div>
-                    <p class="text-2xl font-bold text-green-700">
+                    <p class="text-2xl font-bold text-success">
                         {{ churn_rate|floatformat:1 }}%
                     </p>
                 </div>
             </div>
 
             <!-- MOM GROWTH 
-            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+            <div class="card bg-base-100 shadow border-2 border-success">
                 <div class="card-body flex flex-col justify-center">
                     <div class="flex justify-between items-center">
-                        <p class="text-sm uppercase text-gray-400">Month On Month Growth</p>
-                        <div class="flex p-2 rounded-full bg-green-100">
-                            <i class="fa-solid fa-chart-line text-2xl text-green-500"></i>
+                        <p class="text-sm uppercase">Month On Month Growth</p>
+                        <div class="flex p-2 rounded-full bg-base-100">
+                            <i class="fa-solid fa-chart-line text-2xl text-success"></i>
                         </div>
                     </div>
-                    <p class="text-2xl font-bold text-green-700">
+                    <p class="text-2xl font-bold text-success">
                         {{ mom_growth|floatformat:1 }}%
                     </p>
                 </div>
             </div> -->
 
             <!-- COLLECTION RATE -->
-            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+            <div class="card bg-base-100 shadow border-2 border-success">
                 <div class="card-body flex flex-col justify-center">
                     <div class="flex justify-between items-center">
-                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the percentage of money successfully collected from the sales."></i><p class="text-sm uppercase text-gray-400">Collection Rate</p></div>
-                        <div class="flex p-2 rounded-full bg-green-100">
-                            <i class="fa-solid fa-hand-holding-dollar text-2xl text-green-500"></i>
+                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the percentage of money successfully collected from the sales."></i><p class="text-sm uppercase">Collection Rate</p></div>
+                        <div class="flex p-2 rounded-full bg-base-100">
+                            <i class="fa-solid fa-hand-holding-dollar text-2xl text-success"></i>
                         </div>
                     </div>
-                    <p class="text-2xl font-bold text-green-700">
+                    <p class="text-2xl font-bold text-success">
                         {{ collection_rate|floatformat:1 }}%
                     </p>
                 </div>
@@ -156,7 +156,7 @@
             result{{ total_results|pluralize }}
         </div>
 
-        <table class="table bg-base-300">
+        <table class="table bg-base-100">
             <thead class="bg-success text-success-content text-sm uppercase tracking-wide">
                 <tr>
                     <th class="px-4 py-3 text-left text-white rounded-tl-lg"><a href="?sort=serial&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.serial }}">
@@ -275,7 +275,7 @@
                             <span class="badge badge-error text-white">INACTIVE</span>
                         {% endif %}
                     {% else %}
-                        <span class="text-gray-400">N/A</span>
+                        <span class=">N/A</span>
                     {% endif %}
                 </td>
 
@@ -286,7 +286,7 @@
                             {{ row.auto_disable|yesno:"ON,OFF" }}
                         </span>
                     {% else %}
-                        <span class="text-gray-400">N/A</span>
+                        <span class=">N/A</span>
                     {% endif %}
                 </td>
 
@@ -296,7 +296,7 @@
 
                         <!-- AUTO CONTROL -->
                         <div class="flex flex-col items-center gap-1">
-                            <span class="text-[10px] uppercase text-gray-400 font-semibold">
+                            <span class="text-[10px] uppercase font-semibold">
                                 Auto
                             </span>
 
@@ -378,7 +378,7 @@
 
                     </div>
                     {% else %}
-                        <p class="text-gray-400 text-sm text-center">No transactions found</p>
+                        <p class= text-sm text-center">No transactions found</p>
                     {% endif %}
 
                 </td>

@@ -21,17 +21,17 @@
         {% endif %}
         <!-- STATS -->
         <div class="w-full grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-4">
-            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+            <div class="card bg-base-100 shadow border-2 border-success">
                     <div class="card-body flex flex-col justify-center">
-                        <div class="flex"><p class="text-sm uppercase text-gray-400">Total Items</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-boxes-stacked text-2xl text-green-500"></i></div></div>
-                        <p class="text-2xl font-bold text-green-700">{{ total_items|intcomma }}</p>
+                        <div class="flex"><p class="text-sm uppercase">Total Items</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-boxes-stacked text-2xl text-green-500"></i></div></div>
+                        <p class="text-2xl font-bold text-success">{{ total_items|intcomma }}</p>
                     </div>
             </div>
         </div>
 
         <!-- CHARTS -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div id="itemsWarehouse" class="card bg-green-50 border-2 border-green-200 shadow p-4 outline-none flex flex-col">
+            <div id="itemsWarehouse" class="card bg-base-100 border-2 border-success shadow p-4 outline-none flex flex-col">
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
                     <h3 class="text-lg font-semibold border-none">
                         Items Per Warehouse
@@ -52,7 +52,7 @@
                 </div>
             </div>
 
-            <div id="inventoryGrowth" class="card bg-green-50 border-2 border-green-200 shadow p-4 outline-none">
+            <div id="inventoryGrowth" class="card bg-base-100 border-2 border-success shadow p-4 outline-none">
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
                     <h3 class="text-lg font-semibold border-none outline-none">
                         Inventory Growth
@@ -96,6 +96,8 @@ new Chart(document.getElementById("inventoryGrowthChart"), {
         datasets: [{
             label: "Total Items",
             data: {{ growth_data|safe }},
+            borderColor: '#22c55e',
+            backgroundColor: 'rgba(34, 197, 94, 0.2)',
             fill: true,
             tension: 0.3,
             pointRadius: 4,

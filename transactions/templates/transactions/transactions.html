@@ -20,17 +20,17 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
 
-            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+            <div class="card bg-base-100 shadow border-2 border-success">
                     <div class="card-body flex flex-col justify-center">
-                        <div class="flex"><p class="text-sm uppercase text-gray-400">Total Money</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-piggy-bank text-2xl text-green-500"></i></div></div>
-                        <p class="text-2xl font-bold text-green-700">{{ total_amount|intcomma }}</p>
+                        <div class="flex"><p class="text-sm uppercase">Total Money</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-piggy-bank text-2xl text-success"></i></div></div>
+                        <p class="text-2xl font-bold text-success">{{ total_amount|intcomma }}</p>
                     </div>
             </div>
 
-            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+            <div class="card bg-base-100 shadow border-2 border-success">
                     <div class="card-body flex flex-col justify-center">
-                        <div class="flex"><p class="text-sm uppercase text-gray-400">Transactions Count</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-money-bills text-2xl text-green-500"></i></div></div>
-                        <p class="text-2xl font-bold text-green-700">{{ transaction_count|intcomma }}</p>
+                        <div class="flex"><p class="text-sm uppercase">Transactions Count</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-money-bills text-2xl text-success"></i></div></div>
+                        <p class="text-2xl font-bold text-success">{{ transaction_count|intcomma }}</p>
                     </div>
             </div>
 
@@ -42,7 +42,7 @@
 
             
             <!-- Money by Org Card -->
-            <div id="moneyByOrgCard" class="card bg-green-50 border-2 border-green-200 shadow p-4 outline-none flex flex-col">
+            <div id="moneyByOrgCard" class="card bg-base-100 border-2 border-success shadow p-4 outline-none flex flex-col">
 
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
                     <h3 class="text-lg font-semibold border-none">
@@ -66,7 +66,7 @@
 
             </div>
         <!-- Money Last 7 Days Line Chart -->
-            <div id="week-transactions" class="card bg-green-50 border-2 border-green-200 shadow outline-none p-4 flex flex-col">
+            <div id="week-transactions" class="card bg-base-100 border-2 border-success shadow outline-none p-4 flex flex-col">
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
                     <h3 class="text-lg font-semibold border-none">
                         Money In Last 7 Days

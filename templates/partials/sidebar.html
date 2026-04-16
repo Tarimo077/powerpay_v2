@@ -33,17 +33,17 @@
         <span id="sidebar-text" class="font-bold text-green-800 text-xl">
             PowerPay Africa
         </span> -->
-        <img id="sidebar-text" src="{% static 'images/pplogo.png' %}" style="height: 42px;">
+        <img id="sidebar-text" src="{% static 'images/powerpaylogo.png' %}" style="height: 100px; width: auto;">
     </div>
 
-    <div class="divider p-3"></div>
+    <div class="divider p-2"></div>
 
     <!-- Navigation Links -->
     <div class="flex flex-col space-y-2 flex-1 overflow-y-auto text-sm">
 
         <a href="{% url 'core:index' %}"
            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if request.path == '/' %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+           {% if request.path == '/' %} bg-green-50 border-l-4 text-success border-r-4 border-success {% else %} hover:text-green-400 {% endif %}">
             <i class="fas fa-chart-line w-5"></i>
             <span class="link-text">Overview</span>
         </a>
@@ -51,7 +51,7 @@
         {% if is_superuser %}
         <a href="{% url 'organizations:organizations_page' %}"
            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if 'organizations' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+           {% if 'organizations' in request.path %} bg-green-50 border-l-4 text-success border-r-4 border-success {% else %} hover:text-green-400 {% endif %}">
             <i class="fas fa-industry w-5"></i>
             <span class="link-text">Organizations</span>
         </a>
@@ -61,9 +61,9 @@
         <a href="{% url 'devices:device_list' %}"
             class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
             {% if 'devices' in request.path and 'schedules' not in request.path %} 
-                bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 
+                bg-green-50 border-l-4 text-success border-r-4 border-success 
             {% else %} 
-                text-gray-600 hover:text-green-400 
+                hover:text-green-400 
             {% endif %}">
             <i class="fas fa-plug w-5"></i>
             <span class="link-text">Devices</span>
@@ -72,9 +72,9 @@
         <a href="{% url 'devices:device_schedule_list' %}"
             class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
             {% if 'schedules' in request.path %} 
-                bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 
+                bg-green-50 border-l-4 text-success border-r-4 border-success 
             {% else %} 
-                text-gray-600 hover:text-green-400 
+                hover:text-green-400 
             {% endif %}">
             <i class="fa-solid fa-calendar-day w-5"></i>
             <span class="link-text">Device Schedules</span>
@@ -84,7 +84,7 @@
         
         <a href="{% url 'customers:customers_page' %}"
            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if 'customers' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+           {% if 'customers' in request.path %} bg-green-50 border-l-4 text-success border-r-4 border-success {% else %} hover:text-green-400 {% endif %}">
             <i class="fas fa-users w-5"></i>
             <span class="link-text">Customers</span>
         </a>
@@ -95,7 +95,7 @@
 
         <a href="{% url 'sales:sales_page' %}"
            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if 'sales' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+           {% if 'sales' in request.path %} bg-green-50 border-l-4 text-success border-r-4 border-success {% else %} hover:text-green-400 {% endif %}">
             <i class="fa-solid fa-cash-register w-5"></i>
             <span class="link-text">All Sales</span>
         </a>
@@ -106,7 +106,7 @@
 
         <a href="{% url 'paygo:paygo_sales' %}"
            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if 'paygo' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+           {% if 'paygo' in request.path %} bg-green-50 border-l-4 text-success border-r-4 border-success {% else %} hover:text-green-400 {% endif %}">
             <i class="fa-solid fa-file-invoice-dollar w-5"></i>
             <span class="link-text">Paygo Sales</span>
         </a>
@@ -117,7 +117,7 @@
         {% if request.user.is_superuser %}
         <a href="{% url 'inventory:inventory_page' %}"
            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if request.path == '/inventory/' %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+           {% if request.path == '/inventory/' %} bg-green-50 border-l-4 text-success border-r-4 border-success {% else %} hover:text-green-400 {% endif %}">
             <i class="fa-solid fa-boxes-stacked w-5"></i>
             <span class="link-text">Inventory</span>
         </a>
@@ -125,7 +125,7 @@
         <!-- Warehouses (SUPERUSERS ONLY) -->
         <a href="{% url 'inventory:warehouses_page' %}"
            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if 'warehouses' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+           {% if 'warehouses' in request.path %} bg-green-50 border-l-4 text-success border-r-4 border-success {% else %} hover:text-green-400 {% endif %}">
             <i class="fa-solid fa-warehouse w-5"></i>
             <span class="link-text">Warehouses</span>
         </a>
@@ -135,7 +135,7 @@
 
         <a href="{% url 'transactions:transactions_page' %}"
            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if 'transactions' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+           {% if 'transactions' in request.path %} bg-green-50 border-l-4 text-success border-r-4 border-success {% else %} hover:text-green-400 {% endif %}">
             <i class="fas fa-credit-card w-5"></i>
             <span class="link-text">Transactions</span>
         </a>
@@ -144,14 +144,14 @@
 
         <a href="{% url 'core:export_data' %}"
            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if 'export' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+           {% if 'export' in request.path %} bg-green-50 border-l-4 text-success border-r-4 border-success {% else %} hover:text-green-400 {% endif %}">
             <i class="fas fa-file-export w-5"></i>
             <span class="link-text">Export Center</span>
         </a>
         
         <a href="{% url 'core:import_center' %}"
            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if 'import' in request.path %} bg-green-100 border-l-4 text-green-700 border-r-4 border-green-600 {% else %} text-gray-600 hover:text-green-400 {% endif %}">
+           {% if 'import' in request.path %} bg-green-50 border-l-4 text-success border-r-4 border-success {% else %} hover:text-green-400 {% endif %}">
             <i class="fas fa-file-import w-5"></i>
             <span class="link-text">Import Center</span>
         </a>

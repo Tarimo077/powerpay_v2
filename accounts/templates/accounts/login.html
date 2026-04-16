@@ -20,7 +20,7 @@
     </div>
 
     <!-- Tagline -->
-    <p class="text-center text-lg font-bold text-green-700 dark:text-green-400 mb-6">
+    <p class="text-center text-lg font-bold text-success mb-6">
       Appliances for the next billion
     </p>
 
@@ -30,7 +30,7 @@
 
       <div class="form-control">
         <label class="label">
-          <span class="label-text font-semibold text-gray-700 dark:text-gray-200">Email</span>
+          <span class="label-text font-semibold">Email</span>
         </label>
         <input type="text" name="email" placeholder="Enter email" 
                class="input input-bordered w-full border-green-300 focus:border-green-500 focus:ring focus:ring-green-200 rounded-lg transition" required>
@@ -38,7 +38,7 @@
 
       <div class="form-control">
         <label class="label">
-          <span class="label-text font-semibold text-gray-700 dark:text-gray-200">Password</span>
+          <span class="label-text font-semibold">Password</span>
         </label>
         <input type="password" name="password" placeholder="Enter password"
                class="input input-bordered w-full border-green-300 focus:border-green-500 focus:ring focus:ring-green-200 rounded-lg transition" required>
@@ -46,16 +46,16 @@
 
       <div class="flex justify-center">
         <button type="submit" 
-                class="btn bg-green-500 text-white font-bold w-1/2 hover:bg-green-700 rounded-lg shadow-lg">
+                class="btn bg-success text-white font-bold w-1/2 hover:bg-green-700 rounded-lg shadow-lg">
             <i class="fa-solid fa-right-to-bracket m-2"></i> Sign In
         </button>
       </div>
 
     </form>
 
-    <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-300">
+    <p class="mt-4 text-center text-sm">
       Forgot your password? 
-      <a href="{% url 'accounts:password_reset' %}" class="text-green-600 dark:text-green-400 hover:text-orange-500 font-semibold">Reset here</a>
+      <a href="{% url 'accounts:password_reset' %}" class="text-success hover:text-warning font-semibold">Reset here</a>
     </p>
 
   </div>

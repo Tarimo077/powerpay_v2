@@ -12,11 +12,11 @@
         <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
                  My Tickets
         </h2>
-        <div class="bg-white shadow-lg rounded-xl p-6 w-full">
+        <div class="bg-base-100 shadow-lg rounded-xl p-6 w-full">
 
             <div class="flex justify-end mb-4">
                 <a href="{% url 'support:create_ticket' %}" 
-                class="btn bg-green-600 text-white font-bold p-2 rounded-lg shadow-lg hover:bg-green-700 transition">
+                class="btn bg-success text-white font-bold p-2 rounded-lg shadow-lg transition">
                     <i class="fa-solid fa-ticket"></i> New Support Ticket
                 </a>
             </div>
@@ -35,7 +35,7 @@
 
                     <tbody>
                         {% for ticket in tickets %}
-                        <tr class="border-b hover:bg-gray-50 transition">
+                        <tr class="border-b transition">
 
                             <td class="px-6 py-4 font-semibold text-gray-700">
                                 {{ ticket.get_subject_display }}
@@ -45,25 +45,25 @@
                                 <span class="px-3 py-1 text-white rounded-md text-sm font-semibold
                                     {% if ticket.status == 'open' %} bg-yellow-500
                                     {% elif ticket.status == 'in_progress' %} bg-blue-500
-                                    {% else %} bg-green-600 {% endif %}">
+                                    {% else %} bg-success {% endif %}">
                                     {{ ticket.get_status_display }}
                                 </span>
                             </td>
 
                             <td class="px-6 py-4 font-semibold 
-                                {% if ticket.priority == 'low' %} text-green-600
-                                {% elif ticket.priority == 'medium' %} text-yellow-600
-                                {% else %} text-red-600 {% endif %}
+                                {% if ticket.priority == 'low' %} text-success
+                                {% elif ticket.priority == 'medium' %} text-warning
+                                {% else %} text-error {% endif %}
                             ">
                                 {{ ticket.get_priority_display }}
                             </td>
 
-                            <td class="px-6 py-4 text-gray-500">
+                            <td class="px-6 py-4">
                                 {{ ticket.created_at|date:"M d, Y H:i" }}
                             </td>
 
                             <td class="px-6 py-4">
-                                <a href="{% url 'support:ticket_detail' ticket.id %}" class="btn rounded-lg text-white text-sm bg-blue-500 p-2">
+                                <a href="{% url 'support:ticket_detail' ticket.id %}" class="btn rounded-lg text-white text-sm bg-info p-2">
                                     Details
                                 </a>
                             </td>
@@ -71,7 +71,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="px-6 py-6 text-center text-gray-500 text-lg">
+                            <td colspan="4" class="px-6 py-6 text-center text-lg">
                                 No tickets yet.
                             </td>
                         </tr>
@@ -84,7 +84,7 @@
 
         <form method="get" class="mt-4 mb-4 flex justify-end">
             <label class="mr-2 mt-2 font-semibold">Items per page:</label>
-            <select name="per_page" onchange="this.form.submit()" class="border-green-600 rounded-lg">
+            <select name="per_page" onchange="this.form.submit()" class="border-success rounded-lg">
                 <option value="5" {% if per_page == 5 %}selected{% endif %}>5</option>
                 <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
                 <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>

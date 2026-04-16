@@ -55,7 +55,7 @@ class ExportForm(forms.Form):
         queryset=DeviceInfo.objects.all(),
         required=False,
         widget=forms.CheckboxSelectMultiple(
-            attrs={"class": "checkbox checkbox-success"}
+            attrs={"class": "text-white checkbox checkbox-success"}
         )
     )
 

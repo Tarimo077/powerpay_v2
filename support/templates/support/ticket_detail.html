@@ -16,7 +16,7 @@
     </h2>
 
     <!-- Ticket Summary -->
-    <div class="grid md:grid-cols-2 gap-4 bg-green-200 rounded-lg p-4">
+    <div class="grid md:grid-cols-2 gap-4 bg-base-100 rounded-lg p-4">
 
         <div class="space-y-2">
             <p><strong>Subject:</strong> {{ ticket.get_subject_display }}</p>
@@ -47,12 +47,12 @@
 
 
     <!-- Conversation -->
-    <h3 class="text-lg font-semibold mt-6 mb-3 text-green-600"><i class="fa-solid fa-comments mr-2"></i>Chat</h3>
+    <h3 class="text-lg font-semibold mt-6 mb-3 text-success"><i class="fa-solid fa-comments mr-2"></i>Chat</h3>
 
-    <div class="card border-0 rounded-lg bg-base-300 p-0">
+    <div class="card border-0 rounded-lg bg-base-100 p-0">
 
         <!-- Fixed Avatar Header -->
-        <div class="sticky top-0 z-10 bg-green-200 px-4 py-3 flex items-center gap-3 rounded-tr-lg rounded-tl-lg">
+        <div class="sticky top-0 z-10 bg-success px-4 py-3 flex items-center gap-3 rounded-tr-lg rounded-tl-lg">
             <div class="w-12 h-12 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 font-bold text-xl">
                 S
             </div>
@@ -75,12 +75,12 @@
                     {% endif %}">
                     {{ msg.message }}
                 </div>
-                <p class="text-xs text-gray-400 {% if msg.sender.is_staff %}text-left{% else %}text-right{% endif %}">
+                <p class="text-xs {% if msg.sender.is_staff %}text-left{% else %}text-right{% endif %}">
                     {{ msg.created_at|naturaltime }}
                 </p>
             </div>
             {% empty %}
-            <p class="text-center text-gray-400">No messages yet.</p>
+            <p class="text-center">No messages yet.</p>
             {% endfor %}
 
         </div>
@@ -96,12 +96,12 @@
         <textarea name="reply" class="border rounded-lg p-3 w-full h-28"
                   placeholder="Type your message..."></textarea>
 
-        <button type="submit" class="bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 cursor-pointer">
+        <button type="submit" class="bg-success text-white py-2 rounded-lg cursor-pointer">
             Send Message
         </button>
     </form>
     {% else %}
-        <p class="text-center text-red-500 mt-4 font-semibold">This ticket is closed. You can no longer reply.</p>
+        <p class="text-center text-error mt-4 font-semibold">This ticket is closed. You can no longer reply.</p>
     {% endif %}
 
 </div>

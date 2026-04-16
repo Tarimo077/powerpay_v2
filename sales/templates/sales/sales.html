@@ -25,16 +25,16 @@
         <!-- STATS -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
 
-            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+            <div class="card bg-base-100 shadow border-2 border-success">
                     <div class="card-body flex flex-col justify-center">
-                        <div class="flex"><p class="text-sm uppercase text-gray-400">Total Sales</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-cash-register text-2xl text-green-500"></i></div></div>
+                        <div class="flex"><p class="text-sm uppercase">Total Sales</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-cash-register text-2xl text-success"></i></div></div>
                         <p class="text-2xl font-bold text-green-700">{{ total_sales|intcomma }}</p>
                     </div>
             </div>
 
-            <div class="card bg-green-50 shadow border-2 border-green-200 hover:bg-green-100">
+            <div class="card bg-base-100 shadow border-2 border-success">
                     <div class="card-body flex flex-col justify-center">
-                        <div class="flex"><p class="text-sm uppercase text-gray-400">Paygo Sales</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-calendar-day text-2xl text-green-500"></i></div></div>
+                        <div class="flex"><p class="text-sm uppercase">Paygo Sales</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-calendar-day text-2xl text-success"></i></div></div>
                         <p class="text-2xl font-bold text-green-700">{{ total_paygo|intcomma }}</p>
                     </div>
             </div>
@@ -44,7 +44,7 @@
         <!-- CHARTS -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
-            <div id="salesPurchaseMode" class="card bg-green-50 border-2 border-green-200 p-4 rounded-lg shadow flex-col">
+            <div id="salesPurchaseMode" class="card bg-base-100 border-2 border-success p-4 rounded-lg shadow flex-col">
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
                     <h3 class="text-lg font-semibold border-none outline-none">
                         Sales by Purchase Mode
@@ -65,7 +65,7 @@
                 </div>
             </div>
 
-            <div id="salesGrowth" class="card bg-green-50 border-2 border-green-200 p-4 rounded-lg shadow flex-col">
+            <div id="salesGrowth" class="card bg-base-100 border-2 border-success p-4 rounded-lg shadow flex-col">
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
                     <h3 class="text-lg font-semibold border-none outline-none">
                         Sales Growth
