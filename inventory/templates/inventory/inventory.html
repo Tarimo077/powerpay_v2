@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% block title %}
+  Powerpay Africa | Inventory List
+{% endblock %}
 {% block content %}
 {% load humanize %}
 {% include "partials/navbar.html" %}
@@ -23,7 +26,7 @@
         <div class="w-full grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-4">
             <div class="card bg-base-100 shadow border-2 border-success">
                     <div class="card-body flex flex-col justify-center">
-                        <div class="flex"><p class="text-sm uppercase">Total Items</p><div class="flex p-2 items-center justify-center rounded-full bg-green-100"><i class="fa-solid fa-boxes-stacked text-2xl text-green-500"></i></div></div>
+                        <div class="flex"><p class="text-sm uppercase">Total Items</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-boxes-stacked text-2xl text-green-500"></i></div></div>
                         <p class="text-2xl font-bold text-success">{{ total_items|intcomma }}</p>
                     </div>
             </div>

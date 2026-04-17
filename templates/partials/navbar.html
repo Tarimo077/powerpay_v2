@@ -11,17 +11,17 @@
                     <input type="checkbox" id="themeToggle" />
 
                     <!-- Sun icon (bumblebee) -->
-                    <i class="fa-solid fa-sun swap-off text-2xl text-yellow-500"></i>
+                    <i class="fa-solid fa-sun swap-off text-2xl text-success"></i>
 
                     <!-- Moon icon (halloween) -->
-                    <i class="fa-solid fa-moon swap-on text-2xl text-orange-500"></i>
+                    <i class="fa-solid fa-moon swap-on text-2xl text-warning"></i>
                 </label>
             </div>
 
             <!-- Notifications -->
             <button 
                     id="notifDropdownBtn"
-                    class="flex flex-col items-center text-success hover:text-warning cursor-pointer"
+                    class="flex flex-col items-center text-success hover:text-warning cursor-pointer p-2"
                     hx-get="{% url 'notifications:dropdown' %}"
                     hx-trigger="click"
                     hx-target="#notifDropdown"
@@ -30,7 +30,7 @@
                     <span class="relative text-2xl indicator">
                         <i class="fa-solid fa-bell"></i>
                         {% if unread_notif_count > 0 %}
-                        <span class="badge badge-sm indicator-item bg-orange-500 text-white text-sm rounded-full py-2">
+                        <span class="badge badge-md indicator-item bg-error text-white text-sm rounded-full py-2">
                             {{ unread_notif_count }}
                         </span>
                         {% endif %}
@@ -63,16 +63,16 @@
                 <!-- Dropdown menu -->
                 <ul tabindex="0"
                     class="mt-3 p-4 shadow menu menu-sm dropdown-content bg-base-100
-                        rounded-box w-52 border border-base-300">
+                        rounded-box w-64">
 
-                    <li class="mt-4">
+                    <li class="mt-2 p-2">
                         <a href="{% url 'accounts:profile' %}" class="flex items-center gap-2">
                             <i class="fa-solid fa-user"></i>
                             Profile
                         </a>
                     </li>
 
-                    <li class="mt-4">
+                    <li class="mt-2 p-2">
                         {% if is_superuser %}
                             <a href="{% url 'support:admin_ticket_list' %}" class="flex items-center gap-2">
                                 <i class="fa-solid fa-headset"></i>
@@ -88,7 +88,7 @@
 
                     {% if 'api' in allowed_apps %}
 
-                    <li class="mt-4">
+                    <li class="mt-2 p-2">
                         <a href="{% url 'api:swagger-ui' %}" class="flex items-center gap-2" target="_blank" rel="noopener noreferrer">
                             <i class="fa-solid fa-code"></i>
                             APIs
@@ -98,7 +98,7 @@
                     {% endif %}
 
                     {% if request.user.role == 'superadmin' or request.user.role == 'admin' %}
-                    <li class="mt-4">
+                    <li class="mt-2 p-2">
                         <a href="{% url 'accounts:invite_user' %}" class="flex items-center gap-2">
                             <i class="fa-solid fa-person-circle-plus"></i>
                             Add User
@@ -106,7 +106,7 @@
                     </li>
                     {% endif %}
 
-                    <li class="mt-4">
+                    <li class="mt-2 p-2">
                         <a href="{% url 'accounts:terms' %}" class="flex items-center gap-2">
                             <i class="fa-solid fa-file-contract"></i>
                             Terms Of Service
@@ -114,14 +114,14 @@
 
                     </li>
 
-                    <li class="mt-4">
+                    <li class="mt-2 p-2">
                         <a href="https://powerpayafrica.com/" class="flex items-center gap-2" target="_blank" rel="noopener noreferrer">
                             <i class="fa-solid fa-globe"></i>
                             Website
                         </a>
                     </li>
 
-                    <li class="border-t-2 border-base-200 mt-4">
+                    <li class="border-t-2 border-base-200 mt-2 p-2">
                         <form method="post" action="{% url 'accounts:logout' %}">
                             {% csrf_token %}
                             <button type="submit"

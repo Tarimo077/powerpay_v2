@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load dict_extras %}
+{% block title %}
+  Powerpay Africa | Customer Details
+{% endblock %}
 {% block content %}
 
 {% include "partials/navbar.html" %}
@@ -34,28 +37,26 @@
 
         <!-- STATS -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-primary">
-                <div class="stat-title">Household Size</div>
-                <div class="stat-value text-primary">
-                    {{ customer.household_size|default:"—" }}
+            <div class="card bg-base-100 shadow rounded-lg border-2 border-success">
+                <div class="card-body flex flex-col justify-center">
+                        <p class="text-sm uppercase">Household Size</p>
+                        <p class="text-2xl font-bold text-success">{{ customer.household_size|default:"—" }}</p>
                 </div>
             </div>
 
-            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-secondary">
-                <div class="stat-title">Household Type</div>
-                <div class="stat-value text-secondary">
-                    {% if customer.household_type == "F" %}Female Headed
-                    {% elif customer.household_type == "M" %}Male Headed
-                    {% elif customer.household_type == "C" %}Child Headed
-                    {% elif customer.household_type == "P" %}Prefer not to say
-                    {% else %}Other{% endif %}
+            <div class="card bg-base-100 shadow rounded-lg border-2 border-success">
+                <div class="card-body flex flex-col justify-center">
+                        <p class="text-sm uppercase">Location</p>
+                        <p class="text-2xl font-bold text-success">
+                            {{ customer.location|default:"—" }}    
+                        </p>
                 </div>
             </div>
 
-            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-info">
-                <div class="stat-title">Joined</div>
-                <div class="stat-value text-info text-lg">
-                    {{ customer.date|date:"M Y" }}
+            <div class="card bg-base-100 shadow rounded-lg border-2 border-success">
+                <div class="card-body flex flex-col justify-center">
+                        <p class="text-sm uppercase">Joined</p>
+                        <p class="text-2xl font-bold text-success">{{ customer.date|date:"M Y" }} </p>
                 </div>
             </div>
         </div>
@@ -108,8 +109,13 @@
                 </div>
 
                 <div>
-                    <span class="text-gray-500">Location</span>
-                    <div class="font-medium">{{ customer.location|default:"—" }}</div>
+                    <span class="text-gray-500">Household Type</span>
+                    <div class="font-medium">
+                            {% if customer.household_type == "F" %}Female Headed
+                            {% elif customer.household_type == "M" %}Male Headed
+                            {% elif customer.household_type == "C" %}Child Headed
+                            {% elif customer.household_type == "P" %}Prefer not to say
+                            {% else %}Other{% endif %}</div>
                 </div>
 
                 <div>

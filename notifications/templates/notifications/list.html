@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load humanize %}
-
+{% block title %}
+  Powerpay Africa | Notifications
+{% endblock %}
 {% block content %}
 {% include "partials/navbar.html" %}
 
@@ -11,13 +13,13 @@
         <div class="p-4 lg:p-8 space-y-6 w-full max-w-6xl mx-auto">
             
             <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-bold text-green-600">
+                <h2 class="text-2xl font-bold">
                     <i class="fa-solid fa-bell mr-2"></i> Notifications
                 </h2>
                 {% if unread_exists %}
                     <a href="{% url 'notifications:read_all_list' %}"
-                       class="btn btn-ghost btn-sm text-green-600 hover:bg-green-50">
-                        Mark all as read
+                       class="btn btn-ghost btn-sm text-success hover:bg-success hover:text-white">
+                        Mark All As Read
                     </a>
                 {% endif %}
             </div>
@@ -51,7 +53,7 @@
                         {# Previous #}
                         {% if notifications.has_previous %}
                             <a href="?page={{ notifications.previous_page_number }}&per_page={{ per_page }}"
-                               class="btn btn-sm bg-white hover:bg-green-600 hover:text-white transition shadow-sm">
+                               class="btn btn-sm bg-base-100 hover:bg-green-600 hover:text-white transition shadow-sm">
                                 <i class="fa-solid fa-chevron-left"></i>
                             </a>
                         {% else %}
@@ -64,7 +66,7 @@
                                 <span class="btn btn-sm btn-success text-white">{{ num }}</span>
                             {% else %}
                                 <a href="?page={{ num }}&per_page={{ per_page }}"
-                                   class="btn btn-sm bg-white hover:bg-orange-500 hover:text-white transition">
+                                   class="btn btn-sm bg-base-100 hover:bg-orange-500 hover:text-white transition">
                                     {{ num }}
                                 </a>
                             {% endif %}
@@ -73,7 +75,7 @@
                         {# Next #}
                         {% if notifications.has_next %}
                             <a href="?page={{ notifications.next_page_number }}&per_page={{ per_page }}"
-                               class="btn btn-sm bg-white hover:bg-green-600 hover:text-white transition shadow-sm">
+                               class="btn btn-sm bg-base-100 hover:bg-green-600 hover:text-white transition shadow-sm">
                                 <i class="fa-solid fa-chevron-right"></i>
                             </a>
                         {% else %}

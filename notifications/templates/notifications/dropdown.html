@@ -1,17 +1,17 @@
 {% load humanize %}
-<div class="p-2 w-full">
+<div class="p-2 w-full bg-base-100">
 
     {% if unread_exists %}
     <!-- Title Bar -->
-    <div class="flex justify-between items-center px-4 py-2 border-b-2 border-green-500 mb-2">
-        <span class="font-semibold text-green-700">Notifications</span>
+    <div class="flex justify-between items-center px-4 py-2 border-b-2 border-success mb-2">
+        <span class="font-semibold text-success">Notifications</span>
         <button 
-            class="text-sm text-blue-600 hover:underline font-medium"
+            class="text-xs text-info hover:underline"
             hx-post="{% url 'notifications:read_all' %}"
             hx-target="#notificationsList"
             hx-swap="innerHTML"
             hx-on:afterRequest="htmx.trigger('#notifCount', 'refresh')">
-            Mark All as Read
+            Mark All As Read
         </button>
     </div>
 
@@ -19,30 +19,30 @@
     <ul id="notificationsList" class="max-h-76 overflow-y-auto">
         {% for notif in notifications %}
         <li id="notif-{{ notif.id }}" 
-            class="px-3 py-3 mb-3 border-l-4 border-r-4
-                {% if notif.type == 'info' %} border-blue-500 bg-blue-50
-                {% elif notif.type == 'warning' %} border-yellow-500 bg-yellow-50
-                {% elif notif.type == 'error' %} border-red-500 bg-red-50
-                {% elif notif.type == 'success' %} border-green-500 bg-green-50
+            class="px-3 py-3 mb-3 border-l-4 border-r-4 bg-base-200
+                {% if notif.type == 'info' %} border-info
+                {% elif notif.type == 'warning' %} border-warning
+                {% elif notif.type == 'error' %} border-error
+                {% elif notif.type == 'success' %} border-success
                 {% endif %}">
             
             <!-- TOP ROW: icon + title + mark read button -->
             <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-2">
                     {% if notif.type == "info" %}
-                        <i class="fa-solid fa-circle-info text-blue-500"></i>
+                        <i class="fa-solid fa-circle-info text-info"></i>
                     {% elif notif.type == "warning" %}
-                        <i class="fa-solid fa-triangle-exclamation text-yellow-500"></i>
+                        <i class="fa-solid fa-triangle-exclamation text-warning"></i>
                     {% elif notif.type == "error" %}
-                        <i class="fa-solid fa-exclamation-circle text-red-500"></i>
+                        <i class="fa-solid fa-exclamation-circle text-error"></i>
                     {% elif notif.type == "success" %}
-                        <i class="fa-solid fa-circle-check text-green-500"></i>
+                        <i class="fa-solid fa-circle-check text-success"></i>
                     {% endif %}
                     <span class="font-semibold
-                        {% if notif.type == 'info' %} text-blue-500
-                        {% elif notif.type == 'warning' %} text-yellow-500
-                        {% elif notif.type == 'error' %} text-red-500
-                        {% elif notif.type == 'success' %} text-green-500
+                        {% if notif.type == 'info' %} text-info
+                        {% elif notif.type == 'warning' %} text-warning
+                        {% elif notif.type == 'error' %} text-error
+                        {% elif notif.type == 'success' %} text-success
                         {% endif %}">
                         {{ notif.title }}
                     </span>
@@ -50,22 +50,22 @@
 
                 <!-- Mark as Read Button -->
                 <button
-                    class="text-xs px-2 py-1 rounded transition font-medium
-                        {% if notif.type == 'info' %} text-blue-600 hover:bg-blue-100
-                        {% elif notif.type == 'warning' %} text-yellow-600 hover:bg-yellow-100
-                        {% elif notif.type == 'error' %} text-red-600 hover:bg-red-100
-                        {% elif notif.type == 'success' %} text-green-600 hover:bg-green-100
+                    class="text-xs px-2 py-1 rounded-full transition cursor-pointer bg-base-100
+                        {% if notif.type == 'info' %} text-info hover:bg-info hover:text-white
+                        {% elif notif.type == 'warning' %} text-warning hover:bg-warning hover:text-white
+                        {% elif notif.type == 'error' %} text-error hover:bg-error hover:text-white
+                        {% elif notif.type == 'success' %} text-success hover:bg-success hover:text-white
                         {% endif %}"
                     hx-post="{% url 'notifications:mark_read' notif.id %}"
                     hx-target="#notif-{{ notif.id }}"
                     hx-swap="outerHTML"
                     hx-on:afterRequest="htmx.trigger('#notifCount', 'refresh')">
-                    Mark as read
+                    Mark read
                 </button>
             </div>
 
             <!-- MESSAGE -->
-            <p class="text-gray-800 text-sm mt-2">
+            <p class="text-sm mt-2">
                 {{ notif.message }}
             </p>
 
@@ -75,8 +75,11 @@
             </span>
 
         </li>
+
+        <div class="border-b-2 border-success m-4"></div>
+
         {% empty %}
-        <li class="px-3 py-3 text-gray-500 text-sm text-center italic">
+        <li class="px-3 py-3 text-sm text-center italic">
             No notifications
         </li>
         
@@ -85,7 +88,7 @@
 
     <!-- See All Link -->
     <div class="text-center mt-2">
-        <a href="{% url 'notifications:list' %}" class="text-green-600 hover:underline text-sm font-medium">
+        <a href="{% url 'notifications:list' %}" class="text-success hover:underline text-sm font-medium">
             See all
         </a>
     </div>
@@ -93,7 +96,7 @@
     {% else %}
     <p class="text-gray-500 text-sm text-center italic">No notifications</p>
     <div class="text-center mt-2">
-        <a href="{% url 'notifications:list' %}" class="text-green-600 hover:underline text-sm font-medium">
+        <a href="{% url 'notifications:list' %}" class="text-success hover:underline text-sm font-medium">
             See all
         </a>
     </div>

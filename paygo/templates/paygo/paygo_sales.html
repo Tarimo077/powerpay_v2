@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% block title %}
+  Powerpay Africa | Paygo Tracker
+{% endblock %}
 {% block content %}
 {% load humanize %}
 {% include "partials/navbar.html" %}
@@ -9,7 +12,7 @@
     <div id="page-content"
          class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0">
 
-        <h2 class="text-2xl font-bold mb-4">PayGo Tracking</h2>
+        <h2 class="text-2xl font-bold mb-4">PayGo Tracker</h2>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
 
@@ -275,18 +278,18 @@
                             <span class="badge badge-error text-white">INACTIVE</span>
                         {% endif %}
                     {% else %}
-                        <span class=">N/A</span>
+                        <span class=>N/A</span>
                     {% endif %}
                 </td>
 
-                <!-- AUTO -->
+                
                 <td class="text-center">
                     {% if row.metered %}
                         <span class="badge {% if row.auto_disable %}badge-success{% else %}badge-error{% endif %} text-white">
                             {{ row.auto_disable|yesno:"ON,OFF" }}
                         </span>
                     {% else %}
-                        <span class=">N/A</span>
+                        <span class=>N/A</span>
                     {% endif %}
                 </td>
 
@@ -330,14 +333,14 @@
 
                             {% if row.status_label != 'Fully Paid' %}
                                 <button
-                                    class="btn btn-sm btn-primary shadow-sm"
+                                    class="btn btn-sm btn-info text-white shadow-sm"
                                     title="Click to prompt an mpesa stk push to {{ row.customer }}'s phone for payment"
                                     onclick="openSTKModal('{{ row.sale.id }}', '{{ row.customer }}', '{{ row.balance }}', '{{ row.contact }}')">
                                     Prompt
                                 </button>
                             {% else %}
                                 <button class="btn btn-sm btn-disabled">
-                                    Paid
+                                    Prompt
                                 </button>
                             {% endif %}
                         </div>

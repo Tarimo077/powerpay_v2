@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% load dict_extras %}
 {% load static %}
-
+{% block title %}
+  Powerpay Africa | {% if form.instance.pk %} Edit Inventory Item {% else %} Add Inventory Item {% endif %}
+{% endblock %}
 {% block content %}
 {% include "partials/navbar.html" %}
 

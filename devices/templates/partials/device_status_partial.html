@@ -1,5 +1,5 @@
 <div class="card-body" id="device-{{ device.deviceid }}">
-    <p class="text-sm text-gray-500 uppercase mb-2"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the state of the device. Device {{ device.deviceid }} will{% if not device.active %} not{% endif %} operate as usual. "></i>Status</p>
+    <p class="text-sm uppercase mb-2"><i class="fa-solid fa-circle-info text-success text-lg mr-2" title="This represents the state of the device. Device {{ device.deviceid }} will{% if not device.active %} not{% endif %} operate as usual. "></i>Status</p>
 
     <div class="grid grid-cols-2 items-center w-full">
         <!-- Status badge -->
@@ -38,7 +38,7 @@
         </div>
     </div>
 
-    <p class="flex justify-end italic text-gray-500 font-semibold text-xs mt-2">Last Used at {{ last_seen }}</p>
+    <p class="flex justify-end italic font-semibold text-xs mt-2">Last Used at {{ last_seen }}</p>
 </div>
 
 
