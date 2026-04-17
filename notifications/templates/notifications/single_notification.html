@@ -29,7 +29,7 @@
 
               <div>
                 <div 
-                class='font-semibold
+                class='font-semibold uppercase
                   {% if notification.type == "info" %}
                     text-info
                   {% elif notification.type == "warning" %}
@@ -43,8 +43,8 @@
                   {% endif %}
                 
                 '>{{ notification.title }}</div>
-                <p class="text-sm mt-1">{{ notification.message }}</p>
-                <p class="text-gray-400 text-xs mt-2">{{ notification.created_at|naturaltime }}</p>
+                <p class="text-sm mt-4">{{ notification.message }}</p>
+                <div class="flex text-gray-400 text-xs mt-4 italic">{{ notification.created_at|naturaltime }} <p class="indent-4">({{ notification.created_at }})</p></div>
               </div>
             </div>
 
