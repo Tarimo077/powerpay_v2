@@ -20,7 +20,9 @@ urlpatterns = [
     path(
         "password-reset/",
         CustomPasswordResetView.as_view(
-            form_class=StyledPasswordResetForm
+            form_class=StyledPasswordResetForm,
+            email_template_name="accounts/password_reset_email.html",
+            subject_template_name="accounts/password_reset_subject.txt"
         ),
         name="password_reset"
     ),

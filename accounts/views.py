@@ -129,7 +129,7 @@ def send_otp_email(user, otp):
 class CustomPasswordResetView(PasswordResetView):
     template_name = "accounts/password_reset.html"
     html_email_template_name = "accounts/password_reset_email.html"  # HTML template
-    success_url = reverse_lazy("password_reset_done")
+    success_url = reverse_lazy("accounts:password_reset_done")
     from_email = None
 
     def send_mail(self, subject_template_name, email_template_name,
