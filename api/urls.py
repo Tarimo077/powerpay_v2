@@ -13,6 +13,7 @@ router.register("transactions", TransactionViewSet, basename="transactions")
 
 app_name = "api"
 
+
 urlpatterns = [
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path("docs/", SpectacularSwaggerView.as_view(url_name="api:schema"), name="swagger-ui"),
@@ -27,15 +28,14 @@ urlpatterns = [
 
     #Blockchain wallet
     path(
+        "devices/wallet/link/", 
+        DeviceWalletUpsertView.as_view(),
+        name="device-wallet-link", 
+    ),
+    path(
         "devices/wallet/<str:deviceid>/",
         DeviceWalletCheckView.as_view(),
         name="device-wallet-check"
     ),
-    path(
-        "devices/wallet/link/",
-        DeviceWalletUpsertView.as_view(),
-        name="device-wallet-link"
-    ),
-
     path("", include(router.urls)),
 ]

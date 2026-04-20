@@ -68,34 +68,14 @@ class DeviceWalletSerializer(serializers.ModelSerializer):
         read_only_fields = ["linked_at"]
 
     def validate_deviceid(self, value):
-        user = self.context["request"].user
-
-        qs = DeviceInfo.objects.filter(deviceid=value)
-
-        # 🔒 enforce org restriction
-        if getattr(user, "role", "") != "superadmin":
-            qs = qs.filter(organization=user.organization)
-
-        if not qs.exists():
-            raise serializers.ValidationError("Device not found or not allowed")
-
+        if not DeviceInfo.objects.filter(deviceid=value).exists():
+            raise serializers.ValidationError("Device not found")
         return value
 
     def create(self, validated_data):
         deviceid = validated_data.pop("deviceid")
 
-        user = self.context["request"].user
-
-        qs = DeviceInfo.objects.filter(deviceid=deviceid)
-
-        # 🔒 enforce org again at DB level
-        if getattr(user, "role", "") != "superadmin":
-            qs = qs.filter(organization=user.organization)
-
-        device = qs.first()
-
-        if not device:
-            raise serializers.ValidationError({"deviceid": "Device not found"})
+        device = DeviceInfo.objects.get(deviceid=deviceid)
 
         obj, created = DeviceWalletMap.objects.update_or_create(
             device=device,

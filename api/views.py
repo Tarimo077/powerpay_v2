@@ -232,8 +232,6 @@ class DeviceWalletUpsertView(APIView):
         responses=DeviceWalletSerializer
     )
     def post(self, request):
-        user = request.user
-
         serializer = DeviceWalletSerializer(
             data=request.data,
             context={"request": request}
