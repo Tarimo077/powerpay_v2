@@ -1,16 +1,17 @@
 from rest_framework import viewsets, mixins, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Sum, Max, Q
+from django.db.models import Sum, Max
 from drf_spectacular.utils import extend_schema, OpenApiParameter
-from devices.models import DeviceInfo, DeviceData
+from devices.models import DeviceInfo, DeviceData, DeviceWalletMap
 from customers.models import Customer
 from sales.models import Sale
 from transactions.models import Transaction
 from api.serializers import (
     DeviceInfoSerializer, DeviceDataSerializer, CustomerSerializer,
-    SaleSerializer, TransactionSerializer,
+    SaleSerializer, TransactionSerializer, DeviceWalletSerializer
 )
+from rest_framework.views import APIView
 
 class ReadOnlyOrgFilterMixin:
     def get_queryset(self):
@@ -180,3 +181,67 @@ class TransactionViewSet(ReadOnlyOrgFilterMixin,
             qs = qs.filter(txn_id__icontains=txn_id)
 
         return qs
+    
+
+class DeviceWalletCheckView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, deviceid):
+        user = request.user
+
+        # 🔒 Step 1: confirm device exists + belongs to org
+        device_qs = DeviceInfo.objects.filter(deviceid=deviceid)
+
+        if getattr(user, "role", "") != "superadmin":
+            device_qs = device_qs.filter(organization=user.organization)
+
+        device = device_qs.first()
+
+        if not device:
+            return Response(
+                {"detail": "Device not found"},
+                status=404
+            )
+
+        # 🔗 Step 2: check wallet mapping
+        mapping = DeviceWalletMap.objects.filter(
+            device__deviceid=deviceid
+        ).first()
+
+        if mapping:
+            return Response({
+                "deviceid": deviceid,
+                "linked": True,
+                "wallet_address": mapping.wallet_address,
+                "linked_at": mapping.linked_at
+            })
+
+        return Response({
+            "deviceid": deviceid,
+            "linked": False,
+            "wallet_address": None,
+            "linked_at": None
+        })
+    
+class DeviceWalletUpsertView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+
+        serializer = DeviceWalletSerializer(
+            data=request.data,
+            context={"request": request}
+        )
+
+        if serializer.is_valid():
+            obj = serializer.save()
+
+            return Response({
+                "deviceid": obj.device.deviceid,
+                "wallet_address": obj.wallet_address,
+                "linked_at": obj.linked_at,
+                "created": serializer.context.get("created", False)
+            }, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

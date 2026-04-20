@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework import routers
 from api.views import (
     DeviceInfoViewSet, DeviceDataViewSet, CustomerViewSet, 
-    SaleViewSet, TransactionViewSet
+    SaleViewSet, TransactionViewSet, DeviceWalletCheckView, DeviceWalletUpsertView
 )
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
@@ -24,6 +24,18 @@ urlpatterns = [
     # Devices Data: List (all aggregated) and Detail (one aggregated)
     path("devices/data/", DeviceDataViewSet.as_view({'get': 'list'}), name="devicedata-list"),
     path("devices/data/<str:deviceid>/", DeviceDataViewSet.as_view({'get': 'retrieve'}), name="devicedata-detail"),
+
+    #Blockchain wallet
+    path(
+        "devices/wallet/<str:deviceid>/",
+        DeviceWalletCheckView.as_view(),
+        name="device-wallet-check"
+    ),
+    path(
+        "devices/wallet/link/",
+        DeviceWalletUpsertView.as_view(),
+        name="device-wallet-link"
+    ),
 
     path("", include(router.urls)),
 ]

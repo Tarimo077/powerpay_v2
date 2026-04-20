@@ -24,7 +24,7 @@ class DeviceData(models.Model):
 # ----------------------
 class DeviceInfo(models.Model):
     id = models.BigAutoField(primary_key=True)
-    deviceid = models.CharField(max_length=100)
+    deviceid = models.CharField(max_length=100, unique=True)
     active = models.BooleanField()
     time = models.DateTimeField(auto_now_add=True)
     organization = models.ForeignKey(
@@ -95,3 +95,24 @@ class TrackKwh(models.Model):
 
     def __str__(self):
         return f"{self.deviceid} - {self.lastkwh}"
+    
+
+class DeviceWalletMap(models.Model):
+    device = models.OneToOneField(
+        DeviceInfo,
+        to_field="deviceid",
+        db_column="deviceid",
+        on_delete=models.CASCADE,
+        related_name="wallet"
+    )
+
+    wallet_address = models.CharField(max_length=255)
+
+    linked_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "device_wallet_map"
+        managed = False
+
+    def __str__(self):
+        return f"{self.device.deviceid} → {self.wallet_address}"
