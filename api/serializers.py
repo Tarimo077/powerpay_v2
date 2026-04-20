@@ -4,7 +4,7 @@ from customers.models import Customer
 from sales.models import Sale
 from transactions.models import Transaction
 import pytz
-from datetime import timezone
+from django.utils import timezone
 
 class DeviceInfoSerializer(serializers.ModelSerializer):
     ACTIVE_CHOICES = [(True, "ON"), (False, "OFF")]
@@ -57,6 +57,7 @@ class TransactionSerializer(serializers.ModelSerializer):
         model = Transaction
         fields = "__all__"
 
+
 class DeviceWalletSerializer(serializers.ModelSerializer):
     deviceid = serializers.CharField(write_only=True)
     device = serializers.CharField(source="device.deviceid", read_only=True)
@@ -66,14 +67,36 @@ class DeviceWalletSerializer(serializers.ModelSerializer):
         fields = ["deviceid", "device", "wallet_address", "linked_at"]
         read_only_fields = ["linked_at"]
 
+    def validate_deviceid(self, value):
+        user = self.context["request"].user
+
+        qs = DeviceInfo.objects.filter(deviceid=value)
+
+        # 🔒 enforce org restriction
+        if getattr(user, "role", "") != "superadmin":
+            qs = qs.filter(organization=user.organization)
+
+        if not qs.exists():
+            raise serializers.ValidationError("Device not found or not allowed")
+
+        return value
+
     def create(self, validated_data):
         deviceid = validated_data.pop("deviceid")
 
-        device = DeviceInfo.objects.filter(deviceid=deviceid).first()
+        user = self.context["request"].user
+
+        qs = DeviceInfo.objects.filter(deviceid=deviceid)
+
+        # 🔒 enforce org again at DB level
+        if getattr(user, "role", "") != "superadmin":
+            qs = qs.filter(organization=user.organization)
+
+        device = qs.first()
+
         if not device:
             raise serializers.ValidationError({"deviceid": "Device not found"})
 
-        # 🔁 UPSERT instead of blocking duplicates
         obj, created = DeviceWalletMap.objects.update_or_create(
             device=device,
             defaults={

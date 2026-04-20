@@ -223,9 +223,14 @@ class DeviceWalletCheckView(APIView):
             "linked_at": None
         })
     
+
 class DeviceWalletUpsertView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        request=DeviceWalletSerializer,
+        responses=DeviceWalletSerializer
+    )
     def post(self, request):
         user = request.user
 
