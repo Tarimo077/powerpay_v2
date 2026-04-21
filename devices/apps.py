@@ -8,3 +8,4 @@ class DevicesConfig(AppConfig):
 
     def ready(self):
         start_mqtt()
+        import devices.signals
