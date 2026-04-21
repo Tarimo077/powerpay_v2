@@ -79,7 +79,7 @@
         <a hx-get="{% url 'organizations:organizations_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}"
            hx-target="#organizations-table"
            hx-push-url="true"
-           class="btn btn-soft btn-accent">Previous</a>
+           class="btn btn-soft btn-warning hover:text-white">Previous</a>
         {% else %}
         <span class="btn btn-disabled">Previous</span>
         {% endif %}

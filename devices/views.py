@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.timezone import now, make_aware, is_naive
-from .models import DeviceInfo, DeviceData, DeviceCommandSchedule
+from .models import DeviceInfo, DeviceData, DeviceCommandSchedule, TrackKwh
 from .services.energy import (
     kwh_for_device,
     last_energy_timestamp
@@ -22,6 +22,8 @@ from django.contrib import messages
 from .services.device_api import call_change_status_api
 from organizations.models import Organization
 from core.org_checker import get_accessible_organizations
+from inventory.models import InventoryItem
+from django.db import transaction
 
 
 COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
@@ -548,7 +550,19 @@ def device_create(request):
     form = DeviceForm(request.POST or None, user=request.user)
 
     if request.method == "POST" and form.is_valid():
-        form.save()
+        with transaction.atomic():
+            device = form.save()
+
+            # ✅ Handle inventory creation
+            if form.cleaned_data.get("add_to_inventory"):
+                InventoryItem.objects.get_or_create(
+                    serial_number=device.deviceid,
+                    defaults={
+                        "name": form.cleaned_data["inventory_name"],
+                        "product_type": form.cleaned_data["product_type"],
+                        "current_warehouse": form.cleaned_data["warehouse"],
+                    }
+                )
         return redirect("devices:device_list")
 
     return render(request, "devices/device_form.html", {
@@ -560,11 +574,65 @@ def device_create(request):
 @superuser_required
 def device_edit(request, deviceid):
     device = get_object_or_404(DeviceInfo, deviceid=deviceid)
+
+    # 🔍 Get existing inventory (if any)
+    inventory = InventoryItem.objects.filter(
+        serial_number=device.deviceid
+    ).first()
+
     form = DeviceForm(request.POST or None, instance=device, user=request.user)
 
     if request.method == "POST" and form.is_valid():
-        form.save()
+        with transaction.atomic():
+
+            # 🔁 Track old deviceid (important if changed)
+            old_deviceid = device.deviceid
+
+            # ✅ Save device
+            device = form.save()
+
+            new_deviceid = device.deviceid
+
+            # 🔁 Sync TrackKwh if deviceid changed
+            if old_deviceid != new_deviceid:
+                TrackKwh.objects.filter(deviceid=old_deviceid).update(
+                    deviceid=new_deviceid
+                )
+
+                InventoryItem.objects.filter(
+                    serial_number=old_deviceid
+                ).update(
+                    serial_number=new_deviceid
+                )
+
+            # 📦 Inventory handling
+            add_to_inventory = form.cleaned_data.get("add_to_inventory")
+
+            if add_to_inventory:
+                InventoryItem.objects.update_or_create(
+                    serial_number=device.deviceid,
+                    defaults={
+                        "name": form.cleaned_data["inventory_name"],
+                        "product_type": form.cleaned_data["product_type"],
+                        "current_warehouse": form.cleaned_data["warehouse"],
+                    }
+                )
+            else:
+                # ❌ Remove inventory if unchecked
+                InventoryItem.objects.filter(
+                    serial_number=device.deviceid
+                ).delete()
+
         return redirect("devices:device_list")
+
+    # ✅ Pre-fill inventory fields on GET
+    if request.method == "GET" and inventory:
+        form.initial.update({
+            "add_to_inventory": True,
+            "inventory_name": inventory.name,
+            "product_type": inventory.product_type,
+            "warehouse": inventory.current_warehouse,
+        })
 
     return render(request, "devices/device_form.html", {
         "form": form,
@@ -576,7 +644,23 @@ def device_edit(request, deviceid):
 @require_POST
 def device_delete(request, deviceid):
     device = get_object_or_404(DeviceInfo, deviceid=deviceid)
-    device.delete()
+
+    with transaction.atomic():
+        # 🔁 Clean up related data first
+
+        # Delete inventory entry
+        InventoryItem.objects.filter(
+            serial_number=device.deviceid
+        ).delete()
+
+        # Delete TrackKwh entry
+        TrackKwh.objects.filter(
+            deviceid=device.deviceid
+        ).delete()
+
+        # Finally delete device
+        device.delete()
+
     return redirect("devices:device_list")
 
 @login_required

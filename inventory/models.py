@@ -39,7 +39,7 @@ class InventoryItem(models.Model):
         
         if last_movement_to_current:
             return (now() - last_movement_to_current.date_moved).days
-        return (now() - self.date_added).days  # Fallback for items never moved
+        return (now().date() - self.date_added).days  # Fallback for items never moved
     
 class InventoryMovement(models.Model):
     item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, related_name='movements')

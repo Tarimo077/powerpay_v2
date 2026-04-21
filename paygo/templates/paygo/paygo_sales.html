@@ -397,7 +397,7 @@
 
             {% if page_obj.has_previous %}
                 <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}&sort={{ current_sort }}&dir={{ current_dir }}&mode={{ mode }}&metered={{ metered_filter }}"
-                class="btn btn-soft btn-accent hover:text-white">
+                class="btn btn-soft btn-warning hover:text-white">
                     <i class="fa-solid fa-backward-step"></i> Previous
                 </a>
             {% else %}
