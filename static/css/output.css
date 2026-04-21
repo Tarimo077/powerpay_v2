@@ -6825,6 +6825,9 @@
       background-color: color-mix(in oklab, var(--color-success) 10%, transparent);
     }
   }
+  .bg-warning {
+    background-color: var(--color-warning);
+  }
   .bg-white {
     background-color: var(--color-white);
   }
