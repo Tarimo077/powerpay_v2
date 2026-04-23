@@ -695,7 +695,7 @@ class DeviceScheduleCreateView(CreateView):
     model = DeviceCommandSchedule
     form_class = DeviceCommandScheduleForm
     template_name = "devices/device_schedule_form.html"
-    success_url = reverse_lazy("device_schedule_list")
+    success_url = reverse_lazy("devices:device_schedule_list")
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -713,7 +713,7 @@ class DeviceScheduleUpdateView(UpdateView):
     model = DeviceCommandSchedule
     form_class = DeviceCommandScheduleForm
     template_name = "devices/device_schedule_form.html"
-    success_url = reverse_lazy("device_schedule_list")
+    success_url = reverse_lazy("devices:device_schedule_list")
 
     def get_queryset(self):
         user = self.request.user
@@ -735,7 +735,7 @@ class DeviceScheduleUpdateView(UpdateView):
 class DeviceScheduleDeleteView(DeleteView):
     model = DeviceCommandSchedule
     template_name = "devices/device_schedule_confirm_delete.html"
-    success_url = reverse_lazy("device_schedule_list")
+    success_url = reverse_lazy("devices:device_schedule_list")
 
     def get_queryset(self):
         user = self.request.user
