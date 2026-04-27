@@ -1,6 +1,11 @@
 from django.db import models
 
 class Organization(models.Model):
+    PLAN_CHOICES = [
+        ("STANDARD", "Standard"),
+        ("PREMIUM", "Premium"),
+        ("PREMIUM_PLUS", "Premium Plus"),
+    ]
     name = models.CharField(max_length=255, unique=True)
     address = models.TextField(blank=True, null=True)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
@@ -9,6 +14,12 @@ class Organization(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     can_view_other_orgs = models.BooleanField(default=False)
+
+    plan = models.CharField(
+        max_length=30,
+        choices=PLAN_CHOICES,
+        default="STANDARD"
+    )
 
     def __str__(self):
         return self.name
