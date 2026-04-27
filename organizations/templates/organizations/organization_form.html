@@ -14,117 +14,205 @@
     <div id="page-content"
          class="px-4 py-2 w-full transition-all duration-300 lg:ml-64 ml-0">
 
-        <h2 class="text-2xl font-bold mb-6">{{ title }}</h2>
+        <h2 class="text-2xl font-bold mb-6">
+            {{ title }}
+        </h2>
 
         <div class="bg-base-100 shadow-lg rounded-xl p-6">
 
-            <form method="POST" enctype="multipart/form-data" class="space-y-5">
+            <form method="POST"
+                  enctype="multipart/form-data"
+                  class="space-y-5">
+
                 {% csrf_token %}
 
-                <!-- Name -->
+                <!-- Organization Name -->
                 <div>
-                    <label class="label font-semibold">Organization Name</label>
+                    <label class="label font-semibold">
+                        Organization Name
+                    </label>
                     {{ form.name }}
+
                     {% if form.name.errors %}
-                        <p class="text-error text-sm mt-1">{{ form.name.errors }}</p>
+                        <p class="text-error text-sm mt-1">
+                            {{ form.name.errors }}
+                        </p>
                     {% endif %}
                 </div>
 
                 <!-- Address -->
                 <div>
-                    <label class="label font-semibold">Address</label>
+                    <label class="label font-semibold">
+                        Address
+                    </label>
                     {{ form.address }}
+
                     {% if form.address.errors %}
-                        <p class="text-error text-sm mt-1">{{ form.address.errors }}</p>
+                        <p class="text-error text-sm mt-1">
+                            {{ form.address.errors }}
+                        </p>
                     {% endif %}
                 </div>
 
                 <!-- Phone -->
                 <div>
-                    <label class="label font-semibold">Phone Number</label>
+                    <label class="label font-semibold">
+                        Phone Number
+                    </label>
                     {{ form.phone_number }}
+
                     {% if form.phone_number.errors %}
-                        <p class="text-error text-sm mt-1">{{ form.phone_number.errors }}</p>
+                        <p class="text-error text-sm mt-1">
+                            {{ form.phone_number.errors }}
+                        </p>
                     {% endif %}
                 </div>
 
                 <!-- Email -->
                 <div>
-                    <label class="label font-semibold">Email</label>
+                    <label class="label font-semibold">
+                        Email
+                    </label>
                     {{ form.email }}
+
                     {% if form.email.errors %}
-                        <p class="text-error text-sm mt-1">{{ form.email.errors }}</p>
+                        <p class="text-error text-sm mt-1">
+                            {{ form.email.errors }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Plan -->
+                <div>
+                    <label class="label font-semibold">
+                        Subscription Plan
+                    </label>
+                    {{ form.plan }}
+
+                    {% if form.plan.errors %}
+                        <p class="text-error text-sm mt-1">
+                            {{ form.plan.errors }}
+                        </p>
                     {% endif %}
                 </div>
 
                 <!-- Logo -->
                 <div>
-                    <label class="label font-semibold">Logo</label>
+                    <label class="label font-semibold">
+                        Logo
+                    </label>
                     {{ form.logo }}
+
                     {% if form.logo.errors %}
-                        <p class="text-error text-sm mt-1">{{ form.logo.errors }}</p>
+                        <p class="text-error text-sm mt-1">
+                            {{ form.logo.errors }}
+                        </p>
                     {% endif %}
 
                     {% if form.instance.logo %}
-                        <div class="mt-2">
-                            <p class="text-sm text-gray-500">Current logo:</p>
-                            <img src="{{ form.instance.logo.url }}"
-                                 class="h-16 rounded-lg border shadow-sm">
+                        <div class="mt-3">
+                            <p class="text-sm opacity-70 mb-2">
+                                Current Logo
+                            </p>
+
+                            <div class="w-32 h-32 rounded-xl overflow-hidden border shadow-sm bg-base-200">
+                                <img src="{{ form.instance.logo.url }}"
+                                     class="w-full h-full object-contain p-2">
+                            </div>
                         </div>
                     {% endif %}
                 </div>
 
-                <!-- Can View Other Orgs -->
+                <!-- Can View Other Organizations -->
                 <div>
-                    <label class="label font-semibold">Can View Other Organizations</label>
-                    {{ form.can_view_other_orgs }}
+                    <label class="label font-semibold">
+                        Can View Other Organizations
+                    </label>
+
+                    <div class="mt-2">
+                        {{ form.can_view_other_orgs }}
+                    </div>
+
                     {% if form.can_view_other_orgs.errors %}
-                        <p class="text-error text-sm mt-1">{{ form.can_view_other_orgs.errors }}</p>
+                        <p class="text-error text-sm mt-1">
+                            {{ form.can_view_other_orgs.errors }}
+                        </p>
                     {% endif %}
                 </div>
 
                 <!-- Allowed Organizations -->
-                <div id="allowed-orgs-container" {% if not form.can_view_other_orgs.value %}style="display:none"{% endif %}>
-                    <label class="label font-semibold">Select Organizations to Access</label>
+                <div id="allowed-orgs-container"
+                     {% if not form.can_view_other_orgs.value %}
+                     style="display:none"
+                     {% endif %}>
+
+                    <label class="label font-semibold">
+                        Select Organizations to Access
+                    </label>
+
                     {{ form.allowed_orgs }}
+
                     {% if form.allowed_orgs.errors %}
-                        <p class="text-error text-sm mt-1">{{ form.allowed_orgs.errors }}</p>
+                        <p class="text-error text-sm mt-1">
+                            {{ form.allowed_orgs.errors }}
+                        </p>
                     {% endif %}
                 </div>
 
                 <!-- Allowed Apps -->
                 <div>
-                    <label class="label font-semibold">Allowed Apps</label>
+                    <label class="label font-semibold">
+                        Allowed Apps
+                    </label>
+
                     {{ form.allowed_apps }}
+
                     {% if form.allowed_apps.errors %}
-                        <p class="text-error text-sm mt-1">{{ form.allowed_apps.errors }}</p>
+                        <p class="text-error text-sm mt-1">
+                            {{ form.allowed_apps.errors }}
+                        </p>
                     {% endif %}
                 </div>
 
                 <!-- Buttons -->
                 <div class="flex gap-3 pt-4">
-                    <button type="submit" class="btn btn-success text-white">
-                        <i class="fa-solid fa-save"></i> Save
+
+                    <button type="submit"
+                            class="btn btn-success text-white">
+                        <i class="fa-solid fa-save"></i>
+                        Save
                     </button>
 
-                    <a href="{% url 'organizations:organizations_page' %}" class="btn btn-outline">
+                    <a href="{% url 'organizations:organizations_page' %}"
+                       class="btn btn-outline">
                         Cancel
                     </a>
+
                 </div>
 
             </form>
+
         </div>
 
     </div>
 </div>
 
 <script>
-    // Show/hide allowed_orgs if checkbox checked
-    const checkbox = document.querySelector('input[name="can_view_other_orgs"]');
-    const container = document.getElementById('allowed-orgs-container');
+document.addEventListener("DOMContentLoaded", function () {
+    const checkbox = document.querySelector(
+        'input[name="can_view_other_orgs"]'
+    );
 
-    checkbox.addEventListener('change', () => {
-        container.style.display = checkbox.checked ? 'block' : 'none';
+    const container = document.getElementById(
+        "allowed-orgs-container"
+    );
+
+    checkbox.addEventListener("change", function () {
+        container.style.display = this.checked
+            ? "block"
+            : "none";
     });
+});
 </script>
+
 {% endblock %}
