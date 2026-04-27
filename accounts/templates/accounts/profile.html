@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% load static %}
+
 {% block title %}
   Powerpay Africa | My Profile
 {% endblock %}
+
 {% block content %}
 {% include "partials/navbar.html" %}
 
@@ -13,85 +15,274 @@
 
     <!-- Main Content -->
     <div id="page-content"
-     class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
-            lg:ml-64 ml-0 space-y-6">
+         class="px-4 py-4 w-full overflow-x-auto transition-all duration-300
+                lg:ml-64 ml-0 space-y-6">
 
-        <div class="bg-base-100 shadow rounded-lg p-6 mt-2">
+        <!-- Profile Container -->
+        <div class="bg-base-100 shadow-xl rounded-2xl p-6 mt-2">
 
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold">My Profile</h2>
-                <span class="badge badge-success text-white">
-                    {{ request.user.get_role_display }}
-                </span>
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+
+                <div class="flex items-center gap-4">
+
+                    <!-- Avatar -->
+                    <div class="w-16 h-16 rounded-full bg-success 
+                                flex items-center justify-center">
+                        <span class="text-white font-bold text-3xl">
+                            {% if request.user.first_name and request.user.last_name %}
+                                {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+                            {% elif request.user.first_name %}
+                                {{ request.user.first_name|slice:":2"|upper }}
+                            {% else %}
+                                {{ request.user.email|slice:":2"|upper }}
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div>
+                        <h2 class="text-3xl font-bold">
+                            My Profile
+                        </h2>
+
+                        <p class="opacity-70">
+                            Manage your personal and organization information
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="flex gap-2">
+
+                    <span class="badge badge-success text-white badge-lg">
+                        {{ request.user.get_role_display }}
+                    </span>
+
+                    {% if request.user.is_active %}
+                        <span class="badge badge-info text-white badge-lg">
+                            Active
+                        </span>
+                    {% endif %}
+
+                </div>
+
             </div>
 
-            <!-- User Info Card -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <!-- USER INFO -->
+            <div class="mb-8">
 
-                <div class="card bg-base-200 p-4">
-                    <p class="text-xs text-gray-500">Username</p>
-                    <p class="font-semibold">{{ request.user.email }}</p>
-                </div>
+                <h3 class="text-xl font-bold mb-4">
+                    User Information
+                </h3>
 
-                <div class="card bg-base-200 p-4">
-                    <p class="text-xs text-gray-500">Date Joined</p>
-                    <p class="font-semibold">
-                        {{ request.user.date_joined|date:"j M Y" }}
-                    </p>
-                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
-                <div class="card bg-base-200 p-4">
-                    <p class="text-xs text-gray-500">Last Login</p>
-                    <p class="font-semibold">
-                        {{ request.user.last_login|date:"j M Y H:i" }}
-                    </p>
-                </div>
+                    <div class="card bg-base-200 p-4">
+                        <p class="text-xs opacity-60">First Name</p>
+                        <p class="font-semibold">
+                            {{ request.user.first_name|default:"Not set" }}
+                        </p>
+                    </div>
 
-                {% if request.user.organization %}
-                <div class="card bg-base-200 p-4">
-                    <p class="text-xs text-gray-500">Organization</p>
-                    <p class="font-semibold">
-                        {{ request.user.organization.name }}
-                    </p>
+                    <div class="card bg-base-200 p-4">
+                        <p class="text-xs opacity-60">Last Name</p>
+                        <p class="font-semibold">
+                            {{ request.user.last_name|default:"Not set" }}
+                        </p>
+                    </div>
+
+                    <div class="card bg-base-200 p-4">
+                        <p class="text-xs opacity-60">Email</p>
+                        <p class="font-semibold">
+                            {{ request.user.email }}
+                        </p>
+                    </div>
+
+                    <div class="card bg-base-200 p-4">
+                        <p class="text-xs opacity-60">Date Joined</p>
+                        <p class="font-semibold">
+                            {{ request.user.date_joined|date:"j M Y" }}
+                        </p>
+                    </div>
+
+                    <div class="card bg-base-200 p-4">
+                        <p class="text-xs opacity-60">Last Login</p>
+                        <p class="font-semibold">
+                            {{ request.user.last_login|date:"j M Y H:i" }}
+                        </p>
+                    </div>
+
+                    <div class="card bg-base-200 p-4">
+                        <p class="text-xs opacity-60">User ID</p>
+                        <p class="font-semibold">
+                            #{{ request.user.id }}
+                        </p>
+                    </div>
+
                 </div>
-                {% endif %}
 
             </div>
 
-            <!-- Edit Form -->
-            <form method="POST" class="space-y-4">
-                {% csrf_token %}
+            <!-- ORGANIZATION INFO -->
+            {% if request.user.organization %}
+            <div class="mb-8">
 
-                <div>
-                    <label class="label font-semibold">First Name</label>
-                    {{ form.first_name }}
+                <div class="divider"></div>
+
+                <h3 class="text-xl font-bold mb-4">
+                    Organization Information
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <!-- Left -->
+                    <div class="space-y-4">
+
+                        <div class="card bg-base-200 p-4">
+                            <p class="text-xs opacity-60">Organization Name</p>
+                            <p class="font-semibold">
+                                {{ request.user.organization.name }}
+                            </p>
+                        </div>
+
+                        <div class="card bg-base-200 p-4">
+                            <p class="text-xs opacity-60">Email</p>
+                            <p class="font-semibold">
+                                {{ request.user.organization.email|default:"Not set" }}
+                            </p>
+                        </div>
+
+                        <div class="card bg-base-200 p-4">
+                            <p class="text-xs opacity-60">Phone Number</p>
+                            <p class="font-semibold">
+                                {{ request.user.organization.phone_number|default:"Not set" }}
+                            </p>
+                        </div>
+
+                        <div class="card bg-base-200 p-4">
+                            <p class="text-xs opacity-60">Address</p>
+                            <p class="font-semibold">
+                                {{ request.user.organization.address|default:"Not set" }}
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <!-- Right -->
+                    <div class="space-y-4">
+
+                        <!-- Logo -->
+                        <div class="card bg-base-200 p-4">
+
+                            <p class="text-xs opacity-60 mb-3">
+                                Organization Logo
+                            </p>
+
+                            {% if request.user.organization.logo %}
+                                <img src="{{ request.user.organization.logo.url }}"
+                                     alt="Organization Logo"
+                                     class="w-28 h-28 object-contain rounded-xl">
+                            {% else %}
+                                <div class="w-28 h-28 rounded-xl bg-base-300 flex items-center justify-center">
+                                    <span class="opacity-60 text-sm">
+                                        No Logo
+                                    </span>
+                                </div>
+                            {% endif %}
+
+                        </div>
+
+                        <div class="card bg-base-200 p-4">
+                            <p class="text-xs opacity-60">Subscription Plan</p>
+
+                            <div class="mt-2">
+                                {% if request.user.organization.plan == "STANDARD" %}
+                                    <span class="badge badge-neutral text-white">
+                                        Standard
+                                    </span>
+                                {% elif request.user.organization.plan == "PREMIUM" %}
+                                    <span class="badge badge-warning text-white">
+                                        Premium
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-success text-white">
+                                        Premium Plus
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                        </div>
+
+                        <div class="card bg-base-200 p-4">
+                            <p class="text-xs opacity-60">Organization Created</p>
+                            <p class="font-semibold">
+                                {{ request.user.organization.created_at|date:"j M Y" }}
+                            </p>
+                        </div>
+
+                    </div>
+
                 </div>
 
-                <div>
-                    <label class="label font-semibold">Last Name</label>
-                    {{ form.last_name }}
-                </div>
+            </div>
+            {% endif %}
 
-                <div>
-                    <label class="label font-semibold">Email</label>
-                    {{ form.email }}
-                </div>
+            <!-- EDIT PROFILE -->
+            <div>
 
-                <div class="flex justify-between mt-6">
-                    <a href="{% url 'accounts:password_reset' %}" 
-                       class="btn btn-warning text-white">
-                        Change Password
-                    </a>
+                <div class="divider"></div>
 
-                    <button type="submit" class="btn btn-success text-white">
-                        Update Profile
-                    </button>
-                </div>
+                <h3 class="text-xl font-bold mb-4">
+                    Update Profile
+                </h3>
 
-            </form>
+                <form method="POST" class="space-y-4">
+                    {% csrf_token %}
+
+                    <div>
+                        <label class="label font-semibold">
+                            First Name
+                        </label>
+                        {{ form.first_name }}
+                    </div>
+
+                    <div>
+                        <label class="label font-semibold">
+                            Last Name
+                        </label>
+                        {{ form.last_name }}
+                    </div>
+
+                    <div>
+                        <label class="label font-semibold">
+                            Email
+                        </label>
+                        {{ form.email }}
+                    </div>
+
+                    <div class="flex flex-col md:flex-row md:justify-between gap-3 mt-6">
+
+                        <a href="{% url 'accounts:password_reset' %}"
+                           class="btn btn-warning text-white">
+                            <i class="fa-solid fa-lock"></i>
+                            Change Password
+                        </a>
+
+                        <button type="submit"
+                                class="btn btn-success text-white">
+                            <i class="fa-solid fa-user-pen"></i>
+                            Update Profile
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
 
         </div>
 
     </div>
 </div>
+
 {% endblock %}
