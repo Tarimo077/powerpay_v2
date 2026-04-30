@@ -12,6 +12,7 @@ class CustomerForm(forms.ModelForm):
             "alternate_phone_number": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
             "email": forms.EmailInput(attrs={"class": "input input-bordered w-full"}),
             "id_number": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
+            "country": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
             "location": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
             "county": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
             "sub_county": forms.TextInput(attrs={"class": "input input-bordered w-full"}),

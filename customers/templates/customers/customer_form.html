@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block content %}
 {% block title %}
   Powerpay Africa | {{ title }}
 {% endblock %}
+{% block content %}
 {% include "partials/navbar.html" %}
 
 <div class="flex min-h-screen overflow-hidden bg-base-200">
@@ -26,7 +26,16 @@
         </div>
 
         <!-- FORM CARD -->
-        <div class="bg-base-100 shadow rounded-lg p-6 max-w-5xl">
+        <div class="bg-base-100 shadow rounded-lg p-6">
+            {% if form.errors %}
+            <div class="alert alert-error mb-4">
+                <ul>
+                    {% for field, errors in form.errors.items %}
+                        <li><strong>{{ field }}:</strong> {{ errors|join:", " }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
             <form method="post">
                 {% csrf_token %}
 
@@ -81,6 +90,11 @@
                     <div>
                         <label class="label">Organization</label>
                         {{ form.organization }}
+                    </div>
+
+                    <div>
+                        <label class="label">Country</label>
+                        {{ form.country }}
                     </div>
 
                     <div>

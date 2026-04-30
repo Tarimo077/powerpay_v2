@@ -2,6 +2,8 @@
 {% load dict_extras %}
 <div id="customers-table" class="relative">
 
+    {% csrf_token %}
+
     <!-- HTMX LOADER -->
     <div id="htmx-loading"
          class="absolute inset-0 bg-base-200/50 flex items-center justify-center
@@ -247,11 +249,18 @@ function confirmDeleteCustomer(customerId, customerName) {
 function deleteCustomer(customerId) {
     fetch(`/customers/${customerId}/delete/`, {
         method: "POST",
+        credentials: "same-origin",
         headers: {
             "X-CSRFToken": getCSRFToken(),
+            "Content-Type": "application/json"
         }
     })
-    .then(res => res.json())
+    .then(async res => {
+        if (!res.ok) {
+            throw new Error("Network response not OK");
+        }
+        return res.json();
+    })
     .then(data => {
         if (data.success) {
             Swal.fire({
@@ -263,9 +272,12 @@ function deleteCustomer(customerId) {
             }).then(() => {
                 window.location.href = "{% url 'customers:customers_page' %}";
             });
+        } else {
+            throw new Error("Delete failed");
         }
     })
-    .catch(() => {
+    .catch((err) => {
+        console.error(err);
         Swal.fire("Error", "Something went wrong.", "error");
     });
 }
