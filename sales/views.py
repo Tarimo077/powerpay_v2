@@ -8,8 +8,41 @@ from .models import Sale
 from django.contrib.auth.decorators import login_required
 from .forms import SaleForm
 from notifications.utils import notify
-from organizations.models import Organization
 from core.org_utils import get_user_orgs, get_user_org_ids
+from django.http import JsonResponse
+from customers.models import Customer
+
+
+@login_required
+def customer_search(request):
+    q = request.GET.get("q", "").strip()
+
+    # 🔐 Base queryset
+    if getattr(request.user, "role", None) == "superadmin":
+        customers = Customer.objects.all()
+    else:
+        customers = Customer.objects.filter(
+            organization=request.user.organization
+        )
+
+    # 🔎 Apply search
+    if q:
+        customers = customers.filter(
+            Q(name__icontains=q) |
+            Q(phone_number__icontains=q)
+        )
+
+    customers = customers[:20]
+
+    results = [
+        {
+            "id": c.id,
+            "text": f"{c.name} - {c.phone_number} - {c.location}"
+        }
+        for c in customers
+    ]
+
+    return JsonResponse(results, safe=False)
 
 @login_required
 def sales_page(request):

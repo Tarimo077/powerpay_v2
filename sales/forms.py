@@ -2,15 +2,17 @@ from django import forms
 from .models import Sale
 from customers.models import Customer
 
+
 class SaleForm(forms.ModelForm):
     class Meta:
         model = Sale
         fields = "__all__"
 
         widgets = {
-            "customer": forms.Select(attrs={
-                "class": "select select-bordered w-full"
-            }),
+            # ❌ DO NOT USE SELECT ANYMORE (JS controls this)
+            "customer": forms.HiddenInput(),
+            "referred_by": forms.HiddenInput(),
+
             "registration_date": forms.DateInput(attrs={
                 "type": "date",
                 "class": "input input-bordered w-full"
@@ -19,6 +21,7 @@ class SaleForm(forms.ModelForm):
                 "type": "date",
                 "class": "input input-bordered w-full"
             }),
+
             "product_type": forms.Select(attrs={
                 "class": "select select-bordered w-full"
             }),
@@ -34,9 +37,7 @@ class SaleForm(forms.ModelForm):
             "purchase_mode": forms.Select(attrs={
                 "class": "select select-bordered w-full"
             }),
-            "referred_by": forms.Select(attrs={
-                "class": "select select-bordered w-full"
-            }),
+
             "sales_rep": forms.TextInput(attrs={
                 "class": "input input-bordered w-full"
             }),
@@ -61,25 +62,28 @@ class SaleForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.user = user
 
-        # 🔐 Superadmin logic
+        # Superadmin can see everything (used only for validation if needed)
         if user and getattr(user, "role", None) == "superadmin":
-            self.fields["customer"].queryset = Customer.objects.all()
+            self.customer_queryset = Customer.objects.all()
         else:
-            # 👤 Normal user logic
-            self.fields.pop("organization", None)
+            org = user.organization
+            self.customer_queryset = Customer.objects.filter(organization=org)
 
-            self.fields["customer"].queryset = Customer.objects.filter(
-                organization=user.organization
-            )
+    def clean_customer(self):
+        customer = self.cleaned_data.get("customer")
+        if customer:
+            return customer
+        return None
 
-            self.fields["referred_by"].queryset = Customer.objects.filter(
-                organization=user.organization
-            )
+    def clean_referred_by(self):
+        referred = self.cleaned_data.get("referred_by")
+        if referred:
+            return referred
+        return None
 
     def save(self, commit=True):
         sale = super().save(commit=False)
 
-        # 🔒 Enforce organization
         if self.user and getattr(self.user, "role", None) != "superadmin":
             sale.organization = self.user.organization
 

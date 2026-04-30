@@ -34,14 +34,41 @@
                 <!-- FORM GRID -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                    <div>
+                    <div class="relative">
+
                         <label class="label">Customer</label>
-                        {{ form.customer }}
+
+                        <input type="text"
+                            id="customer-search"
+                            class="input input-bordered w-full"
+                            placeholder="Search customer..."
+                            autocomplete="off">
+
+                        <input type="hidden" name="customer" id="customer-id">
+
+                        <!-- DROPDOWN -->
+                        <ul id="customer-results"
+                            class="absolute z-50 bg-base-100 shadow rounded w-full mt-1 hidden max-h-60 overflow-auto">
+                        </ul>
+
                     </div>
 
-                    <div>
+                    <div class="relative">
+
                         <label class="label">Referred By</label>
-                        {{ form.referred_by }}
+
+                        <input type="text"
+                            id="referred-search"
+                            class="input input-bordered w-full"
+                            placeholder="Search referrer..."
+                            autocomplete="off">
+
+                        <input type="hidden" name="referred_by" id="referred-id">
+
+                        <ul id="referred-results"
+                            class="absolute z-50 bg-base-100 shadow rounded w-full mt-1 hidden max-h-60 overflow-auto">
+                        </ul>
+
                     </div>
 
                     <div>
@@ -134,5 +161,60 @@
 
     </div>
 </div>
+
+<script>
+function setupSearch(inputId, hiddenId, listId, url) {
+    const input = document.getElementById(inputId);
+    const hidden = document.getElementById(hiddenId);
+    const list = document.getElementById(listId);
+
+    let timer;
+
+    input.addEventListener("input", function () {
+        clearTimeout(timer);
+
+        const query = this.value;
+
+        if (!query) {
+            list.classList.add("hidden");
+            return;
+        }
+
+        timer = setTimeout(() => {
+            fetch(`${url}?q=${query}`)
+                .then(res => res.json())
+                .then(data => {
+
+                    list.innerHTML = "";
+
+                    if (data.length === 0) {
+                        list.innerHTML = `<li class="p-2 text-gray-400">No results</li>`;
+                    } else {
+                        data.forEach(c => {
+                            let li = document.createElement("li");
+
+                            li.className = "p-2 hover:bg-base-200 cursor-pointer";
+                            li.textContent = c.text;
+
+                            li.onclick = function () {
+                                input.value = c.text;
+                                hidden.value = c.id;
+                                list.classList.add("hidden");
+                            };
+
+                            list.appendChild(li);
+                        });
+                    }
+
+                    list.classList.remove("hidden");
+                });
+        }, 300);
+    });
+}
+
+// INIT BOTH FIELDS
+setupSearch("customer-search", "customer-id", "customer-results", "/sales/search/");
+setupSearch("referred-search", "referred-id", "referred-results", "/sales/search/");
+</script>
 
 {% endblock %}
