@@ -50,7 +50,7 @@ def warehouse_create(request):
         if form.is_valid():
             form.save()
             notify(request.user, "New Warehouse", f"{form.cleaned_data['name']} warehouse has been created.", "success")
-            return redirect("inventory:warehouse_page")
+            return redirect("inventory:warehouses_page")
     else:
         form = WarehouseForm()
 
@@ -66,7 +66,7 @@ def warehouse_update(request, pk):
         if form.is_valid():
             form.save()
             notify(request.user, "Warehouse Update", f"{warehouse.name} warehouse has been updated.", "info")
-            return redirect("inventory:warehouse_page")
+            return redirect("inventory:warehouses_page")
     else:
         form = WarehouseForm(instance=warehouse)
 
@@ -78,7 +78,7 @@ def warehouse_delete(request, pk):
     warehouse = get_object_or_404(Warehouse, pk=pk)
     warehouse.delete()
     notify(request.user, "Warehose Deleted", f"{warehouse.name} warehouse has been deleted.", "warning")
-    return redirect("inventory:warehouse_page")
+    return redirect("inventory:warehouses_page")
 
 
 # =========================
