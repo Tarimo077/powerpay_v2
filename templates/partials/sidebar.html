@@ -14,167 +14,256 @@
 <!-- Sidebar -->
 <nav id="sidebar"
      class="
-        fixed top-0 left-0 h-full bg-base-100 shadow-sm flex flex-col
+        fixed top-0 left-0 h-screen bg-base-100 shadow-sm flex flex-col
         transition-all duration-300 z-50
         w-64
         -translate-x-full lg:translate-x-0
      ">
 
-    <div class="flex justify-end p-2 lg:hidden">
+    <!-- Mobile Close -->
+    <div class="flex justify-end p-2 lg:hidden shrink-0">
         <button id="mobile-close-btn" class="btn btn-ghost btn-sm text-gray-500">
             <i class="fas fa-xmark text-xl"></i>
         </button>
     </div>
 
     <!-- Logo -->
-    <div class="flex items-center justify-center mt-4">
-        <img id="sidebar-image" src="{% static 'images/pp_no_bgcropped.png' %}" class="h-8 w-8">
-        <!-- 
-        <span id="sidebar-text" class="font-bold text-green-800 text-xl">
-            PowerPay Africa
-        </span> -->
-        <img id="sidebar-text" src="{% static 'images/powerpaylogo.png' %}" style="height: 100px; width: auto;">
+    <div class="flex items-center justify-center mt-4 shrink-0">
+        <img id="sidebar-image"
+             src="{% static 'images/pp_no_bgcropped.png' %}"
+             class="h-8 w-8 hidden">
+
+        <img id="sidebar-text"
+             src="{% static 'images/powerpaylogo.png' %}"
+             style="height: 100px; width: auto;">
     </div>
 
-    <div class="divider p-2"></div>
+    <div class="divider p-2 shrink-0"></div>
 
-    <!-- Navigation Links -->
-    <div class="flex flex-col space-y-2 flex-1 overflow-y-auto text-sm">
+    <!-- Scrollable Navigation Container -->
+    <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
 
-        <a href="{% url 'core:index' %}"
-           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if request.path == '/' %} bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold {% else %} hover:text-success {% endif %}">
-            <i class="fas fa-chart-line w-5"></i>
-            <span class="link-text">Overview</span>
-        </a>
+        <!-- Inner Nav Wrapper -->
+        <div class="flex flex-col space-y-2 text-sm pb-4">
 
-        {% if is_superuser %}
-        <a href="{% url 'organizations:organizations_page' %}"
-           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if 'organizations' in request.path %} bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold {% else %} hover:text-success {% endif %}">
-            <i class="fas fa-industry w-5"></i>
-            <span class="link-text">Organizations</span>
-        </a>
-        {% endif %}
+            <!-- Overview -->
+            <a href="{% url 'core:index' %}"
+               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               {% if request.path == '/' %}
+                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+               {% else %}
+                    hover:text-success
+               {% endif %}">
+                <i class="fas fa-chart-line w-5"></i>
+                <span class="link-text">Overview</span>
+            </a>
 
+            <!-- Organizations -->
+            {% if is_superuser %}
+            <a href="{% url 'organizations:organizations_page' %}"
+               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               {% if 'organizations' in request.path %}
+                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+               {% else %}
+                    hover:text-success
+               {% endif %}">
+                <i class="fas fa-industry w-5"></i>
+                <span class="link-text">Organizations</span>
+            </a>
+            {% endif %}
 
-        <a href="{% url 'devices:device_list' %}"
-            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-            {% if 'devices' in request.path and 'schedules' not in request.path %} 
-                bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold 
-            {% else %} 
-                hover:text-success 
-            {% endif %}">
-            <i class="fas fa-plug w-5"></i>
-            <span class="link-text">Devices</span>
-        </a>
+            <!-- Devices -->
+            <a href="{% url 'devices:device_list' %}"
+               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               {% if 'devices' in request.path and 'schedules' not in request.path %}
+                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+               {% else %}
+                    hover:text-success
+               {% endif %}">
+                <i class="fas fa-plug w-5"></i>
+                <span class="link-text">Devices</span>
+            </a>
 
-        <a href="{% url 'devices:device_schedule_list' %}"
-            class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-            {% if 'schedules' in request.path %} 
-                bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold 
-            {% else %} 
-                hover:text-success 
-            {% endif %}">
-            <i class="fa-solid fa-calendar-day w-5"></i>
-            <span class="link-text">Device Schedules</span>
-        </a>
+            <!-- Device Schedules -->
+            <a href="{% url 'devices:device_schedule_list' %}"
+               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               {% if 'schedules' in request.path %}
+                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+               {% else %}
+                    hover:text-success
+               {% endif %}">
+                <i class="fa-solid fa-calendar-day w-5"></i>
+                <span class="link-text">Device Schedules</span>
+            </a>
 
-        {% if 'customers' in allowed_apps %}
-        
-        <a href="{% url 'customers:customers_page' %}"
-           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if 'customers' in request.path %} bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold {% else %} hover:text-success {% endif %}">
-            <i class="fas fa-users w-5"></i>
-            <span class="link-text">Customers</span>
-        </a>
+            <!-- Customers -->
+            {% if 'customers' in allowed_apps %}
+            <a href="{% url 'customers:customers_page' %}"
+               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               {% if 'customers' in request.path %}
+                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+               {% else %}
+                    hover:text-success
+               {% endif %}">
+                <i class="fas fa-users w-5"></i>
+                <span class="link-text">Customers</span>
+            </a>
+            {% endif %}
 
-        {% endif %}
+            <!-- Sales -->
+            {% if 'sales' in allowed_apps %}
+            <a href="{% url 'sales:sales_page' %}"
+               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               {% if 'sales' in request.path %}
+                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+               {% else %}
+                    hover:text-success
+               {% endif %}">
+                <i class="fa-solid fa-cash-register w-5"></i>
+                <span class="link-text">All Sales</span>
+            </a>
+            {% endif %}
 
-        {% if 'sales' in allowed_apps %}
+            <!-- PayGo -->
+            {% if 'paygo' in allowed_apps %}
+            <a href="{% url 'paygo:paygo_sales' %}"
+               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               {% if 'paygo' in request.path %}
+                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+               {% else %}
+                    hover:text-success
+               {% endif %}">
+                <i class="fa-solid fa-file-invoice-dollar w-5"></i>
+                <span class="link-text">Paygo Sales</span>
+            </a>
+            {% endif %}
 
-        <a href="{% url 'sales:sales_page' %}"
-           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if 'sales' in request.path %} bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold {% else %} hover:text-success {% endif %}">
-            <i class="fa-solid fa-cash-register w-5"></i>
-            <span class="link-text">All Sales</span>
-        </a>
+            <!-- Inventory -->
+            {% if request.user.is_superuser %}
+            <a href="{% url 'inventory:inventory_page' %}"
+               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               {% if request.path == '/inventory/' %}
+                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+               {% else %}
+                    hover:text-success
+               {% endif %}">
+                <i class="fa-solid fa-boxes-stacked w-5"></i>
+                <span class="link-text">Inventory</span>
+            </a>
 
-        {% endif %}
+            <a href="{% url 'inventory:warehouses_page' %}"
+               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               {% if 'warehouses' in request.path %}
+                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+               {% else %}
+                    hover:text-success
+               {% endif %}">
+                <i class="fa-solid fa-warehouse w-5"></i>
+                <span class="link-text">Warehouses</span>
+            </a>
+            {% endif %}
 
-        {% if 'paygo' in allowed_apps %}
+            <!-- Transactions -->
+            {% if 'transactions' in allowed_apps %}
+            <a href="{% url 'transactions:transactions_page' %}"
+               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               {% if 'transactions' in request.path %}
+                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+               {% else %}
+                    hover:text-success
+               {% endif %}">
+                <i class="fas fa-credit-card w-5"></i>
+                <span class="link-text">Transactions</span>
+            </a>
+            {% endif %}
 
-        <a href="{% url 'paygo:paygo_sales' %}"
-           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if 'paygo' in request.path %} bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold {% else %} hover:text-success {% endif %}">
-            <i class="fa-solid fa-file-invoice-dollar w-5"></i>
-            <span class="link-text">Paygo Sales</span>
-        </a>
+            <!-- Export -->
+            <a href="{% url 'core:export_data' %}"
+               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               {% if 'export' in request.path %}
+                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+               {% else %}
+                    hover:text-success
+               {% endif %}">
+                <i class="fas fa-file-export w-5"></i>
+                <span class="link-text">Export Center</span>
+            </a>
 
-        {% endif %}
+            <!-- Import -->
+            <a href="{% url 'core:import_center' %}"
+               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               {% if 'import' in request.path %}
+                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+               {% else %}
+                    hover:text-success
+               {% endif %}">
+                <i class="fas fa-file-import w-5"></i>
+                <span class="link-text">Import Center</span>
+            </a>
 
-        <!-- Inventory -->
-        {% if request.user.is_superuser %}
-        <a href="{% url 'inventory:inventory_page' %}"
-           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if request.path == '/inventory/' %} bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold {% else %} hover:text-success {% endif %}">
-            <i class="fa-solid fa-boxes-stacked w-5"></i>
-            <span class="link-text">Inventory</span>
-        </a>
+            <!-- Billing 
+            {% if request.user.role == "superadmin" or request.user.role == "admin" or 'billing' in allowed_apps %}
+            <div class="collapse collapse-arrow rounded-none bg-base-100 mx-3">
 
-        <!-- Warehouses (SUPERUSERS ONLY) -->
-        <a href="{% url 'inventory:warehouses_page' %}"
-           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if 'warehouses' in request.path %} bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold {% else %} hover:text-success {% endif %}">
-            <i class="fa-solid fa-warehouse w-5"></i>
-            <span class="link-text">Warehouses</span>
-        </a>
-        {% endif %}
+                <input type="checkbox"
+                       {% if request.resolver_match.namespace == 'billing' %}checked{% endif %} />
 
-        {% if 'transactions' in allowed_apps %}
+                <div class="collapse-title px-4 py-4">
+                    <div class="flex items-center gap-4">
+                        <i class="fa-solid fa-file-invoice-dollar w-5"></i>
+                        <span class="link-text">Billing</span>
+                    </div>
+                </div>
 
-        <a href="{% url 'transactions:transactions_page' %}"
-           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if 'transactions' in request.path %} bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold {% else %} hover:text-success {% endif %}">
-            <i class="fas fa-credit-card w-5"></i>
-            <span class="link-text">Transactions</span>
-        </a>
+                <div class="collapse-content mx-1">
 
-        {% endif %}
+                    <a href="{% url 'billing:invoice_list' %}"
+                       class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+                       {% if 'invoice' in request.path %}
+                            bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                       {% else %}
+                            hover:text-success
+                       {% endif %}">
+                        <i class="fa-solid fa-file-lines w-5"></i>
+                        <span class="link-text">Invoices</span>
+                    </a>
 
-        <a href="{% url 'core:export_data' %}"
-           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if 'export' in request.path %} bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold {% else %} hover:text-success {% endif %}">
-            <i class="fas fa-file-export w-5"></i>
-            <span class="link-text">Export Center</span>
-        </a>
-        
-        <a href="{% url 'core:import_center' %}"
-           class="flex items-center gap-4 p-4 mx-3 rounded-sm transition 
-           {% if 'import' in request.path %} bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold {% else %} hover:text-success {% endif %}">
-            <i class="fas fa-file-import w-5"></i>
-            <span class="link-text">Import Center</span>
-        </a>
+                    <a href="{% url 'billing:receipt_list' %}"
+                       class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+                       {% if 'receipt' in request.path %}
+                            bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                       {% else %}
+                            hover:text-success
+                       {% endif %}">
+                        <i class="fa-solid fa-receipt w-5"></i>
+                        <span class="link-text">Receipts</span>
+                    </a>
 
+                </div>
+            </div>
+            {% endif %} -->
+
+        </div>
+    </div>
+
+    <!-- Fixed Footer -->
+    <div class="shrink-0">
         <div class="divider p-3"></div>
 
-        <form method="post" action="{% url 'accounts:logout' %}" class="mt-auto">
+        <form method="post" action="{% url 'accounts:logout' %}">
             {% csrf_token %}
             <button type="submit"
-                    class="flex items-center gap-4 p-4 mx-3 text-error hover:text-red-800 hover:bg-base-200 rounded-lg transition cursor-pointer">
+                    class="flex items-center gap-4 p-4 mx-3 text-error hover:text-red-800 hover:bg-base-200 rounded-lg transition cursor-pointer w-[calc(100%-1.5rem)]">
                 <i class="fas fa-right-from-bracket w-5"></i>
                 <span class="link-text">Logout</span>
             </button>
         </form>
-
     </div>
 
-    <!-- Desktop Collapse Button -->
+    <!-- Desktop Toggle -->
     <button id="sidebar-toggle"
-            class="hidden lg:block absolute top-4 -right-4 -translate-y-2/3 mt-3 bg-base-200
-                   bg-base-100 border-gray-500 rounded-full p-2 shadow text-green-500 cursor-pointer"
-                   
-            title="Click to expand/collapse the sidebar."       >
+            class="hidden lg:block absolute top-4 -right-4 -translate-y-2/3 mt-3 bg-base-100 rounded-full p-2 shadow text-green-500 cursor-pointer"
+            title="Click to expand/collapse the sidebar.">
         <i class="fas fa-chevron-left"></i>
     </button>
 </nav>
@@ -195,13 +284,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const isDesktop = () => window.innerWidth >= 1024;
 
-    /* ---------------- INITIAL STATE ---------------- */
     if (isDesktop()) {
         const state = localStorage.getItem(SIDEBAR_KEY) || 'expanded';
         state === 'collapsed' ? collapse(false) : expand(false);
     } else {
-        // Force full view on mobile/tablet regardless of desktop's saved state
-        expand(false); 
+        expand(false);
     }
 
     toggleBtn?.addEventListener('click', () => {
@@ -209,15 +296,12 @@ document.addEventListener('DOMContentLoaded', () => {
         sidebar.classList.contains('w-20') ? expand(true) : collapse(true);
     });
 
-    /* ---------------- MOBILE MENU ---------------- */
     mobileBtn?.addEventListener('click', () => {
-        // Ensure it is expanded before showing
-        expand(false); 
+        expand(false);
         sidebar.classList.remove('-translate-x-full');
         overlay.classList.remove('hidden');
     });
 
-    // NEW: Close button listener
     mobileCloseBtn?.addEventListener('click', closeMobile);
     overlay?.addEventListener('click', closeMobile);
 
@@ -226,46 +310,48 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.classList.add('hidden');
     }
 
-    /* ---------------- HELPERS ---------------- */
     function collapse(save) {
-        // ONLY collapse width if on desktop
         if (isDesktop()) {
             sidebar.classList.replace('w-64', 'w-20');
             pageContent?.classList.replace('lg:ml-64', 'lg:ml-20');
-            
-            document.querySelectorAll('.link-text').forEach(e => e.classList.add('hidden'));
+
+            document.querySelectorAll('.link-text')
+                .forEach(e => e.classList.add('hidden'));
+
             sidebarText.classList.add('hidden');
             sidebarImage.classList.remove('hidden');
-            chevron?.classList.replace('fa-chevron-left','fa-chevron-right');
-            
+
+            chevron?.classList.replace('fa-chevron-left', 'fa-chevron-right');
+
             if (save) localStorage.setItem(SIDEBAR_KEY, 'collapsed');
         }
     }
 
     function expand(save) {
-        // Always w-64 on mobile, or expanding on desktop
         sidebar.classList.remove('w-20');
         sidebar.classList.add('w-64');
 
         if (isDesktop()) {
             pageContent?.classList.remove('lg:ml-20');
             pageContent?.classList.add('lg:ml-64');
+
             if (save) localStorage.setItem(SIDEBAR_KEY, 'expanded');
         }
 
-        document.querySelectorAll('.link-text').forEach(e => e.classList.remove('hidden'));
+        document.querySelectorAll('.link-text')
+            .forEach(e => e.classList.remove('hidden'));
+
         sidebarText.classList.remove('hidden');
         sidebarImage.classList.add('hidden');
-        chevron?.classList.replace('fa-chevron-right','fa-chevron-left');
+
+        chevron?.classList.replace('fa-chevron-right', 'fa-chevron-left');
     }
 
-    /* Close mobile menu on resize and reset state */
     window.addEventListener('resize', () => {
         if (!isDesktop()) {
             closeMobile();
-            expand(false); // Reset to full width for mobile view
+            expand(false);
         } else {
-            // Re-apply the user's desktop preference
             const state = localStorage.getItem(SIDEBAR_KEY) || 'expanded';
             state === 'collapsed' ? collapse(false) : expand(false);
         }

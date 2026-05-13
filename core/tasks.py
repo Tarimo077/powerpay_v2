@@ -22,6 +22,35 @@ def percent_change(current, previous):
         return 0
     return round(((current - previous) / previous) * 100, 1)
 
+
+def devices_for_organizations(org_ids):
+    """
+    Return devices available to the given organization ids.
+
+    DeviceInfo now supports two organization concepts:
+    1. organization_id: legacy / main organization
+    2. organizations: M2M list of organizations that can view the device
+
+    Dashboard metrics must include both so old devices remain visible and
+    newly shared devices count for the orgs they were shared with.
+    """
+    org_ids = list(org_ids)
+
+    if not org_ids:
+        return DeviceInfo.objects.none()
+
+    return (
+        DeviceInfo.objects
+        .filter(
+            Q(organization_id__in=org_ids) |
+            Q(organizations__id__in=org_ids)
+        )
+        .select_related("organization")
+        .prefetch_related("organizations")
+        .distinct()
+    )
+
+
 # -------- CORE CONTEXT BUILDER --------
 def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=None):
     today = timezone.now().date()
@@ -54,21 +83,27 @@ def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=
 
     # -------- QUERYSET BASE --------
     if org_id:
-        devices = DeviceInfo.objects.filter(organization_id=org_id)
+        # Selected-org dashboard: include devices whose main org is selected
+        # OR devices shared with the selected org through DeviceInfo.organizations.
+        devices = devices_for_organizations([org_id])
         transactions = Transaction.objects.filter(org_id=org_id)
         organizations = accessible_orgs.filter(id=org_id)
     else:
-        devices = DeviceInfo.objects.filter(organization_id__in=accessible_ids)
+        # All-org dashboard: include devices visible through legacy main org
+        # and M2M view-access orgs. distinct() prevents double counting.
+        devices = devices_for_organizations(accessible_ids)
         transactions = Transaction.objects.filter(org_id__in=accessible_ids)
         organizations = accessible_orgs
 
-    device_ids = list(devices.values_list("deviceid", flat=True))
+    device_ids = list(devices.values_list("deviceid", flat=True).distinct())
 
     # -------- TIME HANDLING --------
     if period in ["all"]:
         forced_energy_start = date(2024, 9, 1)
-        first_data = DeviceData.objects.aggregate(first=Min("time__date"))["first"]
-        first_tx = Transaction.objects.aggregate(first=Min("time__date"))["first"]
+        first_data = DeviceData.objects.filter(
+            deviceid__in=device_ids
+        ).aggregate(first=Min("time__date"))["first"]
+        first_tx = transactions.aggregate(first=Min("time__date"))["first"]
 
         energy_start_date = max(forced_energy_start, first_data) if first_data else forced_energy_start
         money_start_date = first_tx if first_tx else today

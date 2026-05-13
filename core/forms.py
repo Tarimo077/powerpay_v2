@@ -1,5 +1,7 @@
 from django import forms
 from devices.models import DeviceInfo
+from django.db.models import Q
+from core.org_checker import get_accessible_organizations
 
 class ExportForm(forms.Form):
     def __init__(self, *args, user=None, **kwargs):
@@ -18,17 +20,57 @@ class ExportForm(forms.Form):
             ("users", "Users"),
         ]
 
+        # Default device queryset. Superadmins can export/select every device.
+        self.fields["devices"].queryset = (
+            DeviceInfo.objects
+            .all()
+            .select_related("organization")
+            .prefetch_related("organizations")
+            .order_by("deviceid")
+            .distinct()
+        )
+
         # Restrict non-superadmins
-        if not user or getattr(user, "role", "") != "superadmin":
+        is_superadmin = bool(
+            user and (user.is_superuser or getattr(user, "role", "") == "superadmin")
+        )
+
+        if not is_superadmin:
             allowed = ["deviceinfo", "devicedata", "customers", "sales", "transactions"]
             MODEL_CHOICES = [m for m in MODEL_CHOICES if m[0] in allowed]
 
-            # Restrict devices queryset to user's org
-            self.fields["devices"].queryset = DeviceInfo.objects.filter(
-                organization=user.organization
-            )
+            if user and getattr(user, "organization", None):
+                accessible_orgs = get_accessible_organizations(user)
+                accessible_ids = list(accessible_orgs.values_list("id", flat=True))
+
+                # Include both legacy/main-org devices and devices shared through
+                # the DeviceInfo.organizations M2M field.
+                self.fields["devices"].queryset = (
+                    DeviceInfo.objects
+                    .filter(
+                        Q(organization_id__in=accessible_ids) |
+                        Q(organizations__id__in=accessible_ids)
+                    )
+                    .select_related("organization")
+                    .prefetch_related("organizations")
+                    .order_by("deviceid")
+                    .distinct()
+                )
+            else:
+                self.fields["devices"].queryset = DeviceInfo.objects.none()
 
         self.fields["model"].choices = MODEL_CHOICES
+        self.fields["devices"].label_from_instance = self.device_label
+
+    @staticmethod
+    def device_label(device):
+        main_org = device.organization.name if getattr(device, "organization", None) else "No main org"
+        view_orgs = ", ".join(org.name for org in device.organizations.all())
+
+        if not view_orgs:
+            view_orgs = main_org
+
+        return f"{device.deviceid} | Main: {main_org} | Can view: {view_orgs}"
 
     model = forms.ChoiceField(
         choices=[],  # dynamically set in __init__

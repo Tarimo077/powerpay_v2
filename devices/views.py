@@ -12,9 +12,9 @@ from django.http import HttpResponse
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 from datetime import timedelta
-from django.db.models import Sum 
+from django.db.models import Sum, Q
 from notifications.utils import notify
-from .forms import DeviceForm, DeviceCommandScheduleForm
+from .forms import DeviceForm, DeviceCommandScheduleForm, BulkDeviceCreateForm
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
@@ -24,9 +24,63 @@ from organizations.models import Organization
 from core.org_checker import get_accessible_organizations
 from inventory.models import InventoryItem
 from django.db import transaction
+import csv
 
 
 COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
+
+
+def _user_is_device_admin(user):
+    return user.is_superuser or getattr(user, "role", None) == "superadmin"
+
+
+def _accessible_device_queryset(user):
+    """
+    Returns devices accessible to the user.
+
+    Important:
+    We check BOTH:
+    1. device.organizations M2M relationship
+    2. legacy device.organization_id
+
+    This keeps old devices visible even if they have not yet been backfilled
+    into devactivity_organizations.
+    """
+    if _user_is_device_admin(user):
+        accessible_orgs = Organization.objects.all()
+    else:
+        accessible_orgs = get_accessible_organizations(user)
+
+    accessible_ids = list(accessible_orgs.values_list("id", flat=True))
+
+    if _user_is_device_admin(user):
+        devices = (
+            DeviceInfo.objects
+            .all()
+            .select_related("organization")
+            .prefetch_related("organizations")
+            .distinct()
+        )
+    else:
+        devices = (
+            DeviceInfo.objects
+            .filter(
+                Q(organizations__id__in=accessible_ids) |
+                Q(organization_id__in=accessible_ids)
+            )
+            .select_related("organization")
+            .prefetch_related("organizations")
+            .distinct()
+        )
+
+    return devices, accessible_orgs, accessible_ids
+
+
+def _accessible_device_or_404(user, deviceid):
+    devices, _, _ = _accessible_device_queryset(user)
+    return get_object_or_404(devices, deviceid=deviceid)
+
+
 # ------------------------------
 # Device List View
 # ------------------------------
@@ -37,39 +91,30 @@ def device_list(request):
     q = request.GET.get("q", "")
     status = request.GET.get("status", "all")
     org_id = request.GET.get("org")
-    
+
     if org_id in [None, "", "None"]:
         org_id = None
 
     # -------- ACCESSIBLE ORGS --------
-    if user.is_superuser or getattr(user, "role", None) == "superadmin":
-        accessible_orgs = Organization.objects.all()
-        is_admin = True
-    else:
-        accessible_orgs = get_accessible_organizations(user)
-        is_admin = False
-
-    accessible_ids = list(accessible_orgs.values_list("id", flat=True))
-
-    # -------- BASE QUERY --------
-    devices = DeviceInfo.objects.filter(
-        organization_id__in=accessible_ids
-    ).select_related("organization")
+    devices, accessible_orgs, accessible_ids = _accessible_device_queryset(user)
+    is_admin = _user_is_device_admin(user)
 
     # -------- ORG FILTER --------
-    org_id = request.GET.get("org")
-
     if org_id and org_id.isdigit():
         org_id = int(org_id)
+
         if org_id in accessible_ids:
-            devices = devices.filter(organization_id=org_id)
+            devices = devices.filter(
+                Q(organizations__id=org_id) |
+                Q(organization_id=org_id)
+            ).distinct()
         else:
             org_id = None
     else:
         org_id = None
 
-    organizations = accessible_orgs 
-    
+    organizations = accessible_orgs
+
     # Search
     if q:
         devices = devices.filter(deviceid__icontains=q)
@@ -80,15 +125,19 @@ def device_list(request):
     elif status == "inactive":
         devices = devices.filter(active=False)
 
-    devices = devices.order_by("deviceid")
+    devices = devices.order_by("deviceid").distinct()
 
     # Stats
     total_devices = devices.count()
-    active_devices = devices.filter(active=True).count()
-    inactive_devices = devices.filter(active=False).count()
+    active_devices = devices.filter(active=True).distinct().count()
+    inactive_devices = devices.filter(active=False).distinct().count()
 
     device_stats = [
-        {"device": d, "last_seen": last_energy_timestamp(d)}
+        {
+            "device": d,
+            "last_seen": last_energy_timestamp(d),
+            "organizations": d.organizations.all(),
+        }
         for d in devices
     ]
 
@@ -104,6 +153,7 @@ def device_list(request):
         "org_filter": org_id,
         "organizations": organizations,
         "is_admin": is_admin,
+        "is_superuser": is_admin,
         "total_devices": total_devices,
         "active_devices": active_devices,
         "inactive_devices": inactive_devices,
@@ -113,20 +163,21 @@ def device_list(request):
         return render(request, "partials/devices_table.html", context)
 
     return render(request, "devices/device_list.html", context)
+
+
 # ------------------------------
 # Device Detail / Stats
 # ------------------------------
 
 @login_required
 def device_detail(request, deviceid):
-
-    device = get_object_or_404(DeviceInfo, deviceid=deviceid)
+    device = _accessible_device_or_404(request.user, deviceid)
 
     # ---------------------------
     # PERIOD FILTER
     # ---------------------------
     period = request.GET.get("period", "all")
-    now = timezone.now()
+    now_time = timezone.now()
 
     period_map = {
         "1d": timedelta(hours=24),
@@ -142,12 +193,12 @@ def device_detail(request, deviceid):
 
     duration = period_map.get(period)
 
-    start_time = now - duration if duration else None
+    start_time = now_time - duration if duration else None
     previous_start = start_time - duration if duration else None
     previous_end = start_time if duration else None
 
     # ---------------------------
-    # READINGS (CURRENT PERIOD)
+    # READINGS CURRENT PERIOD
     # ---------------------------
     readings_qs = DeviceData.objects.filter(deviceid=deviceid)
 
@@ -163,7 +214,7 @@ def device_detail(request, deviceid):
     )
 
     # ---------------------------
-    # READINGS (PREVIOUS PERIOD)
+    # READINGS PREVIOUS PERIOD
     # ---------------------------
     previous_readings = DeviceData.objects.none()
 
@@ -182,7 +233,6 @@ def device_detail(request, deviceid):
     prev_time = None
 
     for r in readings:
-
         if prev_time:
             gap = (r.time - prev_time).total_seconds()
 
@@ -205,7 +255,6 @@ def device_detail(request, deviceid):
     prev_time = None
 
     for r in previous_readings.order_by("time"):
-
         if prev_time:
             gap = (r.time - prev_time).total_seconds()
 
@@ -227,7 +276,6 @@ def device_detail(request, deviceid):
     total_cooking_time_minutes = 0
 
     for idx, event in enumerate(cooking_events, start=1):
-
         start = timezone.localtime(event[0].time)
         end = timezone.localtime(event[-1].time)
 
@@ -245,7 +293,6 @@ def device_detail(request, deviceid):
         })
 
     cooking_events_count = len(cooking_events)
-
     previous_cooking_events = len(previous_events)
 
     # ---------------------------
@@ -286,11 +333,10 @@ def device_detail(request, deviceid):
     previous_kwh = previous_readings.aggregate(total=Sum("kwh"))["total"] or 0
 
     ENERGY_PRICE = 14.32
+    CO2_PER_KWH = 0.41
 
     energy_cost = total_kwh * ENERGY_PRICE
     previous_cost = previous_kwh * ENERGY_PRICE
-
-    CO2_PER_KWH = 0.41
 
     co2_emissions = total_kwh * CO2_PER_KWH
     previous_co2 = previous_kwh * CO2_PER_KWH
@@ -306,10 +352,9 @@ def device_detail(request, deviceid):
         previous_cooking_time += (end - start).total_seconds() / 60
 
     # ---------------------------
-    # PERCENTAGE CHANGE FUNCTION
+    # PERCENTAGE CHANGE
     # ---------------------------
     def percent_change(current, previous):
-
         if previous == 0:
             return 0
 
@@ -351,7 +396,6 @@ def device_detail(request, deviceid):
     # HTMX TABLE
     # ---------------------------
     if request.headers.get("HX-Request") == "true":
-
         return render(
             request,
             "partials/cooking_events_table.html",
@@ -365,39 +409,30 @@ def device_detail(request, deviceid):
             },
         )
 
-    # ---------------------------
-    # CONTEXT
-    # ---------------------------
     context = {
-
         "device": device,
         "period": period,
         "last_seen": last_seen,
 
-        # Metrics
         "total_kwh": round(total_kwh, 3),
         "cooking_events": cooking_events_count,
         "cooking_time": round(total_cooking_time_minutes, 1),
         "energy_cost": round(energy_cost, 2),
         "co2_emissions": round(co2_emissions, 2),
 
-        # Percentage change
         "kwh_change": kwh_change,
         "co2_change": co2_change,
         "events_change": events_change,
         "cooking_time_change": cooking_time_change,
         "cost_change": cost_change,
 
-        # Charts
         "energy_labels": energy_labels,
         "energy_data": energy_data,
         "cooking_event_labels": cooking_event_labels,
         "cooking_event_data": cooking_event_data,
 
-        # Table
         "cooking_event_rows": cooking_event_rows_paginated,
 
-        # Sorting
         "current_sort": sort,
         "current_dir": direction,
         "next_dirs": next_dirs,
@@ -416,63 +451,74 @@ def change_device_status(request):
         return HttpResponse("Device ID required", status=400)
 
     try:
-        # 1️⃣ Parse current status
         current_status = request.POST.get("active", "false").lower() == "true"
 
-        # 2️⃣ Call external API
         api_payload = {
             "selectedDev": deviceid,
             "status": not current_status
         }
+
         response = requests.post(
             "https://appliapay.com/changeStatus",
             json=api_payload,
             timeout=10
         )
+
         if response.status_code != 200:
             return HttpResponse("External API error", status=502)
 
         data = response.json()
-        # Expected: {"selectedDev":"NEOPRS000001","status":false,"time":"2026-01-09T21:11:14.786000Z"}
 
-        # 3️⃣ Extract updated info
         new_status = data.get("status", not current_status)
+
+        if isinstance(new_status, str):
+            new_status = new_status.lower() == "true"
+
         updated_time_str = data.get("time")
         updated_time = None
+
         if new_status:
-            notify(request.user, "Device Activation", f"{deviceid} has been activated.","success")
+            notify(
+                request.user,
+                "Device Activation",
+                f"{deviceid} has been activated.",
+                "success"
+            )
         else:
-            notify(request.user, "Device Deactivation", f"{deviceid} has been deactivated.","warning")
+            notify(
+                request.user,
+                "Device Deactivation",
+                f"{deviceid} has been deactivated.",
+                "warning"
+            )
+
         if updated_time_str:
             dt = parse_datetime(updated_time_str)
             if dt:
                 updated_time = make_aware(dt) if is_naive(dt) else dt
 
-        # 4️⃣ Build row context for HTMX partial
         start_of_day = now().replace(hour=0, minute=0, second=0, microsecond=0)
 
-        
-        device = get_object_or_404(DeviceInfo, deviceid=deviceid)
+        device = _accessible_device_or_404(request.user, deviceid)
+        device.active = new_status
+        device.save(update_fields=["active"])
+
         kwh_today = kwh_for_device(device, start_of_day, now())
-        
-        row = {
-            "deviceid": deviceid,
-            "active": new_status,
-            "last_seen": last_energy_timestamp(device),
-            # If you want, you can calculate kWh today here too
-            "kwh_today": kwh_today
-        }
 
         return render(
             request,
             "partials/device-row.html",
             {
-                "deviceid": row["deviceid"],
-                "active": row["active"],
-                "last_seen": row["last_seen"],
-                "kwh_today": row["kwh_today"],
+                "device": device,
+                "deviceid": device.deviceid,
+                "active": device.active,
+                "last_seen": last_energy_timestamp(device),
+                "kwh_today": kwh_today,
                 "user": request.user,
-                "organization": device.organization
+                "organization": device.organization,
+                "organizations": device.organizations.all(),
+                "is_superuser": _user_is_device_admin(request.user),
+                "is_admin": _user_is_device_admin(request.user),
             }
         )
 
@@ -481,6 +527,7 @@ def change_device_status(request):
 
     except Exception as e:
         return HttpResponse(f"Unexpected error: {e}", status=500)
+
 
 @login_required
 def change_device_status_partial(request):
@@ -492,39 +539,41 @@ def change_device_status_partial(request):
         return HttpResponse("Device ID required", status=400)
 
     try:
-        # Parse current toggle state
         current_status = request.POST.get("active", "false").lower() == "true"
 
-        # Call external API to toggle device
-        api_payload = {"selectedDev": deviceid, "status": not current_status}
+        api_payload = {
+            "selectedDev": deviceid,
+            "status": not current_status
+        }
+
         response = requests.post(
             "https://appliapay.com/changeStatus",
             json=api_payload,
             timeout=10
         )
+
         if response.status_code != 200:
             return HttpResponse("External API error", status=502)
 
         data = response.json()
-        # {"selectedDev":"NEOPRS000001","status":false,"time":"2026-01-09T21:11:14.786000Z"}
 
-        # Extract new status
         new_status = data.get("status", not current_status)
 
-        # Optional: parse last seen from API
+        if isinstance(new_status, str):
+            new_status = new_status.lower() == "true"
+
         updated_time_str = data.get("time")
         updated_time = None
+
         if updated_time_str:
             dt = parse_datetime(updated_time_str)
             if dt:
                 updated_time = make_aware(dt) if is_naive(dt) else dt
 
-        # Fetch device from DB
-        device = get_object_or_404(DeviceInfo, deviceid=deviceid)
+        device = _accessible_device_or_404(request.user, deviceid)
         device.active = new_status
         device.save(update_fields=["active"])
 
-        # Render partial
         return render(
             request,
             "partials/device_status_partial.html",
@@ -539,7 +588,7 @@ def change_device_status_partial(request):
 
     except Exception as e:
         return HttpResponse(f"Unexpected error: {e}", status=500)
-    
+
 
 def superuser_required(view):
     return user_passes_test(lambda u: u.is_superuser)(view)
@@ -553,7 +602,6 @@ def device_create(request):
         with transaction.atomic():
             device = form.save()
 
-            # ✅ Handle inventory creation
             if form.cleaned_data.get("add_to_inventory"):
                 InventoryItem.objects.get_or_create(
                     serial_number=device.deviceid,
@@ -563,6 +611,7 @@ def device_create(request):
                         "current_warehouse": form.cleaned_data["warehouse"],
                     }
                 )
+
         return redirect("devices:device_list")
 
     return render(request, "devices/device_form.html", {
@@ -575,7 +624,6 @@ def device_create(request):
 def device_edit(request, deviceid):
     device = get_object_or_404(DeviceInfo, deviceid=deviceid)
 
-    # 🔍 Get existing inventory (if any)
     inventory = InventoryItem.objects.filter(
         serial_number=device.deviceid
     ).first()
@@ -584,16 +632,12 @@ def device_edit(request, deviceid):
 
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
-
-            # 🔁 Track old deviceid (important if changed)
             old_deviceid = device.deviceid
 
-            # ✅ Save device
             device = form.save()
 
             new_deviceid = device.deviceid
 
-            # 🔁 Sync TrackKwh if deviceid changed
             if old_deviceid != new_deviceid:
                 TrackKwh.objects.filter(deviceid=old_deviceid).update(
                     deviceid=new_deviceid
@@ -605,7 +649,6 @@ def device_edit(request, deviceid):
                     serial_number=new_deviceid
                 )
 
-            # 📦 Inventory handling
             add_to_inventory = form.cleaned_data.get("add_to_inventory")
 
             if add_to_inventory:
@@ -618,14 +661,12 @@ def device_edit(request, deviceid):
                     }
                 )
             else:
-                # ❌ Remove inventory if unchecked
                 InventoryItem.objects.filter(
                     serial_number=device.deviceid
                 ).delete()
 
         return redirect("devices:device_list")
 
-    # ✅ Pre-fill inventory fields on GET
     if request.method == "GET" and inventory:
         form.initial.update({
             "add_to_inventory": True,
@@ -646,33 +687,244 @@ def device_delete(request, deviceid):
     device = get_object_or_404(DeviceInfo, deviceid=deviceid)
 
     with transaction.atomic():
-        # 🔁 Clean up related data first
-
-        # Delete inventory entry
         InventoryItem.objects.filter(
             serial_number=device.deviceid
         ).delete()
 
-        # Delete TrackKwh entry
         TrackKwh.objects.filter(
             deviceid=device.deviceid
         ).delete()
 
-        # Finally delete device
         device.delete()
 
     return redirect("devices:device_list")
 
+
+@superuser_required
+def device_bulk_create(request):
+    form = BulkDeviceCreateForm(request.POST or None, user=request.user)
+
+    if request.method == "POST" and form.is_valid():
+        deviceids = form.cleaned_data["deviceids"]
+        organizations = form.cleaned_data["organizations"]
+        primary_organization = organizations.first()
+        active = form.cleaned_data["active"]
+
+        if not primary_organization:
+            messages.error(request, "Select at least one organization.")
+            return redirect("devices:device_bulk_create")
+
+        existing_ids = set(
+            DeviceInfo.objects.filter(deviceid__in=deviceids)
+            .values_list("deviceid", flat=True)
+        )
+
+        created_count = 0
+        skipped = []
+
+        with transaction.atomic():
+            for deviceid in deviceids:
+                if deviceid in existing_ids:
+                    skipped.append(deviceid)
+                    continue
+
+                device = DeviceInfo.objects.create(
+                    deviceid=deviceid,
+                    active=active,
+                    organization=primary_organization,
+                )
+
+                device.organizations.set(organizations)
+                created_count += 1
+
+        if created_count:
+            messages.success(request, f"{created_count} device(s) added successfully.")
+
+        if skipped:
+            messages.warning(
+                request,
+                f"Skipped {len(skipped)} duplicate device(s): {', '.join(skipped[:10])}"
+                + ("..." if len(skipped) > 10 else "")
+            )
+
+        return redirect("devices:device_list")
+
+    return render(request, "devices/device_bulk_form.html", {
+        "form": form,
+        "title": "Bulk Add Devices",
+    })
+
+
+@login_required
+@require_POST
+def device_bulk_action(request):
+    action = request.POST.get("bulk_action")
+    selected_ids = request.POST.getlist("selected_devices")
+    target_org_id = request.POST.get("target_org")
+
+    if not selected_ids:
+        messages.warning(request, "Select at least one device first.")
+        return redirect("devices:device_list")
+
+    devices, _, _ = _accessible_device_queryset(request.user)
+    devices = devices.filter(deviceid__in=selected_ids).distinct()
+
+    if not devices.exists():
+        messages.error(request, "No accessible devices matched your selection.")
+        return redirect("devices:device_list")
+
+    # ----------------------------------------------------
+    # ADD SELECTED DEVICES TO ANOTHER ORGANIZATION
+    # ----------------------------------------------------
+    if action == "add_to_org":
+        if not _user_is_device_admin(request.user):
+            messages.error(
+                request,
+                "You do not have permission to assign devices to organizations."
+            )
+            return redirect("devices:device_list")
+
+        if not target_org_id:
+            messages.warning(
+                request,
+                "Choose an organization to assign the selected devices to."
+            )
+            return redirect("devices:device_list")
+
+        target_org = get_object_or_404(Organization, id=target_org_id)
+
+        updated_count = 0
+        already_assigned_count = 0
+
+        with transaction.atomic():
+            for device in devices:
+                if device.organizations.filter(id=target_org.id).exists():
+                    already_assigned_count += 1
+                    continue
+
+                device.organizations.add(target_org)
+
+                if not device.organization_id:
+                    device.organization = target_org
+                    device.save(update_fields=["organization"])
+
+                updated_count += 1
+
+        if updated_count:
+            messages.success(
+                request,
+                f"{updated_count} device(s) added to {target_org.name}."
+            )
+
+        if already_assigned_count:
+            messages.info(
+                request,
+                f"{already_assigned_count} device(s) were already assigned to {target_org.name}."
+            )
+
+        return redirect("devices:device_list")
+
+    # ----------------------------------------------------
+    # ACTIVATE / DEACTIVATE SELECTED DEVICES
+    # ----------------------------------------------------
+    if action in ["activate", "deactivate"]:
+        target_status = action == "activate"
+
+        success_count = 0
+        failed = []
+
+        for device in devices:
+            try:
+                response = requests.post(
+                    "https://appliapay.com/changeStatus",
+                    json={
+                        "selectedDev": device.deviceid,
+                        "status": target_status,
+                    },
+                    timeout=10
+                )
+
+                if response.status_code != 200:
+                    failed.append(device.deviceid)
+                    continue
+
+                data = response.json()
+                api_status = data.get("status", target_status)
+
+                if isinstance(api_status, str):
+                    api_status = api_status.lower() == "true"
+
+                device.active = api_status
+                device.save(update_fields=["active"])
+
+                success_count += 1
+
+            except requests.exceptions.RequestException:
+                failed.append(device.deviceid)
+
+        if success_count:
+            action_label = "activated" if target_status else "deactivated"
+
+            messages.success(
+                request,
+                f"{success_count} device(s) {action_label} successfully."
+            )
+
+            notify(
+                request.user,
+                "Bulk Device Update",
+                f"{success_count} device(s) {action_label}.",
+                "success" if target_status else "warning"
+            )
+
+        if failed:
+            messages.warning(
+                request,
+                f"{len(failed)} device(s) could not be updated through the external API: "
+                f"{', '.join(failed[:10])}" + ("..." if len(failed) > 10 else "")
+            )
+
+        return redirect("devices:device_list")
+
+    # ----------------------------------------------------
+    # DELETE SELECTED DEVICES
+    # ----------------------------------------------------
+    if action == "delete":
+        if not _user_is_device_admin(request.user):
+            messages.error(
+                request,
+                "You do not have permission to delete devices in bulk."
+            )
+            return redirect("devices:device_list")
+
+        deleted_count = devices.count()
+        deviceids = list(devices.values_list("deviceid", flat=True))
+
+        with transaction.atomic():
+            InventoryItem.objects.filter(serial_number__in=deviceids).delete()
+            TrackKwh.objects.filter(deviceid__in=deviceids).delete()
+            devices.delete()
+
+        messages.success(request, f"{deleted_count} device(s) deleted successfully.")
+        return redirect("devices:device_list")
+
+    messages.error(request, "Choose a valid bulk action.")
+    return redirect("devices:device_list")
+
+
 @login_required
 def device_live_view(request, deviceid):
-    device = get_object_or_404(DeviceInfo, deviceid=deviceid)
+    device = _accessible_device_or_404(request.user, deviceid)
 
     return render(request, "devices/device_live.html", {
         "device": device
     })
 
 
-# List all schedules
+# ------------------------------
+# Device Schedules
+# ------------------------------
+
 class DeviceScheduleListView(ListView):
     model = DeviceCommandSchedule
     template_name = "devices/device_schedule_list.html"
@@ -682,15 +934,16 @@ class DeviceScheduleListView(ListView):
     def get_queryset(self):
         user = self.request.user
 
-        if user.role == "superadmin":
+        if _user_is_device_admin(user):
             return DeviceCommandSchedule.objects.all().order_by("-scheduled_time")
 
+        accessible_orgs = get_accessible_organizations(user)
+
         return DeviceCommandSchedule.objects.filter(
-            organization=user.organization
+            organization__in=accessible_orgs
         ).order_by("-scheduled_time")
 
 
-# Create schedule
 class DeviceScheduleCreateView(CreateView):
     model = DeviceCommandSchedule
     form_class = DeviceCommandScheduleForm
@@ -704,11 +957,13 @@ class DeviceScheduleCreateView(CreateView):
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
-        form.instance.organization = self.request.user.organization
+
+        if not _user_is_device_admin(self.request.user):
+            form.instance.organization = self.request.user.organization
+
         return super().form_valid(form)
 
 
-# Edit schedule
 class DeviceScheduleUpdateView(UpdateView):
     model = DeviceCommandSchedule
     form_class = DeviceCommandScheduleForm
@@ -718,11 +973,13 @@ class DeviceScheduleUpdateView(UpdateView):
     def get_queryset(self):
         user = self.request.user
 
-        if user.role == "superadmin":
+        if _user_is_device_admin(user):
             return DeviceCommandSchedule.objects.all()
 
+        accessible_orgs = get_accessible_organizations(user)
+
         return DeviceCommandSchedule.objects.filter(
-            organization=user.organization
+            organization__in=accessible_orgs
         )
 
     def get_form_kwargs(self):
@@ -731,7 +988,6 @@ class DeviceScheduleUpdateView(UpdateView):
         return kwargs
 
 
-# Delete schedule
 class DeviceScheduleDeleteView(DeleteView):
     model = DeviceCommandSchedule
     template_name = "devices/device_schedule_confirm_delete.html"
@@ -740,25 +996,28 @@ class DeviceScheduleDeleteView(DeleteView):
     def get_queryset(self):
         user = self.request.user
 
-        if user.role == "superadmin":
+        if _user_is_device_admin(user):
             return DeviceCommandSchedule.objects.all()
 
+        accessible_orgs = get_accessible_organizations(user)
+
         return DeviceCommandSchedule.objects.filter(
-            organization=user.organization
+            organization__in=accessible_orgs
         )
 
 
-# Trigger schedule manually (for testing)
 def trigger_schedule(request, pk):
     user = request.user
 
-    if user.role == "superadmin":
+    if _user_is_device_admin(user):
         schedule = get_object_or_404(DeviceCommandSchedule, pk=pk)
     else:
+        accessible_orgs = get_accessible_organizations(user)
+
         schedule = get_object_or_404(
             DeviceCommandSchedule,
             pk=pk,
-            organization=user.organization
+            organization__in=accessible_orgs
         )
 
     if schedule.executed:

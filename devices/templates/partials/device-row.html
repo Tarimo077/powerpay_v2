@@ -1,6 +1,19 @@
 {% load humanize %}
+
 <tr id="device-{{ deviceid }}" class="h-20">
-    <td class="text-left align-middle">{{ deviceid }}</td>
+    <td class="text-left align-middle">
+        <input
+            type="checkbox"
+            name="selected_devices"
+            value="{{ deviceid }}"
+            class="checkbox checkbox-sm checkbox-success text-white device-select"
+            title="Select {{ deviceid }}"
+        >
+    </td>
+
+    <td class="text-left align-middle">
+        {{ deviceid }}
+    </td>
 
     <!-- Status + Toggle -->
     <td class="text-center align-middle">
@@ -25,7 +38,7 @@
                 hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'
                 hx-vals='{
                     "deviceid":"{{ deviceid }}",
-                    "active":"{{ active|yesno:"false,true" }}"
+                    "active":"{{ active|yesno:"true,false" }}"
                 }'
             />
         </div>
@@ -40,10 +53,55 @@
         {% endif %}
     </td>
 
-    <!-- Organization -->
     {% if request.accessible_orgs|length > 1 %}
+    <!-- Main / Legacy Organization -->
     <td class="text-center align-middle">
-        {{ organization.name }}
+        {% if organization %}
+            <span class="badge badge-success text-white mb-1">
+                {{ organization.name }}
+            </span>
+        {% elif device.organization %}
+            <span class="badge badge-success text-white mb-1">
+                {{ device.organization.name }}
+            </span>
+        {% else %}
+            <span class="text-gray-400">-</span>
+        {% endif %}
+    </td>
+
+    <!-- Organizations That Can View -->
+    <td class="text-center align-middle">
+        {% if organizations %}
+            <div class="flex flex-wrap justify-center gap-1">
+                {% for org in organizations %}
+                    <span class="badge badge-outline badge-success mb-1">
+                        {{ org.name }}
+                    </span>
+                {% empty %}
+                    {% if organization %}
+                        <span class="badge badge-outline mb-1">
+                            {{ organization.name }}
+                        </span>
+                    {% elif device.organization %}
+                        <span class="badge badge-outline mb-1">
+                            {{ device.organization.name }}
+                        </span>
+                    {% else %}
+                        <span class="text-gray-400">-</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% elif organization %}
+            <span class="badge badge-outline mb-1">
+                {{ organization.name }}
+            </span>
+        {% elif device.organization %}
+            <span class="badge badge-outline mb-1">
+                {{ device.organization.name }}
+            </span>
+        {% else %}
+            <span class="text-gray-400">-</span>
+        {% endif %}
     </td>
     {% endif %}
 
@@ -53,7 +111,7 @@
             <a href="{% url 'devices:device_detail' deviceid %}" class="btn btn-sm btn-success text-white">
                 View <i class="fa-solid fa-binoculars"></i>
             </a>
-            
+
             {% if is_superuser %}
             <a href="{% url 'devices:device_edit' deviceid %}"
                class="btn btn-sm btn-info text-white">
@@ -61,6 +119,7 @@
             </a>
 
             <button
+                type="button"
                 onclick="confirmDelete('{{ deviceid }}', '{{ deviceid }}')"
                 class="btn btn-sm btn-error text-white">
                 <i class="fa-solid fa-trash"></i> Delete

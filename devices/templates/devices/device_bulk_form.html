@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Powerpay Africa | {{ title }}{% endblock %}
+{% block content %}
+
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content"
+         class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0">
+
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h2 class="text-2xl font-bold">{{ title }}</h2>
+            <a href="{% url 'devices:device_list' %}" class="btn btn-outline btn-success hover:text-white">
+                <i class="fa-solid fa-arrow-left"></i> Back to Devices
+            </a>
+        </div>
+
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <p class="text-sm">
+                    Paste multiple device IDs below. You can put each device on a new line or separate them with commas.
+                    Duplicate device IDs will be skipped safely.
+                </p>
+
+                <form method="post" class="space-y-5">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-error text-white">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="form-control">
+                        <label class="label font-semibold" for="{{ form.deviceids.id_for_label }}">{{ form.deviceids.label }}</label>
+                        {{ form.deviceids }}
+                        {% if form.deviceids.help_text %}
+                            <label class="label text-xs">{{ form.deviceids.help_text }}</label>
+                        {% endif %}
+                        {% for error in form.deviceids.errors %}
+                            <p class="text-error text-sm">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label font-semibold" for="{{ form.organizations.id_for_label }}">Organizations</label>
+                        {{ form.organizations }}
+                        {% if form.organizations.help_text %}
+                            <label class="label text-xs">{{ form.organizations.help_text }}</label>
+                        {% endif %}
+                        {% for error in form.organizations.errors %}
+                            <p class="text-error text-sm">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <label class="flex items-center gap-3">
+                        {{ form.active }}
+                        <span>{{ form.active.label }}</span>
+                    </label>
+                    {% for error in form.active.errors %}
+                        <p class="text-error text-sm">{{ error }}</p>
+                    {% endfor %}
+
+                    <div class="flex flex-wrap gap-2 pt-2">
+                        <button type="submit" class="btn btn-success text-white">
+                            <i class="fa-solid fa-layer-group"></i> Add Devices
+                        </button>
+                        <a href="{% url 'devices:device_list' %}" class="btn btn-error text-white">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

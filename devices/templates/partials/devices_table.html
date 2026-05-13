@@ -10,138 +10,349 @@
         <span class="loading loading-spinner loading-lg text-success"></span>
     </div>
 
-    <!-- SEARCH BAR -->
-    <form
-        class="mb-4 flex flex-wrap items-center gap-2"
-        hx-get="{% url 'devices:device_list' %}"
-        hx-target="#devices-table"
-        hx-push-url="true"
-        hx-indicator="#htmx-loading"
-    >
+    <!-- ONE MAIN FORM: BULK ACTIONS + FILTER CONTROLS + TABLE -->
+    <form id="bulk-device-form" method="post" action="{% url 'devices:device_bulk_action' %}">
+        {% csrf_token %}
 
-    <input
-        type="text"
-        name="q"
-        value="{{ search_query }}"
-        placeholder="Search device ID..."
-        class="input input-success min-w-48"
-    />
+        <!-- COMBINED FILTER + BULK ACTION BAR -->
+        <div class="mb-3 p-3 bg-base-100 shadow rounded-lg space-y-3">
 
-    <!-- STATUS FILTER -->
-    <select name="status" class="select select-success select-md">
-        <option value="all" {% if status_filter == "all" %}selected{% endif %}>All Status</option>
-        <option value="active" {% if status_filter == "active" %}selected{% endif %}>ACTIVE</option>
-        <option value="inactive" {% if status_filter == "inactive" %}selected{% endif %}>INACTIVE</option>
-    </select>
+            <!-- SEARCH / FILTER ROW -->
+            <div id="device-filter-controls"
+                 class="flex flex-wrap items-center gap-2">
 
-    <!-- ORGANIZATION FILTER -->
-    {% if request.accessible_orgs|length > 1 %}
-    <select name="org" class="select select-success select-md">
-        <option value="">All Organizations</option>
-        {% for org in organizations %}
-            <option value="{{ org.id }}" {% if org_filter == org.id %}selected{% endif %}>
-                {{ org.name }}
-            </option>
-        {% endfor %}
-    </select>
-    {% endif %}
+                <input
+                    type="text"
+                    name="q"
+                    value="{{ search_query }}"
+                    placeholder="Search device ID..."
+                    class="input input-success min-w-48"
+                />
 
-    <button class="btn btn-success text-white">
-        <i class="fa fa-search"></i> Filter
-    </button>
+                <!-- STATUS FILTER -->
+                <select name="status" class="select select-success select-md">
+                    <option value="all" {% if status_filter == "all" %}selected{% endif %}>
+                        All Status
+                    </option>
+                    <option value="active" {% if status_filter == "active" %}selected{% endif %}>
+                        ACTIVE
+                    </option>
+                    <option value="inactive" {% if status_filter == "inactive" %}selected{% endif %}>
+                        INACTIVE
+                    </option>
+                </select>
 
-    {% if search_query or status_filter != "all" or org_filter %}
-    <a
-        hx-get="{% url 'devices:device_list' %}"
-        hx-target="#devices-table"
-        hx-push-url="true"
-        hx-indicator="#htmx-loading"
-        class="btn btn-error text-white"
-    >
-    <i class="fa fa-times"></i> Reset
-    </a>
+                <!-- ORGANIZATION FILTER -->
+                {% if request.accessible_orgs|length > 1 %}
+                <select name="org" class="select select-success select-md">
+                    <option value="">All Organizations</option>
+                    {% for org in organizations %}
+                        <option value="{{ org.id }}" {% if org_filter == org.id %}selected{% endif %}>
+                            {{ org.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+                {% endif %}
 
-    <div class="flex justify-end items-center mb-3">
+                <!-- FILTER BUTTON: type="button" so it does NOT submit bulk form -->
+                <button
+                    type="button"
+                    class="btn btn-success text-white"
+                    hx-get="{% url 'devices:device_list' %}"
+                    hx-target="#devices-table"
+                    hx-push-url="true"
+                    hx-indicator="#htmx-loading"
+                    hx-include="#device-filter-controls"
+                >
+                    <i class="fa fa-search"></i> Filter
+                </button>
 
-        <div class="text-sm text-gray-500">
-            Showing
-            <span class="font-semibold text-success">
-                {{ total_devices }}
-            </span>
-            result{{ total_devices|pluralize }}
+                {% if search_query or status_filter != "all" or org_filter %}
+                <button
+                    type="button"
+                    class="btn btn-error text-white"
+                    hx-get="{% url 'devices:device_list' %}"
+                    hx-target="#devices-table"
+                    hx-push-url="true"
+                    hx-indicator="#htmx-loading"
+                >
+                    <i class="fa fa-times"></i> Reset
+                </button>
+                {% endif %}
+            </div>
 
-            {% if search_query %}
-                for "<span class="font-medium">{{ search_query }}</span>"
-            {% endif %}
-
-            {% if status_filter != "all" %}
-                • Status:
-                <span class="badge badge-outline">
-                    {{ status_filter|upper }}
+            <!-- RESULT SUMMARY -->
+            {% if search_query or status_filter != "all" or org_filter %}
+            <div class="text-sm text-gray-500">
+                Showing
+                <span class="font-semibold text-success">
+                    {{ total_devices }}
                 </span>
+                result{{ total_devices|pluralize }}
+
+                {% if search_query %}
+                    for "<span class="font-medium">{{ search_query }}</span>"
+                {% endif %}
+
+                {% if status_filter != "all" %}
+                    • Status:
+                    <span class="badge badge-outline">
+                        {{ status_filter|upper }}
+                    </span>
+                {% endif %}
+
+                {% if org_filter %}
+                    • Organization filtered
+                {% endif %}
+            </div>
             {% endif %}
+
+            <!-- BULK ACTION ROW -->
+            <div class="flex flex-col gap-2 border-t border-base-300 pt-3 sm:flex-row sm:items-center sm:justify-between">
+
+                <div class="flex flex-wrap items-center gap-2">
+
+                    <select
+                        name="bulk_action"
+                        id="bulk-action-select"
+                        class="select select-success select-sm"
+                        required
+                    >
+                        <option value="">Bulk actions</option>
+                        <option value="activate">Activate selected</option>
+                        <option value="deactivate">Deactivate selected</option>
+
+                        {% if is_superuser %}
+                            <option value="add_to_org">Add selected to organization</option>
+                            <option value="delete">Delete selected</option>
+                        {% endif %}
+                    </select>
+
+                    {% if is_superuser %}
+                    <select
+                        name="target_org"
+                        id="target-org-select"
+                        class="select select-success select-sm hidden"
+                    >
+                        <option value="">Choose organization</option>
+                        {% for org in organizations %}
+                            <option value="{{ org.id }}">{{ org.name }}</option>
+                        {% endfor %}
+                    </select>
+                    {% endif %}
+
+                    <!-- APPLY BUTTON: this submits the bulk POST form -->
+                    <button type="submit" class="btn btn-sm btn-success text-white">
+                        <i class="fa-solid fa-check-double"></i> Apply
+                    </button>
+                </div>
+
+                <div class="text-sm text-gray-500">
+                    <span id="selected-device-count">0</span>
+                    devices selected on this page
+                </div>
+            </div>
         </div>
 
-    </div>
-    {% endif %}
-
-    </form>
-
-    <!-- TABLE -->
-    <div class="bg-base-100 rounded-lg shadow overflow-x-auto">
-        <table class="table">
-            <thead class="bg-success text-success-content text-sm uppercase tracking-wide">
+        <!-- DEVICES TABLE -->
+        <div class="bg-base-100 rounded-lg shadow overflow-x-auto">
+            <table class="table">
+                <thead class="bg-success text-success-content text-sm uppercase tracking-wide">
                     <tr>
-                        <th class="px-4 py-3 text-left text-white rounded-tl-lg">Device ID</th>
-                        <th class="px-4 py-3 text-center text-white">Status</th>
-                        <th class="px-4 py-3 text-center text-white">Last Seen</th>
-                        {% if request.accessible_orgs|length > 1 %}
-                        <th class="px-4 py-3 text-center text-white">Organization</th>
-                        {% endif %}
-                        <th class="px-4 py-3 text-center text-white rounded-tr-lg">Actions</th>
-                    </tr>
-            </thead>
+                        <th class="px-4 py-3 text-left text-white rounded-tl-lg">
+                            <input
+                                id="select-all-devices"
+                                type="checkbox"
+                                class="checkbox checkbox-sm checkbox-success bg-white"
+                                title="Select all devices on this page"
+                            >
+                        </th>
 
-            <tbody>
+                        <th class="px-4 py-3 text-left text-white">
+                            Device ID
+                        </th>
+
+                        <th class="px-4 py-3 text-center text-white">
+                            Status
+                        </th>
+
+                        <th class="px-4 py-3 text-center text-white">
+                            Last Seen
+                        </th>
+
+                        {% if request.accessible_orgs|length > 1 %}
+                        <th class="px-4 py-3 text-center text-white">
+                            Main Org
+                        </th>
+
+                        <th class="px-4 py-3 text-center text-white">
+                            Can View Orgs
+                        </th>
+                        {% endif %}
+
+                        <th class="px-4 py-3 text-center text-white rounded-tr-lg">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
                     {% for stat in device_stats %}
-                        {% include "partials/device-row.html" with deviceid=stat.device.deviceid active=stat.device.active last_seen=stat.last_seen is_admin=is_admin organization=stat.device.organization %}
+                        {% include "partials/device-row.html" with device=stat.device deviceid=stat.device.deviceid active=stat.device.active last_seen=stat.last_seen is_admin=is_admin is_superuser=is_superuser organizations=stat.device.organizations.all organization=stat.device.organization %}
                     {% empty %}
                         <tr>
-                            <td colspan="5" class="text-center">No devices found.</td>
+                            <td colspan="{% if request.accessible_orgs|length > 1 %}7{% else %}5{% endif %}"
+                                class="text-center py-6">
+                                No devices found.
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
-        </table>
-    </div>
+            </table>
+        </div>
+    </form>
 
     <!-- PAGINATION -->
     {% if page_obj.has_other_pages %}
-    <div class="flex justify-between mt-4">
+    <div class="flex justify-between items-center mt-4">
+
         {% if page_obj.has_previous %}
-            <a
+            <button
+                type="button"
                 hx-get="{% url 'devices:device_list' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}"
                 hx-target="#devices-table"
                 hx-push-url="true"
                 hx-indicator="#htmx-loading"
                 class="btn btn-soft btn-warning hover:text-white"
-            ><i class="fa fa-backward-step"></i> Previous</a>
+            >
+                <i class="fa fa-backward-step"></i> Previous
+            </button>
         {% else %}
             <span class="btn btn-disabled">Previous</span>
         {% endif %}
 
-        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        <span>
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
 
         {% if page_obj.has_next %}
-            <a
+            <button
+                type="button"
                 hx-get="{% url 'devices:device_list' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}"
                 hx-target="#devices-table"
                 hx-push-url="true"
                 hx-indicator="#htmx-loading"
                 class="btn btn-soft btn-success hover:text-white"
-            >Next <i class="fa fa-forward-step"></i></a>
+            >
+                Next <i class="fa fa-forward-step"></i>
+            </button>
         {% else %}
             <span class="btn btn-disabled">Next</span>
         {% endif %}
+
     </div>
     {% endif %}
+
+    <!-- BULK ACTION SCRIPT -->
+    <script>
+    (function () {
+        const form = document.getElementById("bulk-device-form");
+        if (!form) return;
+
+        const selectAll = document.getElementById("select-all-devices");
+        const countLabel = document.getElementById("selected-device-count");
+
+        const bulkActionSelect = document.getElementById("bulk-action-select");
+        const targetOrgSelect = document.getElementById("target-org-select");
+
+        const getBoxes = () => {
+            return Array.from(
+                form.querySelectorAll("input[name='selected_devices']")
+            );
+        };
+
+        function updateCount() {
+            const boxes = getBoxes();
+            const checked = boxes.filter((box) => box.checked).length;
+
+            if (countLabel) {
+                countLabel.textContent = checked;
+            }
+
+            if (selectAll) {
+                selectAll.checked = boxes.length > 0 && checked === boxes.length;
+                selectAll.indeterminate = checked > 0 && checked < boxes.length;
+            }
+        }
+
+        function toggleTargetOrgSelect() {
+            if (!bulkActionSelect || !targetOrgSelect) return;
+
+            if (bulkActionSelect.value === "add_to_org") {
+                targetOrgSelect.classList.remove("hidden");
+                targetOrgSelect.required = true;
+            } else {
+                targetOrgSelect.classList.add("hidden");
+                targetOrgSelect.required = false;
+                targetOrgSelect.value = "";
+            }
+        }
+
+        if (bulkActionSelect) {
+            bulkActionSelect.addEventListener("change", toggleTargetOrgSelect);
+            toggleTargetOrgSelect();
+        }
+
+        if (selectAll) {
+            selectAll.addEventListener("change", function () {
+                getBoxes().forEach((box) => {
+                    box.checked = selectAll.checked;
+                });
+
+                updateCount();
+            });
+        }
+
+        getBoxes().forEach((box) => {
+            box.addEventListener("change", updateCount);
+        });
+
+        form.addEventListener("submit", function (event) {
+            const selected = getBoxes().filter((box) => box.checked);
+            const action = bulkActionSelect ? bulkActionSelect.value : "";
+            const targetOrg = targetOrgSelect ? targetOrgSelect.value : "";
+
+            if (!action) {
+                event.preventDefault();
+                alert("Choose a bulk action first.");
+                return;
+            }
+
+            if (!selected.length) {
+                event.preventDefault();
+                alert("Select at least one device first.");
+                return;
+            }
+
+            if (action === "add_to_org" && !targetOrg) {
+                event.preventDefault();
+                alert("Choose an organization first.");
+                return;
+            }
+
+            if (action === "delete") {
+                const ok = confirm(
+                    `Delete ${selected.length} selected device(s)? This cannot be undone.`
+                );
+
+                if (!ok) {
+                    event.preventDefault();
+                }
+            }
+        });
+
+        updateCount();
+    })();
+    </script>
+
 </div>

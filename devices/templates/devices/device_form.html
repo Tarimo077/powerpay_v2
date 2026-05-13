@@ -35,10 +35,16 @@
                     </div>
 
 
-                    {% if form.organization %}
+                    {% if form.organizations %}
                     <div>
-                        <label class="label">Organization</label>
-                        {{ form.organization }}
+                        <label class="label">Organizations</label>
+                        {{ form.organizations }}
+                        {% if form.organizations.help_text %}
+                            <p class="text-xs text-gray-500 mt-1">{{ form.organizations.help_text }}</p>
+                        {% endif %}
+                        {% for error in form.organizations.errors %}
+                            <p class="text-error text-sm">{{ error }}</p>
+                        {% endfor %}
                     </div>
                     {% endif %}
 

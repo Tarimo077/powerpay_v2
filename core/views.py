@@ -6,7 +6,7 @@ from devices.services.energy import (
     kwh_today_for_devices,
     kwh_this_month_for_devices,
 )
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from datetime import datetime, timedelta
 from transactions.models import Transaction  
 import csv
@@ -27,12 +27,53 @@ from decimal import Decimal
 from notifications.utils import notify
 from django.core.cache import cache
 from .tasks import cache_dashboard_for_user, cache_dashboard_superadmin, build_dashboard_context
+from core.org_checker import get_accessible_organizations
+
+
+def _user_is_superadmin(user):
+    return user.is_superuser or getattr(user, "role", "") == "superadmin"
+
+
+def _accessible_org_ids(user):
+    if _user_is_superadmin(user):
+        return list(Organization.objects.values_list("id", flat=True))
+
+    return list(get_accessible_organizations(user).values_list("id", flat=True))
+
+
+def _accessible_devices_queryset(user):
+    """
+    Devices available to this user through either:
+    - legacy DeviceInfo.organization_id, or
+    - new DeviceInfo.organizations M2M visibility.
+    """
+    if _user_is_superadmin(user):
+        return (
+            DeviceInfo.objects
+            .all()
+            .select_related("organization")
+            .prefetch_related("organizations")
+            .distinct()
+        )
+
+    org_ids = _accessible_org_ids(user)
+
+    return (
+        DeviceInfo.objects
+        .filter(
+            Q(organization_id__in=org_ids) |
+            Q(organizations__id__in=org_ids)
+        )
+        .select_related("organization")
+        .prefetch_related("organizations")
+        .distinct()
+    )
 
 
 @login_required
 def index(request):
     user = request.user
-    is_superadmin = user.is_superuser or getattr(user, "role", "") == "superadmin"
+    is_superadmin = _user_is_superadmin(user)
 
     period = request.GET.get("period", "7d")
     org_id = getattr(request, "org_id", None)  # ✅ FIXED
@@ -214,7 +255,9 @@ def export_data_view(request):
     export_format = form.cleaned_data["format"]
 
     user = request.user
-    is_superadmin = user.role == "superadmin"
+    is_superadmin = _user_is_superadmin(user)
+    accessible_org_ids = _accessible_org_ids(user)
+    accessible_devices = _accessible_devices_queryset(user)
 
     queryset = None
 
@@ -222,13 +265,20 @@ def export_data_view(request):
     # DEVICE INFO
     # ---------------------------
     if model == "deviceinfo":
-        queryset = DeviceInfo.objects.all()
+        queryset = (
+            DeviceInfo.objects
+            .all()
+            .select_related("organization")
+            .prefetch_related("organizations")
+        )
 
         if not is_superadmin:
-            queryset = queryset.filter(organization=user.organization)
+            queryset = accessible_devices
 
         if devices:
             queryset = queryset.filter(id__in=devices.values_list("id", flat=True))
+
+        queryset = queryset.distinct()
 
     # ---------------------------
     # DEVICE DATA
@@ -236,12 +286,9 @@ def export_data_view(request):
     elif model == "devicedata":
         queryset = DeviceData.objects.all()
 
-        # Restrict to user org
+        # Restrict to devices visible to this user through legacy org or M2M sharing
         if not is_superadmin:
-            user_devices = DeviceInfo.objects.filter(
-                organization=user.organization
-            ).values_list("deviceid", flat=True)
-
+            user_devices = accessible_devices.values_list("deviceid", flat=True)
             queryset = queryset.filter(deviceid__in=user_devices)
 
         # Filter selected devices
@@ -268,7 +315,7 @@ def export_data_view(request):
         queryset = Customer.objects.all()
 
         if not is_superadmin:
-            queryset = queryset.filter(organization=user.organization)
+            queryset = queryset.filter(organization_id__in=accessible_org_ids)
 
         if start and end:
             queryset = queryset.filter(date__range=(start, end))
@@ -280,7 +327,7 @@ def export_data_view(request):
         queryset = Sale.objects.all()
 
         if not is_superadmin:
-            queryset = queryset.filter(organization=user.organization)
+            queryset = queryset.filter(organization_id__in=accessible_org_ids)
 
         if start and end:
             queryset = queryset.filter(date__range=(start, end))
@@ -292,7 +339,7 @@ def export_data_view(request):
         queryset = Transaction.objects.all()
 
         if not is_superadmin:
-            queryset = queryset.filter(org=user.organization)
+            queryset = queryset.filter(org_id__in=accessible_org_ids)
 
         if start and end:
             queryset = queryset.filter(time__range=(start, end))
@@ -348,7 +395,9 @@ def export_count_view(request):
     end = request.GET.get("end_date")
 
     user = request.user
-    is_superadmin = user.role == "superadmin"
+    is_superadmin = _user_is_superadmin(user)
+    accessible_org_ids = _accessible_org_ids(user)
+    accessible_devices = _accessible_devices_queryset(user)
 
     queryset = None
     count = 0
@@ -358,14 +407,15 @@ def export_count_view(request):
     # ---------------------------
     if model == "deviceinfo":
         queryset = DeviceInfo.objects.all()
+
         if not is_superadmin:
-            queryset = queryset.filter(organization=user.organization)
-        
+            queryset = accessible_devices
+
         if device_ids:
             # Match the data view: filter by the primary key (id)
             queryset = queryset.filter(id__in=device_ids)
-        
-        count = queryset.count()
+
+        count = queryset.distinct().count()
 
     # ---------------------------
     # DEVICE DATA (AGGREGATED)
@@ -373,20 +423,23 @@ def export_count_view(request):
     elif model == "devicedata":
         queryset = DeviceData.objects.all()
 
-        # 1. Restrict to user's org
+        # 1. Restrict to devices visible to this user through legacy org or M2M sharing
         if not is_superadmin:
-            user_device_ids = DeviceInfo.objects.filter(
-                organization=user.organization
-            ).values_list("deviceid", flat=True)
+            user_device_ids = accessible_devices.values_list("deviceid", flat=True)
             queryset = queryset.filter(deviceid__in=user_device_ids)
 
         # 2. Filter selected devices
         if device_ids:
             # We fetch the actual deviceid strings/ints from the DeviceInfo table
             # to ensure the data types match what DeviceData expects.
-            selected_device_vals = DeviceInfo.objects.filter(
-                id__in=device_ids
-            ).values_list("deviceid", flat=True)
+            selected_devices_qs = DeviceInfo.objects.filter(id__in=device_ids)
+            if not is_superadmin:
+                selected_devices_qs = selected_devices_qs.filter(
+                    Q(organization_id__in=accessible_org_ids) |
+                    Q(organizations__id__in=accessible_org_ids)
+                ).distinct()
+
+            selected_device_vals = selected_devices_qs.values_list("deviceid", flat=True)
             
             queryset = queryset.filter(deviceid__in=selected_device_vals)
 
@@ -403,7 +456,7 @@ def export_count_view(request):
     elif model == "customers":
         queryset = Customer.objects.all()
         if not is_superadmin:
-            queryset = queryset.filter(organization=user.organization)
+            queryset = queryset.filter(organization_id__in=accessible_org_ids)
         if start and end:
             queryset = queryset.filter(date__range=(start, end))
         count = queryset.count()
@@ -414,7 +467,7 @@ def export_count_view(request):
     elif model == "sales":
         queryset = Sale.objects.all()
         if not is_superadmin:
-            queryset = queryset.filter(organization=user.organization)
+            queryset = queryset.filter(organization_id__in=accessible_org_ids)
         if start and end:
             queryset = queryset.filter(date__range=(start, end))
         count = queryset.count()
@@ -425,7 +478,7 @@ def export_count_view(request):
     elif model == "transactions":
         queryset = Transaction.objects.all()
         if not is_superadmin:
-            queryset = queryset.filter(org=user.organization)
+            queryset = queryset.filter(org_id__in=accessible_org_ids)
         if start and end:
             queryset = queryset.filter(time__range=(start, end))
         count = queryset.count()

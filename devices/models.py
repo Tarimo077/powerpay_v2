@@ -27,11 +27,21 @@ class DeviceInfo(models.Model):
     deviceid = models.CharField(max_length=100, unique=True)
     active = models.BooleanField()
     time = models.DateTimeField(auto_now_add=True)
+    # Legacy/primary organization column kept for backward compatibility with
+    # the existing devactivity.organization_id column. New code should use
+    # `organizations` below for multi-organization membership.
     organization = models.ForeignKey(
         Organization,
         on_delete=models.RESTRICT,
         db_column="organization_id",
-        related_name="devices"
+        related_name="primary_devices"
+    )
+
+    organizations = models.ManyToManyField(
+        Organization,
+        db_table="devactivity_organizations",
+        related_name="devices",
+        blank=True,
     )
 
     class Meta:

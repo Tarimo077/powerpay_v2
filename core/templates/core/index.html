@@ -91,14 +91,14 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
             <div class="card bg-base-100 shadow border border-success">
                 <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the number of devices for {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}."></i>Devices</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-plug text-2xl text-success"></i></div></div>
+                    <div class="flex"><p class="text-sm uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the number of devices visible to {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}."></i>Devices</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-plug text-2xl text-success"></i></div></div>
                     <p class="text-2xl font-bold text-success">{{ device_count }}</p>
                 </div>
             </div>
 
             <div class="card bg-base-100 shadow border border-success">
                 <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the energy used in kWh by devices from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Energy ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-bolt text-2xl text-success"></i></div></div>
+                    <div class="flex"><p class="text-sm uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the energy used in kWh by devices visible to {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Energy ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-bolt text-2xl text-success"></i></div></div>
                     <div class="flex">
                         <p class="text-2xl font-bold text-success">{{ kwh_total|floatformat:2|intcomma }} kWh</p>
                         <p class="text-md
@@ -111,7 +111,7 @@
 
             <div class="card bg-base-100 shadow border border-success">
                 <div class="card-body justify-center">
-                    <div class="flex"><p class="text-sm uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the amount of carbon released to the atmosphere in kgs by devices from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>CO₂ Emissions ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-plug-circle-exclamation text-2xl text-success"></i></div></div>
+                    <div class="flex"><p class="text-sm uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the amount of carbon released to the atmosphere in kgs by devices visible to {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>CO₂ Emissions ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-plug-circle-exclamation text-2xl text-success"></i></div></div>
                     <div class="flex">
                         <p class="text-2xl font-bold text-success">{{ co2_total|floatformat:2 }} kgCO₂</p>
                         <p class="text-md
@@ -124,7 +124,7 @@
 
             <div class="card bg-base-100 shadow border border-success">
                 <div class="card-body justify-center">
-                    <div class="flex"><p class="text-sm uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the amount of cooking events by devices from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Cooking Events({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-mortar-pestle text-2xl text-success"></i></div></div>
+                    <div class="flex"><p class="text-sm uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the amount of cooking events by devices visible to {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Cooking Events({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-mortar-pestle text-2xl text-success"></i></div></div>
                     <div class="flex">
                         <p class="text-2xl font-bold text-success">{{ cooking_events_count|intcomma }} </p>
                         <p class="text-md
