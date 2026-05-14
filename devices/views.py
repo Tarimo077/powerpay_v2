@@ -127,6 +127,15 @@ def device_list(request):
 
     devices = devices.order_by("deviceid").distinct()
 
+    allowed_page_sizes = [10, 25, 50, 100]
+    try:
+        page_size = int(request.GET.get("page_size", 10))
+    except (TypeError, ValueError):
+        page_size = 10
+
+    if page_size not in allowed_page_sizes:
+        page_size = 10
+
     # Stats
     total_devices = devices.count()
     active_devices = devices.filter(active=True).distinct().count()
@@ -141,7 +150,7 @@ def device_list(request):
         for d in devices
     ]
 
-    paginator = Paginator(device_stats, 10)
+    paginator = Paginator(device_stats, page_size)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
@@ -157,6 +166,8 @@ def device_list(request):
         "total_devices": total_devices,
         "active_devices": active_devices,
         "inactive_devices": inactive_devices,
+        "page_size": page_size,
+        "page_size_options": allowed_page_sizes,
     }
 
     if request.headers.get("HX-Request"):

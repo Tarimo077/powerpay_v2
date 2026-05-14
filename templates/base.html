@@ -54,6 +54,25 @@
     opacity: 0;
     transition: opacity 200ms ease-in-out;
 }
+
+/* Keep all DaisyUI badges from overflowing long organization/customer/status text. */
+.badge {
+    max-width: 12rem;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.badge.badge-lg {
+    max-width: 16rem;
+}
+
+.badge.badge-sm,
+.badge.badge-xs {
+    max-width: 8rem;
+}
 </style>
 
 <script>

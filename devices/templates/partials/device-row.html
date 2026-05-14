@@ -57,11 +57,11 @@
     <!-- Main / Legacy Organization -->
     <td class="text-center align-middle">
         {% if organization %}
-            <span class="badge badge-success text-white mb-1">
+            <span class="badge badge-success text-white mb-1" title="{{ organization.name }}">
                 {{ organization.name }}
             </span>
         {% elif device.organization %}
-            <span class="badge badge-success text-white mb-1">
+            <span class="badge badge-success text-white mb-1" title="{{ device.organization.name }}">
                 {{ device.organization.name }}
             </span>
         {% else %}
@@ -74,16 +74,16 @@
         {% if organizations %}
             <div class="flex flex-wrap justify-center gap-1">
                 {% for org in organizations %}
-                    <span class="badge badge-outline badge-success mb-1">
+                    <span class="badge badge-outline badge-success mb-1" title="{{ org.name }}">
                         {{ org.name }}
                     </span>
                 {% empty %}
                     {% if organization %}
-                        <span class="badge badge-outline mb-1">
+                        <span class="badge badge-outline mb-1" title="{{ organization.name }}">
                             {{ organization.name }}
                         </span>
                     {% elif device.organization %}
-                        <span class="badge badge-outline mb-1">
+                        <span class="badge badge-outline mb-1" title="{{ device.organization.name }}">
                             {{ device.organization.name }}
                         </span>
                     {% else %}
@@ -92,11 +92,11 @@
                 {% endfor %}
             </div>
         {% elif organization %}
-            <span class="badge badge-outline mb-1">
+            <span class="badge badge-outline mb-1" title="{{ organization.name }}">
                 {{ organization.name }}
             </span>
         {% elif device.organization %}
-            <span class="badge badge-outline mb-1">
+            <span class="badge badge-outline mb-1" title="{{ device.organization.name }}">
                 {{ device.organization.name }}
             </span>
         {% else %}

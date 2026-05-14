@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 {% block title %}
   Powerpay Africa | {{ sale.product_serial_number }} Sale Details
 {% endblock %}
@@ -16,9 +17,36 @@
      class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
             lg:ml-64 ml-0 space-y-6">
 
-        <div class="flex justify-between items-center">
+        <div class="flex flex-wrap justify-between items-center gap-2">
             <h1 class="text-2xl font-bold">Sale: {{ sale.product_serial_number }}</h1>
-            <a href="{% url 'sales:sales_page' %}" class="btn btn-ghost btn-accent hover:text-white"><i class="fa-solid fa-backward-step"></i> Back To Sales</a>
+            <div class="flex flex-wrap gap-2">
+                <a href="{% url 'sales:sale_receipt_pdf' sale.id %}" target="_blank" class="btn btn-warning text-white">
+                    <i class="fa-solid fa-file-pdf"></i> Download Receipt
+                </a>
+                <a href="{% url 'sales:sales_page' %}" class="btn btn-ghost btn-accent hover:text-white">
+                    <i class="fa-solid fa-backward-step"></i> Back To Sales
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-base-100 shadow rounded-lg p-4">
+            <form method="post" action="{% url 'sales:sale_receipt_email' sale.id %}" class="flex flex-col md:flex-row gap-2 md:items-end">
+                {% csrf_token %}
+                <div class="flex-1">
+                    <label class="label font-semibold">Send receipt to email</label>
+                    <input
+                        type="email"
+                        name="email"
+                        value="{% if sale.customer and sale.customer.email %}{{ sale.customer.email }}{% elif sale.organization.email %}{{ sale.organization.email }}{% endif %}"
+                        placeholder="customer@example.com"
+                        class="input input-success w-full"
+                    >
+                    <p class="text-xs opacity-70 mt-1">Receipt amount: KES {{ receipt_amount|floatformat:2|intcomma }}</p>
+                </div>
+                <button type="submit" class="btn btn-success text-white">
+                    <i class="fa-solid fa-paper-plane"></i> Send Receipt
+                </button>
+            </form>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

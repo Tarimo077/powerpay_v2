@@ -15,6 +15,7 @@ class CoordsRouter:
         "admin",          # Required for Django Admin
         "django_celery_beat",
         "paygo",
+        "billing",
     }
 
     # Apps that already exist in Postgres (We use them, but don't migrate them)

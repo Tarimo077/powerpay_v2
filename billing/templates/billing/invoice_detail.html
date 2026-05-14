@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+Powerpay Africa | Invoice {{ invoice.invoice_number }}
+{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen overflow-hidden bg-base-200">
+
+    <!-- Sidebar -->
+    {% include "partials/sidebar.html" %}
+
+    <!-- Main Content -->
+    <div id="page-content"
+         class="px-4 py-4 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0 space-y-6">
+
+        <!-- Top Action Bar -->
+        <div class="flex justify-between items-center">
+
+            <h1 class="text-2xl font-bold">
+                Invoice Preview
+            </h1>
+
+            <div class="flex gap-2">
+
+                <a href="{% url 'billing:invoice_pdf' invoice.id %}"
+                   target="_blank"
+                   class="btn btn-warning btn-sm text-white">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    Download PDF
+                </a>
+
+                {% if invoice.status == "DRAFT" %}
+                    {% if request.user.is_superuser or request.user.role == "superadmin" or request.user.role == "admin" %}
+                        <a href="{% url 'billing:invoice_send' invoice.id %}"
+                            class="btn btn-sm btn-success text-white"
+                            title="Click to send invoice to {{ invoice.organization.name }} via email."
+                            >
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span class="hidden sm:inline">Send</span>
+                        </a>
+                    {% endif %}
+                {% endif %}
+
+                <a href="{% url 'billing:invoice_list' %}"
+                   class="btn btn-ghost btn-sm">
+                    <i class="fa-solid fa-backward-step"></i>Back
+                </a>
+
+            </div>
+        </div>
+
+        <!-- Invoice Card -->
+        <div class="bg-base-100 shadow-xl rounded-xl overflow-hidden">
+
+            <div class="p-8">
+
+                <!-- HEADER -->
+                <div class="flex flex-col md:flex-row justify-between gap-6">
+
+                    <!-- Left -->
+                    <div>
+
+                        <img src="{% static 'images/powerpaylogo.png' %}"
+                             alt="PowerPay Logo"
+                             class="h-20 w-auto mb-3">
+
+                        <p class="text-success italic text-sm mb-4">
+                            Appliances For The Next Billion
+                        </p>
+
+                        <div class="space-y-1 text-sm">
+
+                            <p class="font-bold">
+                                PowerpayAfrica Limited
+                            </p>
+
+                            <p>Nairobi, Kenya</p>
+                            <p>support@powerpayafrica.com</p>
+                            <p>+254 725 481 878</p>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Right -->
+                    <div class="text-left md:text-right">
+
+                        <h2 class="text-3xl font-bold text-success">
+                            INVOICE
+                        </h2>
+
+                        <p class="font-semibold mt-2">
+                            #{{ invoice.invoice_number }}
+                        </p>
+
+                        <p class="uppercase text-sm opacity-70">
+                            {{ invoice.invoice_type }} Invoice
+                        </p>
+
+                        <!-- Status -->
+                        <div class="mt-4">
+
+                            {% if invoice.status == "PAID" %}
+                                <span class="badge badge-success badge-lg text-white px-4 py-3">
+                                    PAID
+                                </span>
+
+                            {% elif invoice.status == "SENT" %}
+                                <span class="badge badge-warning badge-lg text-white px-4 py-3">
+                                    SENT
+                                </span>
+
+                            {% else %}
+                                <span class="badge badge-error badge-lg text-white px-4 py-3">
+                                    DUE
+                                </span>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- INFO -->
+                <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                    <!-- Billing Info -->
+                    <div>
+
+                        <h3 class="text-lg font-bold mb-3">
+                            Billing Information
+                        </h3>
+
+                        <div class="space-y-2 text-sm">
+
+                            <div class="flex gap-2">
+                                <span class="font-semibold">Organization:</span>
+                                <span>{{ invoice.organization }}</span>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <span class="font-semibold">Issue Date:</span>
+                                <span>{{ invoice.issue_date }}</span>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <span class="font-semibold">Due Date:</span>
+                                <span>{{ invoice.due_date }}</span>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Bill To -->
+                    <div>
+
+                        <h3 class="text-lg font-bold mb-3">
+                            Bill To
+                        </h3>
+
+                        <div class="space-y-2 text-sm">
+
+                            <p>{{ invoice.organization.name }}</p>
+
+                            {% if invoice.organization.email %}
+                                <p>{{ invoice.organization.email }}</p>
+                            {% endif %}
+
+                            {% if invoice.organization.phone %}
+                                <p>{{ invoice.organization.phone }}</p>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- ITEMS -->
+                <div class="mt-10">
+
+                    <div class="overflow-x-auto">
+
+                        <table class="table table-zebra w-full">
+
+                            <thead class="bg-success text-white">
+
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Qty</th>
+                                    <th>Unit Price</th>
+                                    <th>Total</th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                {% for item in invoice.items.all %}
+                                <tr>
+
+                                    <td>{{ item.description }}</td>
+
+                                    <td>{{ item.quantity }}</td>
+
+                                    <td>
+                                        KES {{ item.unit_price|floatformat:2|intcomma }}
+                                    </td>
+
+                                    <td>
+                                        KES {{ item.total_price|floatformat:2|intcomma }}
+                                    </td>
+
+                                </tr>
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+                <!-- TOTALS -->
+                <div class="mt-8 flex justify-end">
+
+                    <div class="w-full md:w-96 border rounded-xl overflow-hidden">
+
+                        <div class="p-4 border-b flex justify-between">
+                            <span class="font-semibold">Subtotal</span>
+                            <span>
+                                KES {{ invoice.subtotal|floatformat:2|intcomma }}
+                            </span>
+                        </div>
+
+                        <div class="p-4 border-b flex justify-between">
+                            <span class="font-semibold">Tax (16%)</span>
+                            <span>
+                                KES {{ invoice.tax|floatformat:2|intcomma }}
+                            </span>
+                        </div>
+
+                        <div class="p-4 bg-warning text-white flex justify-between font-bold text-lg">
+                            <span>Total</span>
+                            <span>
+                                KES {{ invoice.total|floatformat:2|intcomma }}
+                            </span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- MPESA -->
+                <div class="mt-10 bg-success/10 border border-success rounded-xl p-6">
+
+                    <h3 class="font-bold text-success text-lg mb-4">
+                        M-Pesa Payment Instructions
+                    </h3>
+
+                    <div class="space-y-2 text-sm">
+
+                        <p>1. Go to M-Pesa on your phone</p>
+                        <p>2. Select <strong>Lipa na M-Pesa</strong></p>
+                        <p>3. Select <strong>Paybill</strong></p>
+                        <p>4. Enter Business Number: <strong>319403</strong></p>
+
+                        <p>
+                            5. Account Number:
+                            <strong>{{ invoice.invoice_number }}</strong>
+                        </p>
+
+                        <p>
+                            6. Enter Amount:
+                            <strong>
+                                KES {{ invoice.total|floatformat:2|intcomma }}
+                            </strong>
+                        </p>
+
+                        <p>7. Confirm and complete payment</p>
+
+                    </div>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="mt-10 pt-6 border-t text-center text-sm opacity-70">
+
+                    <p>
+                        Thank you for doing business with Powerpay Africa.
+                    </p>
+
+                    <p>
+                        For support, contact support@powerpayafrica.com
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; color: #333;">
+    <h2 style="color:#16a34a;">Powerpay Africa Sale Receipt</h2>
+    <p>Hello{% if sale.customer %} {{ sale.customer.name }}{% endif %},</p>
+    <p>Your sale receipt is attached.</p>
+    <p><strong>Product:</strong> {{ sale.product_name }}</p>
+    <p><strong>Serial Number:</strong> {{ sale.product_serial_number }}</p>
+    <p><strong>Amount:</strong> KES {{ amount }}</p>
+    <p>Thank you for doing business with Powerpay Africa.</p>
+</body>
+</html>

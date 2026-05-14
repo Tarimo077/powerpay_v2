@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+  Powerpay Africa | Billing
+{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen overflow-hidden bg-base-200">
+
+    <!-- Sidebar -->
+    {% include "partials/sidebar.html" %}
+
+    <!-- Main Content -->
+    <div id="page-content"
+         class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
+                lg:ml-64 ml-0 space-y-6">
+
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-4 mt-4">
+            <h1 class="text-xl font-bold">
+                Invoices
+            </h1>
+
+            <!-- Only Superadmin can create invoices -->
+            {% if request.user.is_superuser %}
+            <div class="flex items-center gap-2">
+
+                <a href="{% url 'billing:saas_rule_list' %}"
+                class="btn btn-warning text-white">
+                    <i class="fa-solid fa-repeat"></i>
+                    SaaS Billing Rules
+                </a>
+
+                <div class="dropdown dropdown-end">
+                    <label tabindex="0"
+                        class="btn btn-success text-white cursor-pointer">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                        New Invoice
+                    </label>
+
+                    <ul tabindex="0"
+                        class="dropdown-content z-[1] menu p-2 shadow
+                            bg-base-100 rounded-box w-52 mt-2 space-y-2">
+
+                        <li>
+                            <a href="{% url 'billing:invoice_create_hardware' %}">
+                                Hardware Invoice
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="{% url 'billing:invoice_create_saas' %}">
+                                SaaS Invoice
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Invoice Table -->
+        <div class="bg-base-100 shadow rounded-lg overflow-x-auto w-full">
+
+            <table class="table w-full">
+
+                <thead class="bg-success text-success-content uppercase text-sm">
+                    <tr class="text-white">
+                        <th>Invoice #</th>
+                        <th class="text-center">Organization</th>
+                        <th class="text-center">Invoice Type</th>
+                        <th class="text-center">Total</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Issue Date</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr class="h-20">
+
+                        <!-- Invoice Number -->
+                        <td class="align-middle">
+                            {{ invoice.invoice_number }}
+                        </td>
+
+                        <!-- Organization -->
+                        <td class="align-middle text-center">
+                            {{ invoice.organization }}
+                        </td>
+
+                        <!-- Type -->
+                        <td class="align-middle text-center">
+                            {{ invoice.get_invoice_type_display }}
+                        </td>
+
+                        <!-- Total -->
+                        <td class="align-middle text-center">
+                            KES {{ invoice.total|intcomma }}
+                        </td>
+
+                        <!-- Status -->
+                        <td class="align-middle text-center">
+
+                            {% if invoice.status == "PAID" %}
+                                <span class="badge badge-success text-white">
+                                    PAID
+                                </span>
+
+                            {% elif invoice.status == "SENT" %}
+                                <span class="badge badge-warning text-white">
+                                    SENT
+                                </span>
+
+                            {% else %}
+                                <span class="badge badge-error text-white">
+                                    DUE
+                                </span>
+                            {% endif %}
+
+                        </td>
+
+                        <!-- Date -->
+                        <td class="align-middle text-center">
+                            {{ invoice.issue_date }}
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="flex align-middle justify-center">
+                            <div class="grid grid-cols-2 gap-2 justify-center w-fit">
+
+                                <!-- View -->
+                                <a href="{% url 'billing:invoice_detail' invoice.id %}"
+                                class="btn btn-sm btn-info text-white"
+                                title="Click to view invoice."
+                                >
+                                    <i class="fa-solid fa-binoculars"></i>
+                                    <span class="hidden sm:inline">View</span>
+                                </a>
+
+                                <!-- Send (only draft + admin/superadmin) -->
+                                {% if invoice.status == "DRAFT" %}
+                                    {% if request.user.is_superuser or request.user.role == "superadmin" or request.user.role == "admin" %}
+                                        <a href="{% url 'billing:invoice_send' invoice.id %}"
+                                        class="btn btn-sm btn-success text-white"
+                                        title="Click to send invoice to {{ invoice.organization.name }} via email."
+                                        >
+                                            <i class="fa-solid fa-paper-plane"></i>
+                                            <span class="hidden sm:inline">Send</span>
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+
+                                <!-- Edit (superadmin only) -->
+                                {% if request.user.is_superuser %}
+                                    <a href="{% url 'billing:invoice_edit' invoice.id %}"
+                                    class="btn btn-sm btn-warning text-white"
+                                    title="Click to edit the invoice."
+                                    >
+                                        <i class="fa-solid fa-file-pen"></i>
+                                        <span class="hidden sm:inline">Edit</span>
+                                    </a>
+
+                                    <!-- Delete -->
+                                    <a href="{% url 'billing:invoice_delete' invoice.id %}"
+                                    class="btn btn-sm btn-error text-white"
+                                    onclick="return confirm('Are you sure you want to delete this invoice?');"
+                                    title="Click to delete the invoice."
+                                    >
+                                        <i class="fa-solid fa-trash-can"></i>
+                                        <span class="hidden sm:inline">Delete</span>
+                                    </a>
+                                {% endif %}
+
+                            </div>
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center opacity-60 py-8">
+                            No invoices found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

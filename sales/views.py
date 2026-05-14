@@ -9,8 +9,15 @@ from django.contrib.auth.decorators import login_required
 from .forms import SaleForm
 from notifications.utils import notify
 from core.org_utils import get_user_orgs, get_user_org_ids
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from customers.models import Customer
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.core.mail import EmailMultiAlternatives
+from xhtml2pdf import pisa
+from io import BytesIO
+from django.conf import settings
+import os
 
 
 @login_required
@@ -262,11 +269,11 @@ def sales_page(request):
 
 @login_required
 def sale_detail(request, pk):
-    sale = get_object_or_404(Sale, pk=pk)
+    sale = get_object_or_404(Sale.objects.select_related("customer", "organization"), pk=pk)
     return render(
         request,
         "sales/sale_detail.html",
-        {"sale": sale},
+        {"sale": sale, "receipt_amount": sale_receipt_amount(sale)},
     )
 
 @login_required
@@ -314,3 +321,83 @@ def sale_delete(request, pk):
 
     return redirect("sales:sales_page")
 
+
+
+def sale_receipt_amount(sale):
+    plan_amounts = {
+        "Wholesale": 10600,
+        "Plan_1": 12100,
+        "Plan_2": 14500,
+        "Retail": 12100,
+    }
+    return plan_amounts.get(sale.payment_plan, 12100)
+
+
+def generate_sale_receipt_pdf(sale):
+    html = render_to_string("sales/sale_receipt_pdf.html", {
+        "sale": sale,
+        "amount": sale_receipt_amount(sale),
+        "STATIC_ROOT": os.path.join(settings.BASE_DIR, "static"),
+    })
+    result = BytesIO()
+    pdf = pisa.CreatePDF(src=html, dest=result)
+    if pdf.err:
+        return None
+    return result.getvalue()
+
+
+@login_required
+def sale_receipt_pdf(request, pk):
+    sale = get_object_or_404(Sale.objects.select_related("customer", "organization"), pk=pk)
+    pdf = generate_sale_receipt_pdf(sale)
+
+    if not pdf:
+        return HttpResponse("Could not generate receipt PDF", status=500)
+
+    response = HttpResponse(pdf, content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="sale-receipt-{sale.id}.pdf"'
+    return response
+
+
+@login_required
+def sale_receipt_email(request, pk):
+    sale = get_object_or_404(Sale.objects.select_related("customer", "organization"), pk=pk)
+
+    if request.method != "POST":
+        return redirect("sales:sale_detail", pk=sale.pk)
+
+    email = (request.POST.get("email") or "").strip()
+    if not email:
+        email = getattr(sale.customer, "email", None) or getattr(sale.organization, "email", None)
+
+    if not email:
+        notify(request.user, "Receipt Email Failed", "No email address was provided or found for this sale.", "error")
+        return redirect("sales:sale_detail", pk=sale.pk)
+
+    pdf = generate_sale_receipt_pdf(sale)
+    amount = sale_receipt_amount(sale)
+
+    html_body = render_to_string("sales/sale_receipt_email.html", {
+        "sale": sale,
+        "amount": amount,
+    })
+    text_body = strip_tags(html_body)
+
+    msg = EmailMultiAlternatives(
+        subject=f"Receipt for Sale #{sale.id} - {sale.product_serial_number}",
+        body=text_body,
+        from_email=None,
+        to=[email],
+    )
+    msg.attach_alternative(html_body, "text/html")
+
+    if not pdf:
+        notify(request.user, "Receipt Email Failed", "Could not generate receipt PDF.", "error")
+        return redirect("sales:sale_detail", pk=sale.pk)
+
+    msg.attach(f"sale-receipt-{sale.id}.pdf", pdf, "application/pdf")
+
+    msg.send()
+    notify(request.user, "Receipt Email Sent", f"Receipt was sent to {email}.", "success")
+
+    return redirect("sales:sale_detail", pk=sale.pk)

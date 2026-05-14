@@ -54,6 +54,15 @@
                 </select>
                 {% endif %}
 
+                <!-- PAGE SIZE -->
+                <select name="page_size" class="select select-success select-md">
+                    {% for size in page_size_options %}
+                        <option value="{{ size }}" {% if page_size == size %}selected{% endif %}>
+                            {{ size }} per page
+                        </option>
+                    {% endfor %}
+                </select>
+
                 <!-- FILTER BUTTON: type="button" so it does NOT submit bulk form -->
                 <button
                     type="button"
@@ -219,7 +228,7 @@
         {% if page_obj.has_previous %}
             <button
                 type="button"
-                hx-get="{% url 'devices:device_list' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}"
+                hx-get="{% url 'devices:device_list' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}&page_size={{ page_size }}"
                 hx-target="#devices-table"
                 hx-push-url="true"
                 hx-indicator="#htmx-loading"
@@ -238,7 +247,7 @@
         {% if page_obj.has_next %}
             <button
                 type="button"
-                hx-get="{% url 'devices:device_list' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}"
+                hx-get="{% url 'devices:device_list' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}&page_size={{ page_size }}"
                 hx-target="#devices-table"
                 hx-push-url="true"
                 hx-indicator="#htmx-loading"

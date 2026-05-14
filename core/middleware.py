@@ -118,6 +118,7 @@ class AppAccessMiddleware:
             "core",
             "notifications",
             "support",
+            "billing",
         ]
 
     def __call__(self, request):

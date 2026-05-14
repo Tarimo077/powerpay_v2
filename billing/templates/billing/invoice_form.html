@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Powerpay Africa | {% if invoice %}Edit Invoice{% else %}Create Invoice{% endif %}
+{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen overflow-hidden bg-base-200">
+
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content"
+         class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
+                lg:ml-64 ml-0 space-y-6">
+
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">
+                {% if invoice %}
+                    Edit Invoice
+                {% else %}
+                    Create Invoice
+                {% endif %}
+            </h1>
+
+            <a href="{% url 'billing:invoice_list' %}"
+               class="btn btn-ghost btn-accent hover:text-white">
+                <i class="fa-solid fa-backward-step"></i> Back
+            </a>
+        </div>
+
+        <div class="bg-base-100 shadow rounded-lg p-6">
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-1 gap-4">
+
+                    {% if form.errors %}
+                    <div class="alert alert-error mb-4">
+                        <strong>Form Errors:</strong>
+                        <pre>{{ form.errors }}</pre>
+                    </div>
+                    {% endif %}
+
+                    <!-- Organization -->
+                    <div>
+                        <label class="label font-semibold">Organization</label>
+                        {{ form.organization }}
+                    </div>
+
+                    <!-- Devices -->
+                    <div id="device-section"
+                         class="{% if invoice %}block{% else %}hidden{% endif %}">
+
+                        <label class="font-bold block mb-3">
+                            Devices
+                        </label>
+
+                        <!-- Loader -->
+                        <div id="device-loading" class="hidden mb-4">
+                            <p class="text-sm font-semibold mb-2">
+                                Loading devices...
+                            </p>
+                            <progress class="progress progress-success w-full"></progress>
+                        </div>
+
+                        <!-- Select All -->
+                        <div class="mb-4">
+                            <label class="flex items-center gap-3
+                                          bg-success/10 p-3 rounded-lg
+                                          border border-success/30 cursor-pointer">
+
+                                <input type="checkbox"
+                                       id="select-all-devices"
+                                       class="checkbox checkbox-success text-white">
+
+                                <span class="font-semibold">
+                                    {% if invoice_type == "SAAS" %}
+                                        All Devices Included (Auto-selected)
+                                    {% else %}
+                                        Select All Devices
+                                    {% endif %}
+                                </span>
+                            </label>
+                        </div>
+
+                        <!-- Device Grid -->
+                        <div id="device-list"
+                             class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        </div>
+
+                    </div>
+
+                    <!-- Unit Price -->
+                    <div>
+                        <label class="label font-semibold">Unit Price</label>
+                        {{ form.unit_price }}
+                    </div>
+
+                    <!-- Due Date -->
+                    <div>
+                        <label class="label font-semibold">Due Date</label>
+                        {{ form.due_date }}
+                    </div>
+
+                </div>
+
+                <div class="flex justify-end gap-2 mt-6">
+
+                    <a href="{% url 'billing:invoice_list' %}"
+                       class="btn btn-error text-white">
+                        Cancel
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-success text-white">
+                        {% if invoice %}
+                            Update Invoice
+                        {% else %}
+                            Generate Invoice
+                        {% endif %}
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const orgSelect = document.querySelector("#id_organization");
+    const deviceSection = document.getElementById("device-section");
+    const deviceList = document.getElementById("device-list");
+    const selectAll = document.getElementById("select-all-devices");
+    const loader = document.getElementById("device-loading");
+
+    const isSaas = "{{ invoice_type|default:'' }}" === "SAAS";
+
+    const selectedDevices = [
+        {% if invoice %}
+            {% for item in invoice.items.all %}
+                {% if item.device %}
+                    {{ item.device.id }},
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    ];
+
+    function loadDevices(orgId) {
+        if (!orgId) {
+            deviceSection.classList.add("hidden");
+            return;
+        }
+
+        deviceSection.classList.remove("hidden");
+        loader.classList.remove("hidden");
+        deviceList.innerHTML = "";
+
+        fetch(`/billing/devices/by-org/${orgId}/`)
+            .then(res => res.json())
+            .then(data => {
+                loader.classList.add("hidden");
+
+                if (!data.length) {
+                    deviceList.innerHTML = `
+                        <p class="text-sm opacity-60">
+                            No devices found for this organization
+                        </p>
+                    `;
+                    return;
+                }
+
+                data.forEach(device => {
+
+                    let checked = "";
+                    let disabled = "";
+
+                    if (isSaas) {
+                        checked = "checked";
+                        disabled = "disabled";
+                    } else if (selectedDevices.includes(device.id)) {
+                        checked = "checked";
+                    }
+
+                    const html = `
+                        <label class="flex items-center gap-3
+                                     bg-base-200 p-3 rounded-lg
+                                     border border-success cursor-pointer">
+
+                            <input type="checkbox"
+                                   name="devices"
+                                   value="${device.id}"
+                                   ${checked}
+                                   ${disabled}
+                                   class="checkbox checkbox-success text-white">
+
+                            <span>${device.deviceid}</span>
+                        </label>
+                    `;
+
+                    deviceList.insertAdjacentHTML("beforeend", html);
+
+                    // Hidden input for SaaS so Django still receives values
+                    if (isSaas) {
+                        const hiddenInput = `
+                            <input type="hidden"
+                                   name="devices"
+                                   value="${device.id}">
+                        `;
+                        deviceList.insertAdjacentHTML("beforeend", hiddenInput);
+                    }
+                });
+
+                // Auto-check select all for SaaS
+                if (isSaas) {
+                    selectAll.checked = true;
+                    selectAll.disabled = true;
+                }
+            });
+    }
+
+    orgSelect.addEventListener("change", function () {
+        loadDevices(this.value);
+    });
+
+    if (orgSelect.value) {
+        loadDevices(orgSelect.value);
+    }
+
+    selectAll.addEventListener("change", function () {
+        if (isSaas) return;
+
+        const checked = this.checked;
+
+        document.querySelectorAll("#device-list input[type='checkbox']")
+            .forEach(cb => cb.checked = checked);
+    });
+
+});
+</script>
+
+{% endblock %}

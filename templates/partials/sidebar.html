@@ -201,7 +201,47 @@
                 <span class="link-text">Import Center</span>
             </a>
 
-            
+            <!-- Billing -->
+            {% if request.user.role == "superadmin" or request.user.role == "admin" or 'billing' in allowed_apps %}
+            <div class="collapse collapse-arrow rounded-none bg-base-100 mx-3">
+
+                <input type="checkbox"
+                       {% if request.resolver_match.namespace == 'billing' %}checked{% endif %} />
+
+                <div class="collapse-title px-4 py-4">
+                    <div class="flex items-center gap-4">
+                        <i class="fa-solid fa-file-invoice-dollar w-5"></i>
+                        <span class="link-text">Billing</span>
+                    </div>
+                </div>
+
+                <div class="collapse-content mx-1">
+
+                    <a href="{% url 'billing:invoice_list' %}"
+                       class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+                       {% if 'invoice' in request.path %}
+                            bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                       {% else %}
+                            hover:text-success
+                       {% endif %}">
+                        <i class="fa-solid fa-file-lines w-5"></i>
+                        <span class="link-text">Invoices</span>
+                    </a>
+
+                    <a href="{% url 'billing:receipt_list' %}"
+                       class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+                       {% if 'receipt' in request.path %}
+                            bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                       {% else %}
+                            hover:text-success
+                       {% endif %}">
+                        <i class="fa-solid fa-receipt w-5"></i>
+                        <span class="link-text">Receipts</span>
+                    </a>
+
+                </div>
+            </div>
+            {% endif %} 
 
         </div>
     </div>

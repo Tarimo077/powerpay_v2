@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Powerpay Africa | SaaS Billing Rules{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen overflow-hidden bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content"
+         class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0 space-y-6">
+
+        <div class="flex flex-wrap justify-between items-center gap-2 mb-4 mt-4">
+            <h1 class="text-xl font-bold">SaaS Billing Rules</h1>
+
+            <div class="flex flex-wrap gap-2">
+                <a href="{% url 'billing:invoice_list' %}" class="btn btn-ghost">
+                    <i class="fa-solid fa-backward-step"></i> Invoices
+                </a>
+
+                <a href="{% url 'billing:saas_rule_run_due' %}" class="btn btn-outline btn-warning hover:text-white">
+                    <i class="fa-solid fa-play"></i> Run Due Rules
+                </a>
+
+                <a href="{% url 'billing:saas_rule_create' %}" class="btn btn-success text-white">
+                    <i class="fa-solid fa-plus"></i> New SaaS Rule
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-base-100 shadow rounded-lg overflow-x-auto w-full">
+            <table class="table w-full">
+                <thead class="bg-success text-success-content uppercase text-sm">
+                    <tr class="text-white">
+                        <th>Name</th>
+                        <th class="text-center">Organization</th>
+                        <th class="text-center">Frequency</th>
+                        <th class="text-center">Rate / Device</th>
+                        <th class="text-center">Due Days</th>
+                        <th class="text-center">Next Run</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rule in rules %}
+                    <tr class="h-20">
+                        <td class="align-middle font-semibold">{{ rule.name }}</td>
+                        <td class="align-middle text-center">
+                            <span class="badge badge-outline badge-success" title="{{ rule.organization.name }}">
+                                {{ rule.organization.name }}
+                            </span>
+                        </td>
+                        <td class="align-middle text-center">
+                            {{ rule.get_frequency_display }}
+                            {% if rule.frequency == "CUSTOM" %}
+                                <span class="text-xs opacity-70">({{ rule.custom_interval_days }} days)</span>
+                            {% endif %}
+                        </td>
+                        <td class="align-middle text-center">KES {{ rule.rate_per_device|floatformat:2|intcomma }}</td>
+                        <td class="align-middle text-center">{{ rule.due_days }}</td>
+                        <td class="align-middle text-center">{{ rule.next_run_at|date:"j M Y H:i" }}</td>
+                        <td class="align-middle text-center">
+                            {% if rule.active %}
+                                <span class="badge badge-success text-white">ACTIVE</span>
+                            {% else %}
+                                <span class="badge badge-error text-white">INACTIVE</span>
+                            {% endif %}
+                        </td>
+                        <td class="align-middle">
+                            <div class="flex flex-wrap gap-2 justify-center">
+                                <a href="{% url 'billing:saas_rule_run_now' rule.id %}" class="btn btn-sm btn-success text-white">
+                                    <i class="fa-solid fa-file-invoice-dollar"></i> Run
+                                </a>
+                                <a href="{% url 'billing:saas_rule_edit' rule.id %}" class="btn btn-sm btn-warning text-white">
+                                    <i class="fa-solid fa-pen"></i> Edit
+                                </a>
+                                <form method="post" action="{% url 'billing:saas_rule_delete' rule.id %}" onsubmit="return confirm('Delete this SaaS billing rule?');">
+                                    {% csrf_token %}
+                                    <button class="btn btn-sm btn-error text-white" type="submit">
+                                        <i class="fa-solid fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center opacity-60 py-8">No SaaS billing rules found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

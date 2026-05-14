@@ -173,6 +173,12 @@
                                 <i class="fa-solid fa-user-pen"></i> Edit
                             </a>
 
+                            <a href="{% url 'sales:sale_receipt_pdf' sale.id %}"
+                               target="_blank"
+                               class="btn btn-warning btn-sm text-white">
+                                <i class="fa-solid fa-receipt"></i> Receipt
+                            </a>
+
                             <button
                                 onclick="confirmDelete({{ sale.id }})"
                                 class="btn btn-error btn-sm text-white">

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+  Powerpay Africa | Billing
+{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen overflow-hidden bg-base-200">
+
+    <!-- Sidebar -->
+    {% include "partials/sidebar.html" %}
+
+    <!-- Main Content -->
+    <div id="page-content"
+         class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
+                lg:ml-64 ml-0 space-y-6">
+
+                <div class="flex justify-between mb-6">
+
+                    <h1 class="text-2xl font-bold">
+                        Receipts
+                    </h1>
+
+                    {% if request.user.is_superuser %}
+                    <a href="{% url 'billing:sync_invoice_payments' %}"
+                    class="btn btn-success text-white">
+                        Sync Payments
+                    </a>
+                    {% endif %}
+
+                </div>
+
+                <div class="bg-base-100 shadow rounded-xl">
+
+                    <table class="table w-full">
+
+                        <thead>
+                            <tr>
+                                <th>Invoice</th>
+                                <th>Reference</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for receipt in receipts %}
+                            <tr>
+                                <td>{{ receipt.invoice.invoice_number }}</td>
+                                <td>{{ receipt.reference }}</td>
+                                <td>{{ receipt.amount|intcomma }}</td>
+                                <td>{{ receipt.created_at }}</td>
+
+                                <td>
+                                    <a href="{% url 'billing:receipt_detail' receipt.id %}"
+                                    class="btn btn-sm btn-info text-white">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+    </div>
+</div>
+
+{% endblock %}

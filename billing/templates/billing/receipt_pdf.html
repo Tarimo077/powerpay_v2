@@ -1,0 +1,254 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: "Saira", Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .header {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            height: 70px;
+            width: auto;
+        }
+
+        .slogan {
+            font-size: 12px;
+            color: #16a34a;
+        }
+
+        .title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #16a34a;
+        }
+
+        .status {
+            padding: 5px 10px;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 3px;
+        }
+
+        .paid {
+            background-color: #16a34a;
+        }
+
+        .company-box {
+            margin-top: 10px;
+            font-size: 11px;
+        }
+
+        .info-box {
+            margin-top: 20px;
+        }
+
+        .info-box td {
+            padding: 4px;
+        }
+
+        table.items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table.items th {
+            background-color: #16a34a;
+            color: white;
+            padding: 8px;
+        }
+
+        table.items td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        .totals {
+            margin-top: 20px;
+            width: 40%;
+            float: right;
+        }
+
+        .totals td {
+            padding: 6px;
+        }
+
+        .totals .label {
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .totals .value {
+            text-align: right;
+        }
+
+        .total-final {
+            background-color: #f97316;
+            color: white;
+            font-weight: bold;
+        }
+
+        .payment-box {
+            margin-top: 60px;
+            padding: 10px;
+            border: 1px dashed #16a34a;
+            background-color: #f0fdf4;
+        }
+
+        .footer {
+            margin-top: 40px;
+            font-size: 10px;
+            text-align: center;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <table class="header">
+        <tr>
+            <td>
+                <img src="{{ STATIC_ROOT }}/images/powerpaylogo.png" class="logo">
+
+                <div class="slogan">
+                    Appliances For The Next Billion
+                </div>
+
+                <div class="company-box">
+                    <strong>PowerpayAfrica Limited</strong><br>
+                    Nairobi, Kenya<br>
+                    support@powerpayafrica.com<br>
+                    +254 725 481 878
+                </div>
+            </td>
+
+            <td align="right">
+                <div class="title">RECEIPT</div>
+
+                <div>
+                    Receipt #{{ receipt.id }}
+                </div>
+
+                <div>
+                    Payment Confirmation
+                </div>
+
+                <div style="margin-top:10px; padding:5px;">
+                    <span class="status paid">
+                        PAID
+                    </span>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- RECEIPT INFO -->
+    <table class="info-box">
+        <tr>
+            <td><strong>Organization:</strong></td>
+            <td>{{ receipt.invoice.organization }}</td>
+        </tr>
+
+        <tr>
+            <td><strong>Invoice Number:</strong></td>
+            <td>{{ receipt.invoice.invoice_number }}</td>
+        </tr>
+
+        <tr>
+            <td><strong>Receipt Reference:</strong></td>
+            <td>{{ receipt.reference }}</td>
+        </tr>
+
+        <tr>
+            <td><strong>Transaction ID:</strong></td>
+            <td>{{ receipt.transaction.txn_id }}</td>
+        </tr>
+
+        <tr>
+            <td><strong>Payer Name:</strong></td>
+            <td>{{ receipt.transaction.name }}</td>
+        </tr>
+
+        <tr>
+            <td><strong>Payment Date:</strong></td>
+            <td>{{ receipt.transaction.time }}</td>
+        </tr>
+    </table>
+
+    <!-- PAYMENT ITEMS -->
+    <table class="items">
+        <tr>
+            <th>Description</th>
+            <th>Reference</th>
+            <th>Amount</th>
+        </tr>
+
+        <tr>
+            <td>
+                Payment for Invoice {{ receipt.invoice.invoice_number }}
+            </td>
+
+            <td>
+                {{ receipt.transaction.txn_id }}
+            </td>
+
+            <td>
+                KES {{ receipt.amount|floatformat:2|intcomma }}
+            </td>
+        </tr>
+    </table>
+
+    <!-- TOTAL -->
+    <table class="totals">
+        <tr class="total-final">
+            <td class="label">
+                Amount Paid:
+            </td>
+
+            <td class="value">
+                KES {{ receipt.amount|floatformat:2|intcomma }}
+            </td>
+        </tr>
+    </table>
+
+    <!-- PAYMENT CONFIRMATION -->
+    <div class="payment-box">
+        <strong>Payment Confirmation</strong><br><br>
+
+        We confirm receipt of your payment for invoice
+        <strong>{{ receipt.invoice.invoice_number }}</strong>.<br><br>
+
+        Transaction Reference:
+        <strong>{{ receipt.transaction.txn_id }}</strong><br>
+
+        Amount Received:
+        <strong>KES {{ receipt.amount|floatformat:2|intcomma }}</strong><br>
+
+        Received From:
+        <strong>{{ receipt.transaction.name }}</strong><br><br>
+
+        Thank you for your payment.
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        This receipt serves as official confirmation of payment.<br>
+        Thank you for doing business with Powerpay Africa.<br>
+        For support, contact support@powerpayafrica.com
+    </div>
+
+</body>
+</html>

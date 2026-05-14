@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Powerpay Africa | {{ title }}{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen overflow-hidden bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content"
+         class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0 space-y-6">
+
+        <div class="flex justify-between items-center mb-6 mt-4">
+            <h1 class="text-2xl font-bold">{{ title }}</h1>
+            <a href="{% url 'billing:saas_rule_list' %}" class="btn btn-ghost btn-accent hover:text-white">
+                <i class="fa-solid fa-backward-step"></i> Back
+            </a>
+        </div>
+
+        <div class="bg-base-100 shadow rounded-lg p-6">
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                <div class="alert alert-error">
+                    <strong>Form Errors:</strong>
+                    <pre>{{ form.errors }}</pre>
+                </div>
+                {% endif %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="label font-semibold">Rule Name</label>
+                        {{ form.name }}
+                    </div>
+
+                    <div>
+                        <label class="label font-semibold">Organization</label>
+                        {{ form.organization }}
+                    </div>
+
+                    <div>
+                        <label class="label font-semibold">Frequency</label>
+                        {{ form.frequency }}
+                    </div>
+
+                    <div id="custom-interval-wrap">
+                        <label class="label font-semibold">Custom Interval Days</label>
+                        {{ form.custom_interval_days }}
+                        <p class="text-xs opacity-70 mt-1">Required only when frequency is Custom.</p>
+                    </div>
+
+                    <div>
+                        <label class="label font-semibold">Rate Per Device</label>
+                        {{ form.rate_per_device }}
+                    </div>
+
+                    <div>
+                        <label class="label font-semibold">Invoice Due Days</label>
+                        {{ form.due_days }}
+                    </div>
+
+                    <div>
+                        <label class="label font-semibold">Next Run Date & Time</label>
+                        {{ form.next_run_at }}
+                    </div>
+
+                    <div class="flex flex-col gap-4 justify-center">
+                        <label class="flex items-center gap-3">
+                            {{ form.active }}
+                            <span class="font-semibold">Active</span>
+                        </label>
+
+                        <label class="flex items-center gap-3">
+                            {{ form.auto_send_email }}
+                            <span class="font-semibold">Auto-send invoice to organization email</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-4">
+                    This rule generates <strong>SaaS invoices only</strong>. Hardware invoices are still created manually.
+                </div>
+
+                <div class="flex justify-end gap-2 pt-4">
+                    <a href="{% url 'billing:saas_rule_list' %}" class="btn btn-error text-white">Cancel</a>
+                    <button type="submit" class="btn btn-success text-white">Save Rule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const frequency = document.getElementById("id_frequency");
+    const wrap = document.getElementById("custom-interval-wrap");
+
+    function syncCustomInterval() {
+        if (!frequency || !wrap) return;
+        if (frequency.value === "CUSTOM") {
+            wrap.classList.remove("hidden");
+        } else {
+            wrap.classList.add("hidden");
+        }
+    }
+
+    if (frequency) {
+        frequency.addEventListener("change", syncCustomInterval);
+        syncCustomInterval();
+    }
+});
+</script>
+{% endblock %}
