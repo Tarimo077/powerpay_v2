@@ -338,6 +338,7 @@ def generate_sale_receipt_pdf(sale):
         "sale": sale,
         "amount": sale_receipt_amount(sale),
         "STATIC_ROOT": os.path.join(settings.BASE_DIR, "static"),
+        "MEDIA_ROOT": os.path.join(settings.BASE_DIR, "media")
     })
     result = BytesIO()
     pdf = pisa.CreatePDF(src=html, dest=result)
