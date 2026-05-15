@@ -46,20 +46,20 @@
             </thead>
             <tbody>
                 {% for org in page_obj %}
-                <tr class="h-20">
+                <tr class="h-16">
                     <td>{{ org.name }}</td>
                     <td>{{ org.phone_number|default:"-" }}</td>
                     <td>{{ org.email|default:"-" }}</td>
                     <td>{{ org.created_at|date:"j M Y" }}</td>
-                    <td class="flex gap-2 justify-center">
+                    <td class="flex gap-4 justify-center">
                         <a href="{% url 'organizations:organization_update' org.id %}"
                            class="btn btn-info btn-sm text-white">
-                           <i class="fa-solid fa-user-pen"></i>Edit
+                           <i class="fa-solid fa-user-pen"></i> Edit
                         </a>
 
                         <button onclick="deleteOrg({{ org.id }}, '{{ org.name|escapejs }}')"
                                 class="btn btn-error btn-sm text-white">
-                            <i class="fa-solid fa-trash"></i>Delete
+                            <i class="fa-solid fa-trash"></i> Delete
                         </button>
                     </td>
                 </tr>

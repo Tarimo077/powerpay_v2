@@ -54,16 +54,7 @@
                 </select>
                 {% endif %}
 
-                <!-- PAGE SIZE -->
-                <select name="page_size" class="select select-success select-md">
-                    {% for size in page_size_options %}
-                        <option value="{{ size }}" {% if page_size == size %}selected{% endif %}>
-                            {{ size }} per page
-                        </option>
-                    {% endfor %}
-                </select>
-
-                <!-- FILTER BUTTON: type="button" so it does NOT submit bulk form -->
+                <!-- FILTER BUTTONS -->
                 <button
                     type="button"
                     class="btn btn-success text-white"
@@ -150,7 +141,7 @@
                     </select>
                     {% endif %}
 
-                    <!-- APPLY BUTTON: this submits the bulk POST form -->
+                    <!-- APPLY BUTTON -->
                     <button type="submit" class="btn btn-sm btn-success text-white">
                         <i class="fa-solid fa-check-double"></i> Apply
                     </button>
@@ -219,12 +210,34 @@
                 </tbody>
             </table>
         </div>
+
     </form>
+
+    <!-- --- MOVED PAGE SIZE DROPDOWN TO BOTTOM --- -->
+    <div class="flex justify-end mt-6">
+        <form method="get" id="pageSizeForm" class="flex align-middle justify-center">
+            <label for="id_page_size" class="mr-2 font-semibold">Items per page:</label>
+            <select name="page_size" id="id_page_size"
+                    class="select select-success"
+                    onchange="this.form.submit();">
+                {% for size in page_size_options %}
+                    <option value="{{ size }}" {% if page_size == size %}selected{% endif %}>
+                        {{ size }} per page
+                    </option>
+                {% endfor %}
+            </select>
+            <input type="hidden" name="q" value="{{ search_query }}">
+            <input type="hidden" name="status" value="{{ status_filter }}">
+            <input type="hidden" name="page" value="1">
+            {% if org_filter %}
+                <input type="hidden" name="org" value="{{ org_filter }}">
+            {% endif %}
+        </form>
+    </div>
 
     <!-- PAGINATION -->
     {% if page_obj.has_other_pages %}
-    <div class="flex justify-between items-center mt-4">
-
+    <div class="flex justify-between items-center mt-6">
         {% if page_obj.has_previous %}
             <button
                 type="button"
@@ -258,7 +271,6 @@
         {% else %}
             <span class="btn btn-disabled">Next</span>
         {% endif %}
-
     </div>
     {% endif %}
 
@@ -317,7 +329,6 @@
                 getBoxes().forEach((box) => {
                     box.checked = selectAll.checked;
                 });
-
                 updateCount();
             });
         }

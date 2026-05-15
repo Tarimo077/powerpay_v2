@@ -34,6 +34,7 @@
                         </div>
                     {% endif %}
 
+                    <!-- Device IDs -->
                     <div class="form-control">
                         <label class="label font-semibold" for="{{ form.deviceids.id_for_label }}">{{ form.deviceids.label }}</label>
                         {{ form.deviceids }}
@@ -45,6 +46,7 @@
                         {% endfor %}
                     </div>
 
+                    <!-- Organizations -->
                     <div class="form-control">
                         <label class="label font-semibold" for="{{ form.organizations.id_for_label }}">Organizations</label>
                         {{ form.organizations }}
@@ -56,6 +58,7 @@
                         {% endfor %}
                     </div>
 
+                    <!-- Active Checkbox -->
                     <label class="flex items-center gap-3">
                         {{ form.active }}
                         <span>{{ form.active.label }}</span>
@@ -64,6 +67,45 @@
                         <p class="text-error text-sm">{{ error }}</p>
                     {% endfor %}
 
+                    <!-- Add to Inventory Checkbox -->
+                    <div class="form-control">
+                        <label class="flex items-center gap-3">
+                            {{ form.add_to_inventory }}
+                            <span>{{ form.add_to_inventory.label }}</span>
+                        </label>
+                        {% for error in form.add_to_inventory.errors %}
+                            <p class="text-error text-sm">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Inventory Fields (hidden initially) -->
+                    <div id="inventory-fields" class="space-y-4 hidden">
+                        <div class="form-control">
+                            <label class="label font-semibold" for="{{ form.inventory_name.id_for_label }}">{{ form.inventory_name.label }}</label>
+                            {{ form.inventory_name }}
+                            {% for error in form.inventory_name.errors %}
+                                <p class="text-error text-sm">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label font-semibold" for="{{ form.product_type.id_for_label }}">{{ form.product_type.label }}</label>
+                            {{ form.product_type }}
+                            {% for error in form.product_type.errors %}
+                                <p class="text-error text-sm">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label font-semibold" for="{{ form.warehouse.id_for_label }}">{{ form.warehouse.label }}</label>
+                            {{ form.warehouse }}
+                            {% for error in form.warehouse.errors %}
+                                <p class="text-error text-sm">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Submit / Cancel -->
                     <div class="flex flex-wrap gap-2 pt-2">
                         <button type="submit" class="btn btn-success text-white">
                             <i class="fa-solid fa-layer-group"></i> Add Devices
@@ -75,4 +117,22 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const addInventoryCheckbox = document.getElementById("id_add_to_inventory");
+    const inventoryFields = document.getElementById("inventory-fields");
+
+    function toggleInventoryFields() {
+        inventoryFields.classList.toggle("hidden", !addInventoryCheckbox.checked);
+    }
+
+    // initial state
+    toggleInventoryFields();
+
+    // on change
+    addInventoryCheckbox.addEventListener("change", toggleInventoryFields);
+});
+</script>
+
 {% endblock %}

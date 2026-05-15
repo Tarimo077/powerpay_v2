@@ -18,11 +18,7 @@ Powerpay Africa | {% if invoice %}Edit Invoice{% else %}Create Invoice{% endif %
 
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">
-                {% if invoice %}
-                    Edit Invoice
-                {% else %}
-                    Create Invoice
-                {% endif %}
+                {% if invoice %}Edit Invoice{% else %}Create Invoice{% endif %}
             </h1>
 
             <a href="{% url 'billing:invoice_list' %}"
@@ -59,7 +55,6 @@ Powerpay Africa | {% if invoice %}Edit Invoice{% else %}Create Invoice{% endif %
                             Devices
                         </label>
 
-                        <!-- Loader -->
                         <div id="device-loading" class="hidden mb-4">
                             <p class="text-sm font-semibold mb-2">
                                 Loading devices...
@@ -67,7 +62,6 @@ Powerpay Africa | {% if invoice %}Edit Invoice{% else %}Create Invoice{% endif %
                             <progress class="progress progress-success w-full"></progress>
                         </div>
 
-                        <!-- Select All -->
                         <div class="mb-4">
                             <label class="flex items-center gap-3
                                           bg-success/10 p-3 rounded-lg
@@ -87,7 +81,6 @@ Powerpay Africa | {% if invoice %}Edit Invoice{% else %}Create Invoice{% endif %
                             </label>
                         </div>
 
-                        <!-- Device Grid -->
                         <div id="device-list"
                              class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         </div>
@@ -106,10 +99,39 @@ Powerpay Africa | {% if invoice %}Edit Invoice{% else %}Create Invoice{% endif %
                         {{ form.due_date }}
                     </div>
 
+                    <!-- --- NEW: Billing Enhancements --- -->
+
+                    {% if invoice_type == "HARDWARE" %}
+                        <div>
+                            <label class="label font-semibold">Hardware Tax %</label>
+                            {{ form.hardware_tax_percent }}
+                        </div>
+
+                        <div>
+                            <label class="label font-semibold">Hardware Upfront %</label>
+                            {{ form.hardware_upfront_percent }}
+                        </div>
+                    {% elif invoice_type == "SAAS" %}
+                        <div>
+                            <label class="label font-semibold">SaaS Tax %</label>
+                            {{ form.saas_tax_percent }}
+                        </div>
+
+                        <div>
+                            <label class="label font-semibold">SaaS Advance Billing</label>
+                            {{ form.saas_advance_period }}
+                        </div>
+
+                        <div id="saas-custom-days-container" class="hidden">
+                            <label class="label font-semibold">Custom Period (Days)</label>
+                            {{ form.saas_custom_days }}
+                        </div>
+                    {% endif %}
+                    <!-- --- END NEW FIELDS --- -->
+
                 </div>
 
                 <div class="flex justify-end gap-2 mt-6">
-
                     <a href="{% url 'billing:invoice_list' %}"
                        class="btn btn-error text-white">
                         Cancel
@@ -123,7 +145,6 @@ Powerpay Africa | {% if invoice %}Edit Invoice{% else %}Create Invoice{% endif %
                             Generate Invoice
                         {% endif %}
                     </button>
-
                 </div>
 
             </form>
@@ -208,7 +229,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     deviceList.insertAdjacentHTML("beforeend", html);
 
-                    // Hidden input for SaaS so Django still receives values
                     if (isSaas) {
                         const hiddenInput = `
                             <input type="hidden"
@@ -219,7 +239,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 });
 
-                // Auto-check select all for SaaS
                 if (isSaas) {
                     selectAll.checked = true;
                     selectAll.disabled = true;
@@ -237,12 +256,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
     selectAll.addEventListener("change", function () {
         if (isSaas) return;
-
         const checked = this.checked;
-
         document.querySelectorAll("#device-list input[type='checkbox']")
             .forEach(cb => cb.checked = checked);
     });
+
+    // --- Show/hide custom days field for SaaS ---
+    const saasPeriodSelect = document.querySelector("#id_saas_advance_period");
+    const saasCustomContainer = document.getElementById("saas-custom-days-container");
+    if (saasPeriodSelect) {
+        const toggleCustomDays = () => {
+            saasCustomContainer.style.display = saasPeriodSelect.value === "custom" ? "block" : "none";
+        };
+        toggleCustomDays();
+        saasPeriodSelect.addEventListener("change", toggleCustomDays);
+    }
 
 });
 </script>

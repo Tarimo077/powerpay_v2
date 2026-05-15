@@ -184,9 +184,35 @@ class BulkDeviceCreateForm(forms.Form):
         })
     )
 
+    # Inventory options
+    add_to_inventory = forms.BooleanField(
+        required=False,
+        initial=False,
+        label="Add devices to inventory",
+        widget=forms.CheckboxInput(attrs={"class": "checkbox checkbox-success text-white"})
+    )
+
+    inventory_name = forms.CharField(
+        required=False,
+        label="Inventory Name (applied to all devices)",
+        widget=forms.TextInput(attrs={"class": "input input-bordered w-full"})
+    )
+
+    product_type = forms.CharField(
+        required=False,
+        label="Product Type (applied to all devices)",
+        widget=forms.TextInput(attrs={"class": "input input-bordered w-full"})
+    )
+
+    warehouse = forms.ModelChoiceField(
+        queryset=Warehouse.objects.all(),
+        required=False,
+        label="Warehouse (applied to all devices)",
+        widget=forms.Select(attrs={"class": "select select-bordered w-full"})
+    )
+
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-
         if user and (user.is_superuser or getattr(user, "role", None) == "superadmin"):
             self.fields["organizations"].queryset = Organization.objects.all()
         elif user and getattr(user, "organization", None):
@@ -199,7 +225,6 @@ class BulkDeviceCreateForm(forms.Form):
         raw_deviceids = self.cleaned_data["deviceids"]
         normalized = []
         seen = set()
-
         for token in raw_deviceids.replace(",", "\n").splitlines():
             deviceid = token.strip()
             if not deviceid:
@@ -207,8 +232,18 @@ class BulkDeviceCreateForm(forms.Form):
             if deviceid not in seen:
                 normalized.append(deviceid)
                 seen.add(deviceid)
-
         if not normalized:
             raise forms.ValidationError("Enter at least one device ID.")
-
         return normalized
+
+    def clean(self):
+        cleaned_data = super().clean()
+        add_to_inventory = cleaned_data.get("add_to_inventory")
+        if add_to_inventory:
+            if not cleaned_data.get("inventory_name"):
+                self.add_error("inventory_name", "Inventory name is required")
+            if not cleaned_data.get("product_type"):
+                self.add_error("product_type", "Product type is required")
+            if not cleaned_data.get("warehouse"):
+                self.add_error("warehouse", "Warehouse is required")
+        return cleaned_data

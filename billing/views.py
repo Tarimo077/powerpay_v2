@@ -89,32 +89,34 @@ def create_hardware(request):
         return HttpResponseForbidden()
 
     form = HardwareInvoiceForm(request.POST or None)
-
     form.fields["organization"].queryset = Organization.objects.all()
 
     if request.method == "POST":
         org_id = request.POST.get("organization")
-
         if org_id:
             form.fields["devices"].queryset = billing_org_devices(org_id)
 
     if request.method == "POST" and form.is_valid():
         devices = form.cleaned_data["devices"]
+        unit_price = form.cleaned_data["unit_price"]
+        due_date = form.cleaned_data["due_date"]
+
+        # --- NEW: TAX & UPFRONT ---
+        hardware_tax = form.cleaned_data.get("hardware_tax_percent", 0) or 0
+        hardware_upfront = form.cleaned_data.get("hardware_upfront_percent", 0) or 0
 
         invoice = create_hardware_invoice(
             request.user,
             devices,
-            form.cleaned_data["unit_price"],
-            form.cleaned_data["due_date"]
+            unit_price,
+            due_date,
+            hardware_tax=hardware_tax,
+            hardware_upfront=hardware_upfront
         )
 
         return redirect("billing:invoice_list")
 
-    return render(
-        request,
-        "billing/invoice_form.html",
-        {"form": form}
-    )
+    return render(request, "billing/invoice_form.html", {"form": form})
 
 
 # ==========================================
@@ -129,18 +131,32 @@ def create_saas(request):
 
     if request.method == "POST":
         org_id = request.POST.get("organization")
-
         if org_id:
             form.fields["devices"].queryset = billing_org_devices(org_id)
 
     if request.method == "POST" and form.is_valid():
         org = form.cleaned_data["organization"]
+        unit_price = form.cleaned_data["unit_price"]
+        due_date = form.cleaned_data["due_date"]
+
+        # --- NEW: TAX & ADVANCE PERIOD ---
+        saas_tax = form.cleaned_data.get("saas_tax_percent", 0) or 0
+        saas_period = form.cleaned_data.get("saas_advance_period", "as_is")
+        saas_custom_days = form.cleaned_data.get("saas_custom_days", None)
+
+        # calculate actual due_date for SaaS based on period
+        if saas_period == "1_year":
+            due_date = timezone.now().date() + timedelta(days=365)
+        elif saas_period == "custom" and saas_custom_days:
+            due_date = timezone.now().date() + timedelta(days=saas_custom_days)
+        # else leave due_date as-is
 
         invoice = create_saas_invoice(
             org,
-            form.cleaned_data["unit_price"],
+            unit_price,
             request.user,
-            due_date=form.cleaned_data["due_date"],
+            due_date=due_date,
+            saas_tax=saas_tax
         )
 
         return redirect("billing:invoice_list")

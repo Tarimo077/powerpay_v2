@@ -151,7 +151,7 @@ def device_list(request):
     ]
 
     paginator = Paginator(device_stats, page_size)
-    page_number = request.GET.get("page")
+    page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
 
     context = {
@@ -466,7 +466,7 @@ def change_device_status(request):
 
         api_payload = {
             "selectedDev": deviceid,
-            "status": not current_status
+            "status": current_status
         }
 
         response = requests.post(
@@ -747,6 +747,17 @@ def device_bulk_create(request):
 
                 device.organizations.set(organizations)
                 created_count += 1
+
+                # --- ADD INVENTORY ITEM IF SELECTED ---
+                if form.cleaned_data.get("add_to_inventory"):
+                    InventoryItem.objects.get_or_create(
+                        serial_number=device.deviceid,
+                        defaults={
+                            "name": form.cleaned_data["inventory_name"] or device.deviceid,
+                            "product_type": form.cleaned_data["product_type"] or "Hardware",
+                            "current_warehouse": form.cleaned_data["warehouse"] or None,
+                        }
+                    )
 
         if created_count:
             messages.success(request, f"{created_count} device(s) added successfully.")
