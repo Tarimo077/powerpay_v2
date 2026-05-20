@@ -139,7 +139,7 @@
             {% endif %}
 
             <!-- Inventory -->
-            <!-- {% if request.user.is_superuser %} -->
+            {% if 'inventory' in allowed_apps %}
             <a href="{% url 'inventory:inventory_page' %}"
                class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
                {% if request.path == '/inventory/' %}
@@ -161,7 +161,7 @@
                 <i class="fa-solid fa-warehouse w-5"></i>
                 <span class="link-text">Warehouses</span>
             </a>
-            <!-- {% endif %} -->
+            {% endif %} 
 
             <!-- Transactions -->
             {% if 'transactions' in allowed_apps %}
