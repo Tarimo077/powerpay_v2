@@ -21,9 +21,18 @@ class Warehouse(models.Model):
 
     
 class InventoryItem(models.Model):
+    TYPE_UNIQUE = "unique"
+    TYPE_SHARED = "shared"
+    ITEM_TYPE_CHOICES = [
+        (TYPE_UNIQUE, "Unique serial number"),
+        (TYPE_SHARED, "Shared serial number"),
+    ]
+
     name = models.CharField(max_length=100)
-    serial_number = models.CharField(max_length=100, unique=True)
+    serial_number = models.CharField(max_length=100)
     product_type = models.CharField(max_length=100)
+    item_type = models.CharField(max_length=20, choices=ITEM_TYPE_CHOICES, default=TYPE_UNIQUE)
+    quantity = models.PositiveIntegerField(default=1)
     date_added = models.DateField(auto_now_add=True)
     current_warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT, related_name='inventory_items')
 

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load dict_extras %}
+{% block title %}Powerpay Africa | Bulk Add Inventory Items{% endblock %}
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0 space-y-6" id="page-content">
+        <div class="mx-auto bg-base-100 shadow rounded-lg p-6 mt-6">
+            <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">Bulk Add Inventory Items</h2>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Upload a CSV, paste CSV rows, or enter serial numbers one per line like bulk device addition.
+                    </p>
+                </div>
+                <a href="{% url 'inventory:inventory_page' %}" class="btn btn-ghost btn-accent hover:text-white">
+                    <i class="fa-solid fa-backward-step"></i> Back to Inventory
+                </a>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" class="space-y-5">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-error text-white">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div>
+                    <label class="label font-semibold">Current Warehouse</label>
+                    {{ form.current_warehouse|add_class:"select select-bordered w-full" }}
+                    {{ form.current_warehouse.errors }}
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-lg border border-base-300 p-4">
+                    <div class="md:col-span-2">
+                        <h3 class="font-semibold">Defaults for one-per-line entries</h3>
+                        <p class="text-xs text-gray-500 mt-1">
+                            These fields are used only when the pasted/uploaded data is not a full CSV.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="label font-semibold">{{ form.default_name.label }}</label>
+                        {{ form.default_name }}
+                        <p class="text-xs text-gray-500 mt-1">{{ form.default_name.help_text }}</p>
+                        {{ form.default_name.errors }}
+                    </div>
+
+                    <div>
+                        <label class="label font-semibold">{{ form.default_product_type.label }}</label>
+                        {{ form.default_product_type }}
+                        <p class="text-xs text-gray-500 mt-1">{{ form.default_product_type.help_text }}</p>
+                        {{ form.default_product_type.errors }}
+                    </div>
+
+                    <div>
+                        <label class="label font-semibold">{{ form.default_item_type.label }}</label>
+                        {{ form.default_item_type }}
+                        <p class="text-xs text-gray-500 mt-1">{{ form.default_item_type.help_text }}</p>
+                        {{ form.default_item_type.errors }}
+                    </div>
+
+                    <div>
+                        <label class="label font-semibold">{{ form.default_quantity.label }}</label>
+                        {{ form.default_quantity }}
+                        <p class="text-xs text-gray-500 mt-1">{{ form.default_quantity.help_text }}</p>
+                        {{ form.default_quantity.errors }}
+                    </div>
+                </div>
+
+                <div>
+                    <label class="label font-semibold">{{ form.csv_file.label }}</label>
+                    {{ form.csv_file }}
+                    <p class="text-xs text-gray-500 mt-2">
+                        CSV columns: name, serial_number, product_type, item_type, quantity.
+                    </p>
+                    {{ form.csv_file.errors }}
+                </div>
+
+                <div>
+                    <label class="label font-semibold">{{ form.csv_data.label }}</label>
+                    {{ form.csv_data }}
+                    <p class="text-xs text-gray-500 mt-2">
+                        CSV example:<br>
+                        <span class="font-mono">name,serial_number,product_type,item_type,quantity</span><br>
+                        <span class="font-mono">Smart Meter,SM-001,Meter,unique,1</span><br>
+                        Or line entries:<br>
+                        <span class="font-mono">SM-001</span><br>
+                        <span class="font-mono">SM-002</span>
+                    </p>
+                    {{ form.csv_data.errors }}
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <a href="{% url 'inventory:inventory_page' %}" class="btn btn-error text-white">Cancel</a>
+                    <button type="submit" class="btn btn-success text-white">
+                        <i class="fa-solid fa-layer-group"></i> Create Bulk Items
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

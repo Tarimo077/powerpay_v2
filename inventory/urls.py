@@ -9,6 +9,7 @@ urlpatterns = [
     path("items/<int:pk>/", views.inventory_detail, name="inventory_detail"),
     
     path("items/add/", views.item_create, name="item_create"),
+    path("items/bulk-add/", views.bulk_item_create, name="bulk_item_create"),
     path("items/<int:pk>/edit/", views.item_update, name="item_update"),
     path("items/<int:pk>/delete/", views.item_delete, name="item_delete"),
 

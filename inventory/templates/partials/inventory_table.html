@@ -118,6 +118,8 @@ item{{ total_results|pluralize }}
             <td class="align-middle">{{ item.name }}</td>
             <td class="align-middle">{{ item.serial_number }}</td>
             <td class="align-middle">{{ item.product_type }}</td>
+            <td class="align-middle">{{ item.get_item_type_display }}</td>
+            <td class="align-middle">{{ item.quantity }}</td>
             <td class="align-middle">{{ item.current_warehouse.name }}</td>
             <td class="align-middle">{{ item.days_in_current_warehouse }}</td>
 
@@ -150,7 +152,7 @@ item{{ total_results|pluralize }}
 
         {% empty %}
         <tr>
-            <td colspan="6" class="text-center py-6">No items found</td>
+            <td colspan="8" class="text-center py-6">No items found</td>
         </tr>
         {% endfor %}
     </tbody>

@@ -3,6 +3,7 @@
 {% load static %}
 {% block title %}
   Powerpay Africa | {% if form.instance.pk %} Edit Inventory Item {% else %} Add Inventory Item {% endif %}
+
 {% endblock %}
 {% block content %}
 {% include "partials/navbar.html" %}
@@ -42,6 +43,17 @@
                 </div>
 
                 <div>
+                    <label class="label font-semibold">Tracking Type</label>
+                    {{ form.item_type|add_class:"select select-bordered w-full" }}
+                    <p class="text-xs text-gray-500 mt-1">Unique serial number items always use quantity 1. Shared serial number items can use any stated quantity.</p>
+                </div>
+
+                <div>
+                    <label class="label font-semibold">Quantity</label>
+                    {{ form.quantity|add_class:"input input-bordered w-full" }}
+                </div>
+
+                <div>
                     <label class="label font-semibold">Current Warehouse</label>
                     {{ form.current_warehouse|add_class:"select select-bordered w-full" }}
                 </div>
@@ -64,4 +76,25 @@
         </div>
     </div>
 </div>
+<script>
+(function () {
+    const itemType = document.getElementById("id_item_type");
+    const quantity = document.getElementById("id_quantity");
+
+    function syncQuantity() {
+        if (!itemType || !quantity) return;
+        if (itemType.value === "unique") {
+            quantity.value = 1;
+            quantity.readOnly = true;
+        } else {
+            quantity.readOnly = false;
+        }
+    }
+
+    if (itemType) {
+        itemType.addEventListener("change", syncQuantity);
+        syncQuantity();
+    }
+})();
+</script>
 {% endblock %}

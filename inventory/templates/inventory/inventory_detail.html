@@ -24,6 +24,16 @@
     <p class="font-semibold text-success">{{ item.serial_number }}</p>
   </div>
 
+  <div class="card bg-base-100 p-4 shadow border-l-4 border-secondary">
+    <p class="text-xs text-gray-500">Tracking Type</p>
+    <p class="font-semibold text-secondary">{{ item.get_item_type_display }}</p>
+  </div>
+
+  <div class="card bg-base-100 p-4 shadow border-l-4 border-primary">
+    <p class="text-xs text-gray-500">Quantity</p>
+    <p class="font-semibold text-primary">{{ item.quantity }}</p>
+  </div>
+
   <div class="card bg-base-100 p-4 shadow border-l-4 border-info">
     <p class="text-xs text-gray-500">Warehouse</p>
     <p class="font-semibold text-info">{{ item.current_warehouse.name }}</p>

@@ -1,13 +1,13 @@
 from datetime import timedelta
-from django.db.models import Count
 from django.db.models.functions import TruncMonth
 from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.db.models import Q, Count
+from django.db import transaction
 from .models import InventoryItem, Warehouse, InventoryMovement
 from django.contrib.auth.decorators import login_required
-from .forms import WarehouseForm, InventoryItemForm, InventoryMoveForm
+from .forms import WarehouseForm, InventoryItemForm, BulkInventoryItemForm, InventoryMoveForm
 from notifications.utils import notify
 from organizations.models import Organization
 
@@ -102,9 +102,60 @@ def item_create(request):
             notify(request.user, "New Item", f"{item.serial_number}({item.name}) has been created.", "success")
             return redirect("inventory:inventory_page")
     else:
-        form = InventoryItemForm()
+        form = InventoryItemForm(initial={"item_type": InventoryItem.TYPE_UNIQUE, "quantity": 1})
 
     return render(request, "inventory/item_form.html", {"form": form})
+
+
+@login_required
+def bulk_item_create(request):
+    user = request.user
+    is_superadmin = user.role == "superadmin"
+    allowed_warehouses = Warehouse.objects.all() if is_superadmin else Warehouse.objects.filter(organization=user.organization)
+
+    if request.method == "POST":
+        form = BulkInventoryItemForm(request.POST, request.FILES)
+        form.fields["current_warehouse"].queryset = allowed_warehouses
+        if form.is_valid():
+            warehouse = form.cleaned_data["current_warehouse"]
+            created_items = []
+
+            with transaction.atomic():
+                for row in form.cleaned_rows:
+                    item = InventoryItem.objects.create(
+                        name=row["name"],
+                        serial_number=row["serial_number"],
+                        product_type=row["product_type"],
+                        item_type=row["item_type"],
+                        quantity=row["quantity"],
+                        current_warehouse=warehouse,
+                    )
+                    created_items.append(item)
+
+                InventoryMovement.objects.bulk_create([
+                    InventoryMovement(
+                        item=item,
+                        to_warehouse=warehouse,
+                        moved_by=request.user,
+                        note="Initial bulk assignment",
+                    )
+                    for item in created_items
+                ])
+
+            notify(request.user, "Bulk Inventory Added", f"{len(created_items)} inventory item row(s) have been created.", "success")
+            return redirect("inventory:inventory_page")
+    else:
+        sample_entries = "SM-001\nSM-002\nSM-003"
+        form = BulkInventoryItemForm(initial={
+            "default_name": "Smart Meter",
+            "default_product_type": "Meter",
+            "default_item_type": InventoryItem.TYPE_UNIQUE,
+            "default_quantity": 1,
+            "csv_data": sample_entries,
+        })
+        form.fields["current_warehouse"].queryset = allowed_warehouses
+
+    return render(request, "inventory/bulk_item_form.html", {"form": form})
 
 
 @login_required
@@ -147,7 +198,8 @@ def inventory_page(request):
         qs = qs.filter(
             Q(name__icontains=search_query) |
             Q(serial_number__icontains=search_query) |
-            Q(product_type__icontains=search_query)
+            Q(product_type__icontains=search_query) |
+            Q(item_type__icontains=search_query)
         )
 
     # ---------------- FILTERS ----------------
@@ -192,6 +244,8 @@ def inventory_page(request):
         "name": "name",
         "serial": "serial_number",
         "type": "product_type",
+        "tracking_type": "item_type",
+        "quantity": "quantity",
         "warehouse": "current_warehouse__name",
         "days": "date_added",
     }
@@ -200,6 +254,8 @@ def inventory_page(request):
         ("Name", "name"),
         ("Serial Number", "serial"),
         ("Product Type", "type"),
+        ("Tracking Type", "tracking_type"),
+        ("Quantity", "quantity"),
         ("Warehouse", "warehouse"),
         ("Days in Warehouse", "days"),
         ("Actions", "actions")
