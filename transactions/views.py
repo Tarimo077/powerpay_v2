@@ -101,7 +101,15 @@ def transactions_page(request):
     total_results = qs.count()
 
     # Pagination
-    paginator = Paginator(qs, 10)
+    allowed_page_sizes = [10, 25, 50, 100]
+    try:
+        page_size = int(request.GET.get("page_size", 10))
+    except (TypeError, ValueError):
+        page_size = 10
+    if page_size not in allowed_page_sizes:
+        page_size = 10
+
+    paginator = Paginator(qs, page_size)
     page_obj = paginator.get_page(request.GET.get("page"))
 
     table_fields = [
@@ -126,6 +134,8 @@ def transactions_page(request):
             "partials/transactions_table.html",
             {
                 "page_obj": page_obj,
+                "page_size": page_size,
+                "page_size_options": allowed_page_sizes,
                 "fields_with_dir": fields_with_dir,
                 "is_superadmin": is_superadmin,
                 "current_sort": sort,
@@ -142,6 +152,8 @@ def transactions_page(request):
     context = cache.get("transaction_dashboard_superadmin" if is_superadmin else f"transaction_dashboard_org_{user.organization.id}") or {}
     context.update({
         "page_obj": page_obj,
+        "page_size": page_size,
+        "page_size_options": allowed_page_sizes,
         "fields_with_dir": fields_with_dir,
         "is_superadmin": is_superadmin,
         "current_sort": sort,

@@ -109,7 +109,15 @@ def customers_page(request):
     qs = qs.order_by(order)
 
     # ---------------- PAGINATION ----------------
-    paginator = Paginator(qs, 10)
+    allowed_page_sizes = [10, 25, 50, 100]
+    try:
+        page_size = int(request.GET.get("page_size", 10))
+    except (TypeError, ValueError):
+        page_size = 10
+    if page_size not in allowed_page_sizes:
+        page_size = 10
+
+    paginator = Paginator(qs, page_size)
     page_obj = paginator.get_page(request.GET.get("page"))
 
     table_fields = [
@@ -140,6 +148,8 @@ def customers_page(request):
             "partials/customers_table.html",
             {
                 "page_obj": page_obj,
+                "page_size": page_size,
+                "page_size_options": allowed_page_sizes,
                 "fields": table_fields,
                 "is_superadmin": is_superadmin,
                 "current_sort": sort,
@@ -208,6 +218,8 @@ def customers_page(request):
         "customers/customers.html",
         {
             "page_obj": page_obj,
+            "page_size": page_size,
+            "page_size_options": allowed_page_sizes,
             "fields": table_fields,
             "is_superadmin": is_superadmin,
             "total_customers": total_customers,

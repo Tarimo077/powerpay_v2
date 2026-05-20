@@ -29,6 +29,10 @@
                     class="input input-success min-w-48"
                 />
 
+                <input type="hidden" name="sort" value="{{ current_sort }}">
+                <input type="hidden" name="dir" value="{{ current_dir }}">
+                <input type="hidden" name="page_size" value="{{ page_size }}">
+
                 <!-- STATUS FILTER -->
                 <select name="status" class="select select-success select-md">
                     <option value="all" {% if status_filter == "all" %}selected{% endif %}>
@@ -169,20 +173,80 @@
                         </th>
 
                         <th class="px-4 py-3 text-left text-white">
-                            Device ID
+                            <a
+                                hx-get="{% url 'devices:device_list' %}?sort=deviceid&dir={{ next_dirs.deviceid }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}&page_size={{ page_size }}"
+                                hx-target="#devices-table"
+                                hx-push-url="true"
+                                hx-indicator="#htmx-loading"
+                                class="flex items-center gap-1 cursor-pointer"
+                            >
+                                Device ID
+                                {% if current_sort == "deviceid" %}
+                                    {% if current_dir == "asc" %}
+                                        <i class="fa-solid fa-sort-up"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-sort-down"></i>
+                                    {% endif %}
+                                {% endif %}
+                            </a>
                         </th>
 
                         <th class="px-4 py-3 text-center text-white">
-                            Status
+                            <a
+                                hx-get="{% url 'devices:device_list' %}?sort=status&dir={{ next_dirs.status }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}&page_size={{ page_size }}"
+                                hx-target="#devices-table"
+                                hx-push-url="true"
+                                hx-indicator="#htmx-loading"
+                                class="flex items-center justify-center gap-1 cursor-pointer"
+                            >
+                                Status
+                                {% if current_sort == "status" %}
+                                    {% if current_dir == "asc" %}
+                                        <i class="fa-solid fa-sort-up"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-sort-down"></i>
+                                    {% endif %}
+                                {% endif %}
+                            </a>
                         </th>
 
                         <th class="px-4 py-3 text-center text-white">
-                            Last Seen
+                            <a
+                                hx-get="{% url 'devices:device_list' %}?sort=last_seen&dir={{ next_dirs.last_seen }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}&page_size={{ page_size }}"
+                                hx-target="#devices-table"
+                                hx-push-url="true"
+                                hx-indicator="#htmx-loading"
+                                class="flex items-center justify-center gap-1 cursor-pointer"
+                            >
+                                Last Seen
+                                {% if current_sort == "last_seen" %}
+                                    {% if current_dir == "asc" %}
+                                        <i class="fa-solid fa-sort-up"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-sort-down"></i>
+                                    {% endif %}
+                                {% endif %}
+                            </a>
                         </th>
 
                         {% if request.accessible_orgs|length > 1 %}
                         <th class="px-4 py-3 text-center text-white">
-                            Main Org
+                            <a
+                                hx-get="{% url 'devices:device_list' %}?sort=main_org&dir={{ next_dirs.main_org }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}&page_size={{ page_size }}"
+                                hx-target="#devices-table"
+                                hx-push-url="true"
+                                hx-indicator="#htmx-loading"
+                                class="flex items-center justify-center gap-1 cursor-pointer"
+                            >
+                                Main Org
+                                {% if current_sort == "main_org" %}
+                                    {% if current_dir == "asc" %}
+                                        <i class="fa-solid fa-sort-up"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-sort-down"></i>
+                                    {% endif %}
+                                {% endif %}
+                            </a>
                         </th>
 
                         <th class="px-4 py-3 text-center text-white">
@@ -229,6 +293,8 @@
             <input type="hidden" name="q" value="{{ search_query }}">
             <input type="hidden" name="status" value="{{ status_filter }}">
             <input type="hidden" name="page" value="1">
+            <input type="hidden" name="sort" value="{{ current_sort }}">
+            <input type="hidden" name="dir" value="{{ current_dir }}">
             {% if org_filter %}
                 <input type="hidden" name="org" value="{{ org_filter }}">
             {% endif %}
@@ -241,7 +307,7 @@
         {% if page_obj.has_previous %}
             <button
                 type="button"
-                hx-get="{% url 'devices:device_list' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}&page_size={{ page_size }}"
+                hx-get="{% url 'devices:device_list' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}&page_size={{ page_size }}&sort={{ current_sort }}&dir={{ current_dir }}"
                 hx-target="#devices-table"
                 hx-push-url="true"
                 hx-indicator="#htmx-loading"
@@ -260,7 +326,7 @@
         {% if page_obj.has_next %}
             <button
                 type="button"
-                hx-get="{% url 'devices:device_list' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}&page_size={{ page_size }}"
+                hx-get="{% url 'devices:device_list' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}&page_size={{ page_size }}&sort={{ current_sort }}&dir={{ current_dir }}"
                 hx-target="#devices-table"
                 hx-push-url="true"
                 hx-indicator="#htmx-loading"

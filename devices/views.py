@@ -12,7 +12,7 @@ from django.http import HttpResponse
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 from datetime import timedelta
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, OuterRef, Subquery
 from notifications.utils import notify
 from .forms import DeviceForm, DeviceCommandScheduleForm, BulkDeviceCreateForm
 from django.views.decorators.http import require_POST
@@ -125,7 +125,40 @@ def device_list(request):
     elif status == "inactive":
         devices = devices.filter(active=False)
 
-    devices = devices.order_by("deviceid").distinct()
+    # -------- SORTING --------
+    # ``last_seen`` comes from the latest DeviceData row, so annotate it here
+    # before pagination. That keeps sorting consistent across all pages.
+    last_seen_subquery = (
+        DeviceData.objects
+        .filter(deviceid=OuterRef("deviceid"))
+        .order_by("-time")
+        .values("time")[:1]
+    )
+
+    devices = devices.annotate(last_seen_for_sort=Subquery(last_seen_subquery))
+
+    allowed_sorts = {
+        "deviceid": "deviceid",
+        "status": "active",
+        "last_seen": "last_seen_for_sort",
+        "main_org": "organization__name",
+    }
+
+    sort = request.GET.get("sort", "deviceid")
+    direction = request.GET.get("dir", "asc")
+
+    if sort not in allowed_sorts:
+        sort = "deviceid"
+    if direction not in ("asc", "desc"):
+        direction = "asc"
+
+    order_field = allowed_sorts[sort]
+    order = f"-{order_field}" if direction == "desc" else order_field
+    devices = devices.order_by(order, "deviceid").distinct()
+
+    next_dirs = {}
+    for field in allowed_sorts:
+        next_dirs[field] = "desc" if (field == sort and direction == "asc") else "asc"
 
     allowed_page_sizes = [10, 25, 50, 100]
     try:
@@ -144,7 +177,7 @@ def device_list(request):
     device_stats = [
         {
             "device": d,
-            "last_seen": last_energy_timestamp(d),
+            "last_seen": d.last_seen_for_sort,
             "organizations": d.organizations.all(),
         }
         for d in devices
@@ -168,6 +201,9 @@ def device_list(request):
         "inactive_devices": inactive_devices,
         "page_size": page_size,
         "page_size_options": allowed_page_sizes,
+        "current_sort": sort,
+        "current_dir": direction,
+        "next_dirs": next_dirs,
     }
 
     if request.headers.get("HX-Request"):
@@ -333,7 +369,15 @@ def device_detail(request, deviceid):
     # ---------------------------
     # PAGINATION
     # ---------------------------
-    paginator = Paginator(cooking_event_rows, 10)
+    allowed_page_sizes = [10, 25, 50, 100]
+    try:
+        page_size = int(request.GET.get("page_size", 10))
+    except (TypeError, ValueError):
+        page_size = 10
+    if page_size not in allowed_page_sizes:
+        page_size = 10
+
+    paginator = Paginator(cooking_event_rows, page_size)
     page_number = request.GET.get("page")
     cooking_event_rows_paginated = paginator.get_page(page_number)
 
@@ -412,6 +456,8 @@ def device_detail(request, deviceid):
             "partials/cooking_events_table.html",
             {
                 "cooking_event_rows": cooking_event_rows_paginated,
+                "page_size": page_size,
+                "page_size_options": allowed_page_sizes,
                 "current_sort": sort,
                 "current_dir": direction,
                 "next_dirs": next_dirs,
@@ -443,6 +489,8 @@ def device_detail(request, deviceid):
         "cooking_event_data": cooking_event_data,
 
         "cooking_event_rows": cooking_event_rows_paginated,
+        "page_size": page_size,
+        "page_size_options": allowed_page_sizes,
 
         "current_sort": sort,
         "current_dir": direction,

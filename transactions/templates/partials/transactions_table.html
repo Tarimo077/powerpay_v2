@@ -23,6 +23,7 @@
 
     <input type="hidden" name="sort" value="{{ current_sort }}">
     <input type="hidden" name="dir" value="{{ current_dir }}">
+    <input type="hidden" name="page_size" value="{{ page_size }}">
 
     <!-- PERIOD FILTER -->
     <select name="period" class="select select-success select-md">
@@ -83,7 +84,7 @@
                 <tr>
                     {% for field, label, next_dir in fields_with_dir %}
                         <th class="px-4 py-3 text-left text-white">
-                            <a hx-get="{% url 'transactions:transactions_page' %}?sort={{ field }}&dir={{ next_dir }}&q={{ search_query }}&period={{ period }}&org={{ org_filter }}"
+                            <a hx-get="{% url 'transactions:transactions_page' %}?sort={{ field }}&dir={{ next_dir }}&q={{ search_query }}&period={{ period }}&org={{ org_filter }}&page_size={{ page_size }}"
                                hx-target="#transactions-table"
                                hx-push-url="true"
                                hx-indicator="#htmx-loading"
@@ -123,11 +124,31 @@
         </table>
     </div>
 
+
+    <div class="flex justify-end mt-6">
+        <form method="get" class="flex items-center justify-center"
+              hx-get="{% url 'transactions:transactions_page' %}"
+              hx-target="#transactions-table" hx-push-url="true" hx-indicator="#htmx-loading">
+            <label class="mr-2 font-semibold">Items per page:</label>
+            <select name="page_size" class="select select-success" onchange="this.form.requestSubmit();">
+                {% for size in page_size_options %}
+                    <option value="{{ size }}" {% if page_size == size %}selected{% endif %}>{{ size }} per page</option>
+                {% endfor %}
+            </select>
+            <input type="hidden" name="q" value="{{ search_query }}">
+            <input type="hidden" name="period" value="{{ period }}">
+            <input type="hidden" name="sort" value="{{ current_sort }}">
+            <input type="hidden" name="dir" value="{{ current_dir }}">
+            <input type="hidden" name="page" value="1">
+            {% if org_filter %}<input type="hidden" name="org" value="{{ org_filter }}">{% endif %}
+        </form>
+    </div>
+
     <!-- PAGINATION -->
     {% if page_obj.has_other_pages %}
         <div class="flex justify-between mt-4 items-center flex-wrap gap-2">
             {% if page_obj.has_previous %}
-                <a hx-get="{% url 'transactions:transactions_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&org={{ org_filter }}"
+                <a hx-get="{% url 'transactions:transactions_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&org={{ org_filter }}&page_size={{ page_size }}"
                    hx-target="#transactions-table"
                    hx-push-url="true"
                    hx-indicator="#htmx-loading"
@@ -141,7 +162,7 @@
             <span class="font-medium">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
 
             {% if page_obj.has_next %}
-                <a hx-get="{% url 'transactions:transactions_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&org={{ org_filter }}"
+                <a hx-get="{% url 'transactions:transactions_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&org={{ org_filter }}&page_size={{ page_size }}"
                    hx-target="#transactions-table"
                    hx-push-url="true"
                    hx-indicator="#htmx-loading"

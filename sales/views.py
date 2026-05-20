@@ -157,7 +157,15 @@ def sales_page(request):
         )
 
     qs = qs.order_by(order)
-    paginator = Paginator(qs, 10)
+    allowed_page_sizes = [10, 25, 50, 100]
+    try:
+        page_size = int(request.GET.get("page_size", 10))
+    except (TypeError, ValueError):
+        page_size = 10
+    if page_size not in allowed_page_sizes:
+        page_size = 10
+
+    paginator = Paginator(qs, page_size)
     page_obj = paginator.get_page(request.GET.get("page"))
 
     table_fields = [
@@ -225,6 +233,8 @@ def sales_page(request):
             "partials/sales_table.html",
             {
                 "page_obj": page_obj,
+                "page_size": page_size,
+                "page_size_options": allowed_page_sizes,
                 "fields": table_fields,
                 "current_sort": sort,
                 "current_dir": direction,
@@ -246,6 +256,8 @@ def sales_page(request):
         "sales/sales.html",
         {
             "page_obj": page_obj,
+            "page_size": page_size,
+            "page_size_options": allowed_page_sizes,
             "fields": table_fields,
             "current_sort": sort,
             "current_dir": direction,

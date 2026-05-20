@@ -120,6 +120,8 @@
                 placeholder="Search serial or customer"
                 class="input input-success" />
 
+            <input type="hidden" name="page_size" value="{{ page_size }}">
+
             <select name="status" class="select select-success">
                 <option value="">All Paygo Status</option>
                 <option value="fully_paid" {% if status_filter == "fully_paid" %}selected{% endif %}>Fully Paid</option>
@@ -162,7 +164,7 @@
         <table class="table bg-base-100">
             <thead class="bg-success text-success-content text-sm uppercase tracking-wide">
                 <tr>
-                    <th class="px-4 py-3 text-left text-white rounded-tl-lg"><a href="?sort=serial&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.serial }}">
+                    <th class="px-4 py-3 text-left text-white rounded-tl-lg"><a href="?sort=serial&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.serial }}&page_size={{ page_size }}">
                         {% if current_sort == "serial" %}
                             {% if current_dir == "asc" %}
                                 <i class="fa-solid fa-sort-up"></i>
@@ -171,7 +173,7 @@
                             {% endif %}
                         {% endif %}
                         Serial</a></th>
-                    <th class="px-4 py-3 text-center text-white"><a href="?sort=customer&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.customer }}">
+                    <th class="px-4 py-3 text-center text-white"><a href="?sort=customer&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.customer }}&page_size={{ page_size }}">
                         {% if current_sort == "customer" %}
                             {% if current_dir == "asc" %}
                                 <i class="fa-solid fa-sort-up"></i>
@@ -180,7 +182,7 @@
                             {% endif %}
                         {% endif %}
                         Customer</a></th>
-                    <th class="px-4 py-3 text-center text-white"><a href="?sort=paid&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.paid }}">
+                    <th class="px-4 py-3 text-center text-white"><a href="?sort=paid&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.paid }}&page_size={{ page_size }}">
                         {% if current_sort == "paid" %}
                             {% if current_dir == "asc" %}
                                 <i class="fa-solid fa-sort-up"></i>
@@ -190,7 +192,7 @@
                         {% endif %}
                         Paid</a></th>
 
-                    <th class="px-4 py-3 text-center text-white"><a href="?sort=paygo_balance&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.paygo_balance }}">
+                    <th class="px-4 py-3 text-center text-white"><a href="?sort=paygo_balance&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.paygo_balance }}&page_size={{ page_size }}">
                         {% if current_sort == "paygo_balance" %}
                             {% if current_dir == "asc" %}
                                 <i class="fa-solid fa-sort-up"></i>
@@ -199,7 +201,7 @@
                             {% endif %}
                         {% endif %}
                         Paygo Balance</a></th>
-                    <th class="px-4 py-3 text-center text-white"><a href="?sort=balance&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.balance }}">
+                    <th class="px-4 py-3 text-center text-white"><a href="?sort=balance&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.balance }}&page_size={{ page_size }}">
                         {% if current_sort == "balance" %}
                             {% if current_dir == "asc" %}
                                 <i class="fa-solid fa-sort-up"></i>
@@ -392,11 +394,30 @@
 
         </table>
 
+
+        <div class="flex justify-end mt-6">
+            <form method="get" class="flex items-center justify-center">
+                <label class="mr-2 font-semibold">Items per page:</label>
+                <select name="page_size" class="select select-success" onchange="this.form.submit();">
+                    {% for size in page_size_options %}
+                        <option value="{{ size }}" {% if page_size == size %}selected{% endif %}>{{ size }} per page</option>
+                    {% endfor %}
+                </select>
+                <input type="hidden" name="q" value="{{ search_query }}">
+                <input type="hidden" name="status" value="{{ status_filter }}">
+                <input type="hidden" name="sort" value="{{ current_sort }}">
+                <input type="hidden" name="dir" value="{{ current_dir }}">
+                <input type="hidden" name="mode" value="{{ mode }}">
+                <input type="hidden" name="metered" value="{{ metered_filter }}">
+                <input type="hidden" name="page" value="1">
+            </form>
+        </div>
+
         {% if page_obj.has_other_pages %}
         <div class="flex justify-between mt-4">
 
             {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}&sort={{ current_sort }}&dir={{ current_dir }}&mode={{ mode }}&metered={{ metered_filter }}"
+                <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}&sort={{ current_sort }}&dir={{ current_dir }}&mode={{ mode }}&metered={{ metered_filter }}&page_size={{ page_size }}"
                 class="btn btn-soft btn-warning hover:text-white">
                     <i class="fa-solid fa-backward-step"></i> Previous
                 </a>
@@ -409,7 +430,7 @@
             </span>
 
             {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ status_filter }}&sort={{ current_sort }}&dir={{ current_dir }}&mode={{ mode }}&metered={{ metered_filter }}"
+                <a href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ status_filter }}&sort={{ current_sort }}&dir={{ current_dir }}&mode={{ mode }}&metered={{ metered_filter }}&page_size={{ page_size }}"
                 class="btn btn-soft btn-success hover:text-white">
                     Next <i class="fa-solid fa-forward-step"></i>
                 </a>

@@ -230,7 +230,15 @@ def inventory_page(request):
         warehouses = warehouses.filter(organization=user.organization)
 
     # ---------------- PAGINATION ----------------
-    paginator = Paginator(qs, 10)
+    allowed_page_sizes = [10, 25, 50, 100]
+    try:
+        page_size = int(request.GET.get("page_size", 10))
+    except (TypeError, ValueError):
+        page_size = 10
+    if page_size not in allowed_page_sizes:
+        page_size = 10
+
+    paginator = Paginator(qs, page_size)
     page_obj = paginator.get_page(request.GET.get("page"))
 
     # ---------------- HTMX RESPONSE ----------------
@@ -240,6 +248,8 @@ def inventory_page(request):
             "partials/inventory_table.html",
             {
                 "page_obj": page_obj,
+                "page_size": page_size,
+                "page_size_options": allowed_page_sizes,
                 "search_query": search_query,
                 "current_sort": sort,
                 "current_dir": direction,
@@ -290,6 +300,8 @@ def inventory_page(request):
         "inventory/inventory.html",
         {
             "page_obj": page_obj,
+            "page_size": page_size,
+            "page_size_options": allowed_page_sizes,
             "search_query": search_query,
             "total_items": total_items,
             "new_items_30": new_items_30,

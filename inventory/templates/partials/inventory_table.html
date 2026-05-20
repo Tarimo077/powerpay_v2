@@ -25,6 +25,7 @@
 
 <input type="hidden" name="sort" value="{{ current_sort }}">
 <input type="hidden" name="dir" value="{{ current_dir }}">
+<input type="hidden" name="page_size" value="{{ page_size }}">
 
 <!-- Time Filter -->
 <select name="period" class="select select-success select-md">
@@ -93,7 +94,7 @@ item{{ total_results|pluralize }}
             {% for label, field_name in inventory_fields %}
             <th class="text-center">
                 <a class="cursor-pointer flex items-center gap-1 {% if label == 'Actions' %}justify-center{% endif %}"
-                   hx-get="{% url 'inventory:inventory_page' %}?sort={{ field_name }}&dir={{ next_dirs|get_item:field_name }}&q={{ search_query }}&period={{ period }}&warehouse={{ warehouse }}&org={{ org_filter }}"
+                   hx-get="{% url 'inventory:inventory_page' %}?sort={{ field_name }}&dir={{ next_dirs|get_item:field_name }}&q={{ search_query }}&period={{ period }}&warehouse={{ warehouse_filter }}&org={{ org_filter }}&page_size={{ page_size }}"
                    hx-target="#inventory-table"
                    hx-push-url="true"
                    hx-indicator="#htmx-loading">
@@ -156,12 +157,33 @@ item{{ total_results|pluralize }}
 </table>
 </div>
 
+
+<div class="flex justify-end mt-6">
+    <form method="get" class="flex items-center justify-center"
+          hx-get="{% url 'inventory:inventory_page' %}"
+          hx-target="#inventory-table" hx-push-url="true" hx-indicator="#htmx-loading">
+        <label class="mr-2 font-semibold">Items per page:</label>
+        <select name="page_size" class="select select-success" onchange="this.form.requestSubmit();">
+            {% for size in page_size_options %}
+                <option value="{{ size }}" {% if page_size == size %}selected{% endif %}>{{ size }} per page</option>
+            {% endfor %}
+        </select>
+        <input type="hidden" name="q" value="{{ search_query }}">
+        <input type="hidden" name="period" value="{{ period }}">
+        <input type="hidden" name="sort" value="{{ current_sort }}">
+        <input type="hidden" name="dir" value="{{ current_dir }}">
+        <input type="hidden" name="warehouse" value="{{ warehouse_filter }}">
+        <input type="hidden" name="page" value="1">
+        {% if org_filter %}<input type="hidden" name="org" value="{{ org_filter }}">{% endif %}
+    </form>
+</div>
+
 <!-- Pagination -->
 {% if page_obj.has_other_pages %}
 <div class="flex justify-between mt-4 mb-2">
     {% if page_obj.has_previous %}
     <a
-        hx-get="{% url 'inventory:inventory_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&warehouse={{ warehouse }}&org={{ org_filter }}"
+        hx-get="{% url 'inventory:inventory_page' %}?page={{ page_obj.previous_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&warehouse={{ warehouse_filter }}&org={{ org_filter }}&page_size={{ page_size }}"
         hx-target="#inventory-table"
         hx-push-url="true"
         hx-indicator="#htmx-loading"
@@ -177,7 +199,7 @@ item{{ total_results|pluralize }}
 
     {% if page_obj.has_next %}
     <a
-        hx-get="{% url 'inventory:inventory_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&warehouse={{ warehouse }}&org={{ org_filter }}"
+        hx-get="{% url 'inventory:inventory_page' %}?page={{ page_obj.next_page_number }}&q={{ search_query }}&sort={{ current_sort }}&dir={{ current_dir }}&period={{ period }}&warehouse={{ warehouse_filter }}&org={{ org_filter }}&page_size={{ page_size }}"
         hx-target="#inventory-table"
         hx-indicator="#htmx-loading"
         hx-push-url="true"

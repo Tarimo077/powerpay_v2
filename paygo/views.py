@@ -266,7 +266,15 @@ def paygo_sales_view(request):
     total_count = len(rows)
 
     # -------- PAGINATION --------
-    paginator = Paginator(rows, 10)
+    allowed_page_sizes = [10, 25, 50, 100]
+    try:
+        page_size = int(request.GET.get("page_size", 10))
+    except (TypeError, ValueError):
+        page_size = 10
+    if page_size not in allowed_page_sizes:
+        page_size = 10
+
+    paginator = Paginator(rows, page_size)
     page_obj = paginator.get_page(page)
 
     # -------- NEXT DIR --------
@@ -276,6 +284,8 @@ def paygo_sales_view(request):
 
     return render(request, "paygo/paygo_sales.html", {
         "page_obj": page_obj,
+        "page_size": page_size,
+        "page_size_options": allowed_page_sizes,
         "stats": {STATUS_LABELS[k]: v for k, v in stats.items()},
         "search_query": search_query,
         "status_filter": status_filter,
