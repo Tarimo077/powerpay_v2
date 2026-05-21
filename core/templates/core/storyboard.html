@@ -1,0 +1,570 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Powerpay Africa | App Storyboard{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<style>
+    .storyboard-page {
+        --guide-green: hsl(var(--su));
+        --guide-green-soft: rgba(34, 197, 94, .14);
+        --guide-ink: hsl(var(--bc));
+    }
+
+    .glass-card {
+        background: linear-gradient(145deg, hsl(var(--b1)), hsl(var(--b2)));
+        border: 1px solid hsl(var(--b3));
+        box-shadow: 0 24px 70px rgba(15, 23, 42, .10);
+    }
+
+    .guide-hero {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .guide-hero::before {
+        content: "";
+        position: absolute;
+        inset: -45%;
+        background:
+            radial-gradient(circle at 20% 20%, rgba(34, 197, 94, .22), transparent 26%),
+            radial-gradient(circle at 78% 18%, rgba(59, 130, 246, .16), transparent 24%),
+            radial-gradient(circle at 65% 85%, rgba(251, 191, 36, .14), transparent 28%);
+        animation: softDrift 18s ease-in-out infinite alternate;
+        pointer-events: none;
+    }
+
+    @keyframes softDrift {
+        from { transform: translate3d(-1%, -1%, 0) rotate(-2deg); }
+        to { transform: translate3d(1.5%, 1%, 0) rotate(3deg); }
+    }
+
+    .toc-button {
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background-color .2s ease;
+    }
+
+    .toc-button:hover,
+    .toc-button.active {
+        transform: translateY(-2px);
+        border-color: var(--guide-green);
+        box-shadow: 0 14px 36px rgba(34, 197, 94, .16);
+        background: var(--guide-green-soft);
+    }
+
+    .tour-grid {
+        min-height: 680px;
+    }
+
+    .mock-shell {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .mock-screen {
+        position: relative;
+        isolation: isolate;
+    }
+
+    .mock-nav-item,
+    .mock-action,
+    .mock-card,
+    .mock-table-row,
+    .mock-form-field,
+    .mock-tab {
+        transition: all .28s ease;
+    }
+
+    .spotlight {
+        position: relative;
+        z-index: 3;
+        border-color: var(--guide-green) !important;
+        background: rgba(34, 197, 94, .16) !important;
+        box-shadow:
+            0 0 0 9999px rgba(0, 0, 0, .43),
+            0 0 0 5px rgba(34, 197, 94, .28),
+            0 18px 50px rgba(0, 0, 0, .25) !important;
+        transform: translateY(-2px) scale(1.015);
+    }
+
+    .spotlight::after {
+        content: "";
+        position: absolute;
+        inset: -10px;
+        border: 2px solid var(--guide-green);
+        border-radius: inherit;
+        animation: guidePulse 1.45s ease-out infinite;
+        pointer-events: none;
+    }
+
+    @keyframes guidePulse {
+        0% { opacity: .95; transform: scale(.985); }
+        100% { opacity: 0; transform: scale(1.08); }
+    }
+
+    .coach-card {
+        animation: coachIn .3s ease both;
+    }
+
+    @keyframes coachIn {
+        from { opacity: 0; transform: translateY(12px) scale(.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .progress-dot {
+        width: .7rem;
+        height: .7rem;
+        border-radius: 999px;
+        background: hsl(var(--b3));
+        transition: all .2s ease;
+    }
+
+    .progress-dot.active {
+        width: 2rem;
+        background: var(--guide-green);
+    }
+
+    .mobile-toc-scroll {
+        scrollbar-width: thin;
+    }
+
+    @media (max-width: 1023px) {
+        .tour-grid {
+            min-height: auto;
+        }
+
+        .spotlight {
+            box-shadow:
+                0 0 0 9999px rgba(0, 0, 0, .32),
+                0 0 0 4px rgba(34, 197, 94, .24),
+                0 12px 34px rgba(0, 0, 0, .22) !important;
+        }
+    }
+</style>
+
+<div class="storyboard-page flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <main id="page-content" class="px-3 sm:px-4 py-4 w-full transition-all duration-300 lg:ml-64 ml-0 space-y-5">
+
+        <section class="guide-hero glass-card rounded-3xl p-6 sm:p-8">
+            <div class="relative z-10">
+                <div class="badge badge-success text-white mb-3">Interactive storyboard</div>
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight">Learn Powerpay one click at a time</h1>
+                <p class="mt-3 text-base sm:text-lg text-base-content/70 max-w-3xl">
+                    Choose a task from the table of contents. The guide will dim the screen, cast a spotlight on the exact place to click, then explain what happens next. One step appears at a time, with Previous, Next, and Start Again controls.
+                </p>
+                <div class="mt-5 flex flex-wrap gap-2">
+                    <a href="#tour" class="btn btn-success text-white"><i class="fa-solid fa-play"></i> Start tour</a>
+                    <a href="#toc" class="btn btn-outline btn-success hover:text-white"><i class="fa-solid fa-list"></i> Table of contents</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="toc" class="glass-card rounded-3xl p-4 sm:p-6">
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
+                <div>
+                    <h2 class="text-2xl font-bold">Table of contents</h2>
+                    <p class="text-sm text-base-content/60">Pick what the user wants to learn. Each card launches a step-by-step walkthrough.</p>
+                </div>
+                <div class="text-xs text-base-content/50">Works on mobile, tablet, and desktop.</div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+                <button class="toc-button active text-left rounded-2xl border border-success bg-base-100 p-4" data-tour="overview">
+                    <div class="flex items-center gap-3"><i class="fa-solid fa-chart-line text-success text-xl"></i><span class="font-bold">Understand the dashboard</span></div>
+                    <p class="text-sm text-base-content/60 mt-2">Overview cards, filters, and activity signals.</p>
+                </button>
+                <button class="toc-button text-left rounded-2xl border border-success bg-base-100 p-4" data-tour="devices">
+                    <div class="flex items-center gap-3"><i class="fa-solid fa-plug text-success text-xl"></i><span class="font-bold">Add and manage devices</span></div>
+                    <p class="text-sm text-base-content/60 mt-2">Single add, bulk add, sorting, inventory option.</p>
+                </button>
+                <button class="toc-button text-left rounded-2xl border border-success bg-base-100 p-4" data-tour="orders">
+                    <div class="flex items-center gap-3"><i class="fa-solid fa-truck-ramp-box text-success text-xl"></i><span class="font-bold">Request new devices</span></div>
+                    <p class="text-sm text-base-content/60 mt-2">Submit, approve, reject, and fulfill orders.</p>
+                </button>
+                <button class="toc-button text-left rounded-2xl border border-success bg-base-100 p-4" data-tour="inventory">
+                    <div class="flex items-center gap-3"><i class="fa-solid fa-boxes-stacked text-success text-xl"></i><span class="font-bold">Track inventory</span></div>
+                    <p class="text-sm text-base-content/60 mt-2">Bulk stock, item type, quantity, warehouses.</p>
+                </button>
+                <button class="toc-button text-left rounded-2xl border border-success bg-base-100 p-4" data-tour="customers">
+                    <div class="flex items-center gap-3"><i class="fa-solid fa-users text-success text-xl"></i><span class="font-bold">Find and serve customers</span></div>
+                    <p class="text-sm text-base-content/60 mt-2">Search, sort, profile, customer activity.</p>
+                </button>
+                <button class="toc-button text-left rounded-2xl border border-success bg-base-100 p-4" data-tour="sales">
+                    <div class="flex items-center gap-3"><i class="fa-solid fa-cash-register text-success text-xl"></i><span class="font-bold">Create sales and PayGo</span></div>
+                    <p class="text-sm text-base-content/60 mt-2">Attach customer, device, receipts, payments.</p>
+                </button>
+                <button class="toc-button text-left rounded-2xl border border-success bg-base-100 p-4" data-tour="reports">
+                    <div class="flex items-center gap-3"><i class="fa-solid fa-file-export text-success text-xl"></i><span class="font-bold">Import and export data</span></div>
+                    <p class="text-sm text-base-content/60 mt-2">Upload files, validate, download reports.</p>
+                </button>
+                <button class="toc-button text-left rounded-2xl border border-success bg-base-100 p-4" data-tour="support">
+                    <div class="flex items-center gap-3"><i class="fa-solid fa-headset text-success text-xl"></i><span class="font-bold">Get support</span></div>
+                    <p class="text-sm text-base-content/60 mt-2">Create tickets and follow resolution.</p>
+                </button>
+            </div>
+        </section>
+
+        <section id="tour" class="glass-card rounded-3xl p-3 sm:p-5 lg:p-6">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
+                <div>
+                    <div class="badge badge-success text-white mb-2" id="tour-kicker">Dashboard</div>
+                    <h2 class="text-2xl sm:text-3xl font-bold" id="tour-title">Understand the dashboard</h2>
+                    <p class="text-sm sm:text-base text-base-content/60" id="tour-summary">Start from the overview, scan the numbers, then decide where to act.</p>
+                </div>
+                <div class="flex items-center gap-2 overflow-x-auto mobile-toc-scroll pb-1" id="tour-mini-tabs"></div>
+            </div>
+
+            <div class="tour-grid grid grid-cols-1 xl:grid-cols-12 gap-4">
+                <div class="xl:col-span-8 mock-shell rounded-3xl bg-base-100 border border-base-300 shadow-xl overflow-hidden">
+                    <div class="flex items-center gap-2 px-4 py-3 bg-base-300/60 border-b border-base-300">
+                        <span class="w-3 h-3 rounded-full bg-error"></span>
+                        <span class="w-3 h-3 rounded-full bg-warning"></span>
+                        <span class="w-3 h-3 rounded-full bg-success"></span>
+                        <div class="ml-2 flex-1 rounded-full bg-base-100 px-3 py-1.5 text-xs text-base-content/50 truncate">
+                            powerpay.local<span id="mock-url">/</span>
+                        </div>
+                    </div>
+
+                    <div class="mock-screen grid grid-cols-12 min-h-[560px] lg:min-h-[620px]">
+                        <aside class="col-span-12 md:col-span-4 lg:col-span-3 bg-base-200/80 border-b md:border-b-0 md:border-r border-base-300 p-3 space-y-2">
+                            <!-- Logo -->
+                            <div class="flex items-center justify-center mt-4 shrink-0">
+
+                                <img class="h-16 w-auto"
+                                    src="{% static 'images/powerpaylogo.png' %}">
+                            </div>
+                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-overview"><i class="fa-solid fa-chart-line text-success"></i> Overview</div>
+                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-devices"><i class="fa-solid fa-plug text-success"></i> Devices</div>
+                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-orders"><i class="fa-solid fa-truck-ramp-box text-success"></i> Device Orders</div>
+                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-customers"><i class="fa-solid fa-users text-success"></i> Customers</div>
+                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-sales"><i class="fa-solid fa-cash-register text-success"></i> All Sales</div>
+                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-paygo"><i class="fa-solid fa-mobile-screen text-success"></i> PayGo Sales</div>
+                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-inventory"><i class="fa-solid fa-boxes-stacked text-success"></i> Inventory</div>
+                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-warehouses"><i class="fa-solid fa-warehouse text-success"></i> Warehouses</div>
+                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-reports"><i class="fa-solid fa-file-export text-success"></i> Import / Export</div>
+                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-support"><i class="fa-solid fa-headset text-success"></i> Support</div>
+                        </aside>
+
+                        <div class="col-span-12 md:col-span-8 lg:col-span-9 p-3 sm:p-5 space-y-4">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div>
+                                    <h3 class="text-xl font-bold" id="mock-page-title">Overview</h3>
+                                    <p class="text-sm text-base-content/60" id="mock-page-subtitle">Dashboard health and recent activity.</p>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <div class="mock-action rounded-2xl border border-base-300 bg-base-100 px-4 py-2 text-sm font-semibold" data-highlight="action-secondary" id="mock-secondary-action">Filter</div>
+                                    <div class="mock-action rounded-2xl border border-success/30 bg-success/10 text-success px-4 py-2 text-sm font-bold" data-highlight="action-primary" id="mock-primary-action">View metrics</div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div class="mock-card rounded-2xl bg-base-200 p-4 border border-transparent" data-highlight="card-one">
+                                    <div class="text-xs text-base-content/50" id="card-one-label">Devices</div>
+                                    <div class="text-2xl font-black" id="card-one-value">248</div>
+                                    <div class="text-xs text-success" id="card-one-help">Online and registered</div>
+                                </div>
+                                <div class="mock-card rounded-2xl bg-base-200 p-4 border border-transparent" data-highlight="card-two">
+                                    <div class="text-xs text-base-content/50" id="card-two-label">Sales</div>
+                                    <div class="text-2xl font-black" id="card-two-value">92</div>
+                                    <div class="text-xs text-success" id="card-two-help">Current period</div>
+                                </div>
+                                <div class="mock-card rounded-2xl bg-base-200 p-4 border border-transparent" data-highlight="card-three">
+                                    <div class="text-xs text-base-content/50" id="card-three-label">Energy</div>
+                                    <div class="text-2xl font-black" id="card-three-value">1.8M</div>
+                                    <div class="text-xs text-success" id="card-three-help">Usage snapshot</div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                                <div class="mock-form-field rounded-2xl border border-base-300 bg-base-100 p-4" data-highlight="field-one">
+                                    <div class="text-xs text-base-content/50" id="field-one-label">Search or select</div>
+                                    <div class="mt-2 rounded-xl bg-base-200 px-3 py-2 text-sm" id="field-one-value">Organization / keyword</div>
+                                </div>
+                                <div class="mock-form-field rounded-2xl border border-base-300 bg-base-100 p-4" data-highlight="field-two">
+                                    <div class="text-xs text-base-content/50" id="field-two-label">Rows per page / status</div>
+                                    <div class="mt-2 rounded-xl bg-base-200 px-3 py-2 text-sm" id="field-two-value">10, 25, 50, 100</div>
+                                </div>
+                            </div>
+
+                            <div class="rounded-3xl border border-base-300 bg-base-100 overflow-hidden">
+                                <div class="grid grid-cols-4 bg-success text-white text-xs sm:text-sm font-bold">
+                                    <div class="mock-tab p-3" data-highlight="table-header-one" id="table-head-one">Name</div>
+                                    <div class="mock-tab p-3" data-highlight="table-header-two" id="table-head-two">Status</div>
+                                    <div class="mock-tab p-3" data-highlight="table-header-three" id="table-head-three">Updated</div>
+                                    <div class="mock-tab p-3" data-highlight="table-header-four" id="table-head-four">Action</div>
+                                </div>
+                                <div class="mock-table-row grid grid-cols-4 p-3 border-b border-base-300 text-xs sm:text-sm" data-highlight="row-one">
+                                    <div id="row-one-a">Dashboard cards</div><div id="row-one-b">Healthy</div><div id="row-one-c">Today</div><div class="text-success font-bold" id="row-one-d">Open</div>
+                                </div>
+                                <div class="mock-table-row grid grid-cols-4 p-3 border-b border-base-300 text-xs sm:text-sm" data-highlight="row-two">
+                                    <div id="row-two-a">Recent activity</div><div id="row-two-b">Live</div><div id="row-two-c">Now</div><div class="text-success font-bold" id="row-two-d">View</div>
+                                </div>
+                                <div class="mock-table-row grid grid-cols-4 p-3 text-xs sm:text-sm" data-highlight="pagination">
+                                    <div class="col-span-2">Page 1 of 8</div><div class="text-right">‹ Prev</div><div class="text-success font-bold">Next ›</div>
+                                </div>
+                            </div>
+
+                            <div class="rounded-2xl border border-dashed border-success/40 bg-success/5 p-4">
+                                <div class="font-bold text-success text-sm">Expected result</div>
+                                <p class="text-sm text-base-content/70" id="expected-result">You get a quick health snapshot before opening operational pages.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="xl:col-span-4 space-y-4">
+                    <div class="coach-card rounded-3xl bg-base-100 border border-base-300 shadow-xl p-5 sticky top-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <div class="badge badge-success text-white" id="step-counter">Step 1 of 4</div>
+                                <h3 class="mt-3 text-2xl font-bold" id="step-title">Open Overview</h3>
+                            </div>
+                            <button class="btn btn-circle btn-sm btn-ghost" type="button" id="restart-top" title="Start again"><i class="fa-solid fa-rotate-left"></i></button>
+                        </div>
+
+                        <p class="mt-3 text-base-content/70" id="step-body">Click Overview in the left sidebar to open the dashboard.</p>
+
+                        <div class="mt-4 rounded-2xl bg-base-200 p-4">
+                            <div class="text-xs uppercase tracking-wide text-base-content/50 font-bold">What this does</div>
+                            <p class="mt-1 text-sm" id="step-result">It shows the main operational picture: device totals, sales, usage, and recent activity.</p>
+                        </div>
+
+                        <div class="mt-4 flex items-center gap-2" id="progress-dots"></div>
+
+                        <div class="mt-5 grid grid-cols-3 gap-2">
+                            <button class="btn btn-outline btn-warning hover:text-white" type="button" id="prev-step"><i class="fa-solid fa-arrow-left"></i><span class="hidden sm:inline">Previous</span></button>
+                            <button class="btn btn-ghost" type="button" id="restart-step"><i class="fa-solid fa-rotate-left"></i><span class="hidden sm:inline">Start again</span></button>
+                            <button class="btn btn-success text-white" type="button" id="next-step"><span class="hidden sm:inline">Next</span><i class="fa-solid fa-arrow-right"></i></button>
+                        </div>
+
+                        <a id="real-page-link" href="/" class="btn btn-outline btn-success w-full mt-3 hover:text-white">
+                            <i class="fa-solid fa-up-right-from-square"></i>
+                            Open this real page
+                        </a>
+                    </div>
+                </aside>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tours = {
+        overview: {
+            kicker: 'Dashboard', title: 'Understand the dashboard', summary: 'Start from the overview, scan the numbers, then decide where to act.', url: '/', pageTitle: 'Overview', pageSubtitle: 'Dashboard health and recent activity.', primary: 'View metrics', secondary: 'Filter', realUrl: '{% url "core:index" %}',
+            labels: { cardOne: ['Devices', '248', 'Online and registered'], cardTwo: ['Sales', '92', 'Current period'], cardThree: ['Energy', '1.8M', 'Usage snapshot'], fieldOne: ['Organization filter', 'Choose the org you want to inspect'], fieldTwo: ['Date filter', 'Choose the reporting period'], headers: ['Metric', 'Status', 'Updated', 'Action'], rowOne: ['Dashboard cards', 'Healthy', 'Today', 'Open'], rowTwo: ['Recent activity', 'Live', 'Now', 'View'], expected: 'You get a quick health snapshot before opening operational pages.' },
+            steps: [
+                ['nav-overview', 'Open Overview', 'Click Overview in the sidebar.', 'It opens the dashboard, which gives users the control-room view of operations.'],
+                ['field-one', 'Choose scope', 'Use the organization filter when users only want one branch, customer group, or operating unit.', 'The cards and tables narrow to the selected organization.'],
+                ['card-one', 'Read the cards', 'Start with the summary cards before diving into individual pages.', 'Users can quickly see whether devices, sales, or usage need attention.'],
+                ['row-one', 'Investigate details', 'Open rows or related pages when a number needs follow-up.', 'The user moves from a high-level signal to the exact page where work happens.']
+            ]
+        },
+        devices: {
+            kicker: 'Devices', title: 'Add and manage devices', summary: 'Create one device, bulk add many, sort the table, and optionally create inventory records.', url: '/devices/', pageTitle: 'Devices', pageSubtitle: 'Registered hardware, status, last seen, and organization ownership.', primary: 'Add Device', secondary: 'Bulk Add', realUrl: '{% url "devices:device_list" %}',
+            labels: { cardOne: ['Active', '218', 'Sending readings'], cardTwo: ['Inactive', '30', 'Needs review'], cardThree: ['Last Seen', 'Today', 'Recent data'], fieldOne: ['Search devices', 'Search by device ID or organization'], fieldTwo: ['Rows per page', '10, 25, 50, 100'], headers: ['Device ID', 'Status', 'Last Seen', 'Main Org'], rowOne: ['APL-00091', 'Active', '2 minutes ago', 'Nairobi'], rowTwo: ['APL-00092', 'Inactive', 'Yesterday', 'Kisumu'], expected: 'New devices appear in the devices table. If inventory is selected, matching inventory items are created too.' },
+            steps: [
+                ['nav-devices', 'Open Devices', 'Click Devices in the sidebar.', 'The user lands on the device table.'],
+                ['action-primary', 'Add one device', 'Click Add Device for a single device.', 'The form asks for device ID, organization, and optional inventory creation.'],
+                ['action-secondary', 'Bulk add many devices', 'Click Bulk Add when users have several device IDs.', 'They can paste one device per line or comma-separated values.'],
+                ['table-header-one', 'Sort the table', 'Click Device ID, Status, Last Seen, or Main Org in the header.', 'The table sorts ascending or descending without losing filters.'],
+                ['field-two', 'Choose rows per page', 'Use the rows selector to decide how many devices appear per page.', 'The page keeps search, filters, and sorting while changing page size.']
+            ]
+        },
+        orders: {
+            kicker: 'Device Orders', title: 'Request new devices', summary: 'Users request Appliatrix Boards, admins approve, and fulfillment creates devices plus inventory.', url: '/device-orders/', pageTitle: 'Device Orders', pageSubtitle: 'Requests for new devices before they become real device records.', primary: 'New Order', secondary: 'Filter Status', realUrl: '{% url "device_orders:order_list" %}',
+            labels: { cardOne: ['Submitted', '6', 'Awaiting review'], cardTwo: ['Approved', '3', 'Ready to fulfill'], cardThree: ['Fulfilled', '18', 'Completed'], fieldOne: ['Product Type', 'Appliatrix Board'], fieldTwo: ['Quantity', 'Number requested'], headers: ['Order #', 'Product', 'Quantity', 'Status'], rowOne: ['#104', 'Appliatrix Board', '10', 'Submitted'], rowTwo: ['#103', 'Appliatrix Board', '5', 'Approved'], expected: 'Approved orders can be fulfilled with real device IDs, creating devices and inventory items.' },
+            steps: [
+                ['nav-orders', 'Open Device Orders', 'Click Device Orders in the sidebar.', 'Users see submitted, approved, rejected, fulfilled, and cancelled orders.'],
+                ['action-primary', 'Create a new order', 'Click New Order.', 'The user chooses Appliatrix Board, quantity, warehouse, and notes.'],
+                ['row-one', 'Admin reviews the request', 'Open a submitted order.', 'Admins can approve or reject and leave a clear audit trail.'],
+                ['row-two', 'Fulfill approved orders', 'Open an approved order and choose Fulfill.', 'The admin pastes exactly the requested number of device IDs.'],
+                ['card-three', 'Confirm completion', 'Once fulfilled, the order moves to Fulfilled.', 'The devices and unique inventory items now exist in the system.']
+            ]
+        },
+        inventory: {
+            kicker: 'Inventory', title: 'Track inventory', summary: 'Add unique serial items, shared stock items, bulk uploads, and warehouse movement.', url: '/inventory/', pageTitle: 'Inventory', pageSubtitle: 'Stock records, serial numbers, quantities, and warehouses.', primary: 'Add Item', secondary: 'Bulk Add Items', realUrl: '{% url "inventory:inventory_page" %}',
+            labels: { cardOne: ['Unique Items', '164', 'Quantity is one'], cardTwo: ['Shared Items', '24', 'Quantity entered'], cardThree: ['Warehouses', '5', 'Stock locations'], fieldOne: ['Item type', 'Unique serial or shared quantity'], fieldTwo: ['Warehouse', 'Where stock is kept'], headers: ['Serial', 'Type', 'Quantity', 'Warehouse'], rowOne: ['APL-00091', 'Unique', '1', 'Nairobi'], rowTwo: ['BATCH-2026-A', 'Shared', '60', 'Main Store'], expected: 'Inventory becomes visible by warehouse and can be linked during device workflows.' },
+            steps: [
+                ['nav-inventory', 'Open Inventory', 'Click Inventory in the sidebar.', 'The user sees stock items, types, quantities, and warehouses.'],
+                ['action-primary', 'Add a single item', 'Click Add Item for one inventory record.', 'Unique serial items automatically stay at quantity one.'],
+                ['action-secondary', 'Bulk add items', 'Click Bulk Add Items for CSV or pasted lines.', 'Users can upload CSV, paste CSV rows, or enter one serial per line.'],
+                ['field-one', 'Choose item type', 'Select whether the item is unique or shared.', 'Unique means one serial equals one item. Shared means quantity must be entered.'],
+                ['nav-warehouses', 'Manage warehouses', 'Superusers can open Warehouses from the sidebar.', 'Warehouses define where inventory is stored or moved.']
+            ]
+        },
+        customers: {
+            kicker: 'Customers', title: 'Find and serve customers', summary: 'Search customer records, open profiles, and continue to sales or history.', url: '/customers/', pageTitle: 'Customers', pageSubtitle: 'Customer records and linked operational activity.', primary: 'Add Customer', secondary: 'Search', realUrl: '{% url "customers:customers_page" %}',
+            labels: { cardOne: ['Customers', '1,240', 'Registered'], cardTwo: ['Active', '875', 'Current'], cardThree: ['New', '12', 'This week'], fieldOne: ['Search', 'Name, phone, ID, or email'], fieldTwo: ['Rows per page', '10, 25, 50, 100'], headers: ['Customer', 'Phone', 'Status', 'Action'], rowOne: ['Mary Wanjiku', '+254...', 'Active', 'Profile'], rowTwo: ['Peter Otieno', '+254...', 'Pending', 'Profile'], expected: 'The user finds a customer quickly and opens their full profile for service.' },
+            steps: [
+                ['nav-customers', 'Open Customers', 'Click Customers in the sidebar.', 'The customer table opens.'],
+                ['field-one', 'Search for a customer', 'Type a name, phone number, customer ID, or email.', 'The table narrows to matching customer records.'],
+                ['table-header-one', 'Sort customer columns', 'Click a sortable header.', 'Users can organize the list without losing filters.'],
+                ['row-one', 'Open the profile', 'Click the customer row or profile action.', 'The profile shows details, linked sales, and service history.']
+            ]
+        },
+        sales: {
+            kicker: 'Sales and PayGo', title: 'Create sales and PayGo', summary: 'Record purchases, attach devices, issue receipts, and manage PayGo actions.', url: '/sales/', pageTitle: 'All Sales', pageSubtitle: 'Sales records, devices, customers, and payment activity.', primary: 'New Sale', secondary: 'PayGo Sales', realUrl: '{% url "sales:sales_page" %}',
+            labels: { cardOne: ['Sales', '92', 'This period'], cardTwo: ['PayGo', '41', 'Payment plans'], cardThree: ['Receipts', '88', 'Generated'], fieldOne: ['Customer', 'Select customer'], fieldTwo: ['Device', 'Attach device ID'], headers: ['Sale', 'Customer', 'Device', 'Status'], rowOne: ['#2101', 'Mary Wanjiku', 'APL-00091', 'Paid'], rowTwo: ['#2100', 'Peter Otieno', 'APL-00092', 'PayGo'], expected: 'Each sale links a customer, device, and payment workflow.' },
+            steps: [
+                ['nav-sales', 'Open All Sales', 'Click All Sales in the sidebar.', 'The user sees the sales table.'],
+                ['action-primary', 'Create a sale', 'Click New Sale.', 'The form captures customer, device, pricing, and sale details.'],
+                ['field-one', 'Attach the customer', 'Choose the customer receiving the device.', 'The sale becomes connected to the customer profile.'],
+                ['field-two', 'Attach the device', 'Choose the device ID being sold.', 'The sale can now be traced to hardware.'],
+                ['nav-paygo', 'Manage PayGo', 'Open PayGo Sales for payment-plan actions.', 'Users can review PayGo records, payment status, and STK-related actions.']
+            ]
+        },
+        reports: {
+            kicker: 'Import and Export', title: 'Import and export data', summary: 'Upload operational data or download datasets for reporting and audits.', url: '/export/', pageTitle: 'Import / Export', pageSubtitle: 'Move data in and out of Powerpay safely.', primary: 'Export Data', secondary: 'Import Center', realUrl: '{% url "core:export_data" %}',
+            labels: { cardOne: ['Exports', 'CSV/XLSX', 'Reports'], cardTwo: ['Imports', 'Validated', 'Before save'], cardThree: ['Notifications', 'Done', 'After processing'], fieldOne: ['Dataset', 'Customers, sales, transactions'], fieldTwo: ['Format', 'CSV or Excel'], headers: ['File', 'Dataset', 'Status', 'Action'], rowOne: ['customers.xlsx', 'Customers', 'Ready', 'Download'], rowTwo: ['transactions.csv', 'Transactions', 'Imported', 'View'], expected: 'Users get clean imports and downloadable reports without touching the database directly.' },
+            steps: [
+                ['nav-reports', 'Open Import or Export', 'Click Import / Export in the sidebar.', 'The user chooses whether to upload or download data.'],
+                ['action-secondary', 'Import files', 'Use Import Center for customer, sale, or transaction files.', 'The app validates uploaded files before saving records.'],
+                ['action-primary', 'Export records', 'Use Export Data to choose a dataset and format.', 'The user receives a CSV or Excel file for reporting.'],
+                ['row-two', 'Review results', 'Check the import or export result row.', 'Users can see whether processing succeeded and what to do next.']
+            ]
+        },
+        support: {
+            kicker: 'Support', title: 'Get support', summary: 'Create tickets, track progress, and keep an issue history.', url: '/support/my-tickets/', pageTitle: 'Support Tickets', pageSubtitle: 'Help requests and resolution workflow.', primary: 'Create Ticket', secondary: 'My Tickets', realUrl: '{% url "support:support_ticket_list" %}',
+            labels: { cardOne: ['Open', '4', 'Needs response'], cardTwo: ['In Progress', '2', 'Being handled'], cardThree: ['Resolved', '37', 'Closed'], fieldOne: ['Issue', 'Describe the problem'], fieldTwo: ['Priority', 'Low, normal, urgent'], headers: ['Ticket', 'Subject', 'Status', 'Action'], rowOne: ['#55', 'Device not seen', 'Open', 'View'], rowTwo: ['#54', 'Payment question', 'Resolved', 'View'], expected: 'Issues are tracked from reported to resolved with a clear support history.' },
+            steps: [
+                ['nav-support', 'Open Support', 'Click Support in the sidebar or support area.', 'The user sees their tickets and current status.'],
+                ['action-primary', 'Create a ticket', 'Click Create Ticket.', 'The form captures the problem, priority, and details.'],
+                ['row-one', 'Track progress', 'Open a ticket row to see updates.', 'Users and admins can follow the issue until it is resolved.'],
+                ['card-three', 'Confirm resolution', 'Resolved tickets remain visible for history.', 'Teams keep a searchable record of support work.']
+            ]
+        }
+    };
+
+    const tocButtons = document.querySelectorAll('.toc-button');
+    const miniTabs = document.getElementById('tour-mini-tabs');
+    const progressDots = document.getElementById('progress-dots');
+    const highlightables = document.querySelectorAll('[data-highlight]');
+    let currentTour = 'overview';
+    let currentStep = 0;
+
+    function setText(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    }
+
+    function clearSpotlight() {
+        highlightables.forEach(el => el.classList.remove('spotlight'));
+    }
+
+    function applyLabels(tour) {
+        const labels = tour.labels;
+        setText('mock-url', tour.url);
+        setText('mock-page-title', tour.pageTitle);
+        setText('mock-page-subtitle', tour.pageSubtitle);
+        setText('mock-primary-action', tour.primary);
+        setText('mock-secondary-action', tour.secondary);
+        setText('card-one-label', labels.cardOne[0]); setText('card-one-value', labels.cardOne[1]); setText('card-one-help', labels.cardOne[2]);
+        setText('card-two-label', labels.cardTwo[0]); setText('card-two-value', labels.cardTwo[1]); setText('card-two-help', labels.cardTwo[2]);
+        setText('card-three-label', labels.cardThree[0]); setText('card-three-value', labels.cardThree[1]); setText('card-three-help', labels.cardThree[2]);
+        setText('field-one-label', labels.fieldOne[0]); setText('field-one-value', labels.fieldOne[1]);
+        setText('field-two-label', labels.fieldTwo[0]); setText('field-two-value', labels.fieldTwo[1]);
+        setText('table-head-one', labels.headers[0]); setText('table-head-two', labels.headers[1]); setText('table-head-three', labels.headers[2]); setText('table-head-four', labels.headers[3]);
+        setText('row-one-a', labels.rowOne[0]); setText('row-one-b', labels.rowOne[1]); setText('row-one-c', labels.rowOne[2]); setText('row-one-d', labels.rowOne[3]);
+        setText('row-two-a', labels.rowTwo[0]); setText('row-two-b', labels.rowTwo[1]); setText('row-two-c', labels.rowTwo[2]); setText('row-two-d', labels.rowTwo[3]);
+        setText('expected-result', labels.expected);
+        document.getElementById('real-page-link').setAttribute('href', tour.realUrl);
+    }
+
+    function renderMiniTabs(tour) {
+        miniTabs.innerHTML = '';
+        tour.steps.forEach((step, index) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-xs ' + (index === currentStep ? 'btn-success text-white' : 'btn-outline btn-success');
+            btn.textContent = index + 1;
+            btn.addEventListener('click', () => {
+                currentStep = index;
+                render();
+            });
+            miniTabs.appendChild(btn);
+        });
+    }
+
+    function renderDots(tour) {
+        progressDots.innerHTML = '';
+        tour.steps.forEach((step, index) => {
+            const dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'progress-dot ' + (index === currentStep ? 'active' : '');
+            dot.setAttribute('aria-label', 'Go to step ' + (index + 1));
+            dot.addEventListener('click', () => {
+                currentStep = index;
+                render();
+            });
+            progressDots.appendChild(dot);
+        });
+    }
+
+    function render() {
+        const tour = tours[currentTour];
+        const step = tour.steps[currentStep];
+
+        tocButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tour === currentTour));
+        setText('tour-kicker', tour.kicker);
+        setText('tour-title', tour.title);
+        setText('tour-summary', tour.summary);
+        applyLabels(tour);
+        renderMiniTabs(tour);
+        renderDots(tour);
+
+        clearSpotlight();
+        const target = document.querySelector('[data-highlight="' + step[0] + '"]');
+        if (target) {
+            target.classList.add('spotlight');
+            if (window.innerWidth < 1024) {
+                setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' }), 80);
+            }
+        }
+
+        setText('step-counter', 'Step ' + (currentStep + 1) + ' of ' + tour.steps.length);
+        setText('step-title', step[1]);
+        setText('step-body', step[2]);
+        setText('step-result', step[3]);
+
+        document.getElementById('prev-step').disabled = currentStep === 0;
+        const nextButton = document.getElementById('next-step');
+        nextButton.innerHTML = currentStep === tour.steps.length - 1 ? '<span class="hidden sm:inline">Done</span><i class="fa-solid fa-check"></i>' : '<span class="hidden sm:inline">Next</span><i class="fa-solid fa-arrow-right"></i>';
+    }
+
+    function chooseTour(name) {
+        currentTour = name;
+        currentStep = 0;
+        render();
+        document.getElementById('tour').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    tocButtons.forEach(btn => btn.addEventListener('click', () => chooseTour(btn.dataset.tour)));
+
+    document.getElementById('prev-step').addEventListener('click', () => {
+        if (currentStep > 0) currentStep -= 1;
+        render();
+    });
+
+    document.getElementById('next-step').addEventListener('click', () => {
+        const tour = tours[currentTour];
+        if (currentStep < tour.steps.length - 1) currentStep += 1;
+        render();
+    });
+
+    function restart() {
+        currentStep = 0;
+        render();
+    }
+
+    document.getElementById('restart-step').addEventListener('click', restart);
+    document.getElementById('restart-top').addEventListener('click', restart);
+
+    render();
+});
+</script>
+{% endblock %}

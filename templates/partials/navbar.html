@@ -151,7 +151,7 @@
                     </div>
 
                     <!-- Menu -->
-                    <ul class="menu p-3 gap-1 space-y-2">
+                    <ul class="menu p-3 gap-1 space-y-3">
 
                         <li>
                             <a href="{% url 'accounts:profile' %}"
@@ -162,11 +162,20 @@
                         </li>
 
                         <li>
+                            <!-- App Storyboard -->
+                            <a href="{% url 'core:storyboard' %}"
+                            class="rounded-xl hover:bg-base-200">
+                                <i class="fa-solid fa-route"></i>
+                                <span class="link-text">App Storyboard</span>
+                            </a>
+                        </li>
+
+                        <li>
                             <!-- Device Orders -->
                             <a href="{% url 'device_orders:order_list' %}"
                             class="rounded-xl hover:bg-base-200">
                                 <i class="fa-solid fa-truck-ramp-box"></i>
-                                <span class="link-text">Device Orders</span>
+                                Device Orders
                             </a>
 
                         </li>

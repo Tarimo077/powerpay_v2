@@ -751,3 +751,7 @@ def import_center(request):
         },
     )
 
+@login_required
+def storyboard(request):
+    return render(request, "core/storyboard.html")
+
