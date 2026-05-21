@@ -15,9 +15,14 @@
         <h2 class="text-2xl font-bold">Inventory</h2>
 
         <div class="flex flex-wrap justify-end gap-2 w-full mb-4">
-            <a href="{% url 'inventory:bulk_item_create' %}" class="btn btn-warning text-white">
+            <a href="{% url 'inventory:bulk_move_items' %}" class="btn btn-warning text-white">
+                <i class="fa-solid fa-truck-moving"></i> Bulk Move Items
+            </a>
+
+            <a href="{% url 'inventory:bulk_item_create' %}" class="btn btn-info text-white">
                 <i class="fa-solid fa-layer-group"></i> Bulk Add Items
             </a>
+
             <a href="{% url 'inventory:item_create' %}" class="btn btn-success text-white">
                 <i class="fa-solid fa-cart-plus"></i> Add Item
             </a>

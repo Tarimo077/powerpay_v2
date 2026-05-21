@@ -15,6 +15,9 @@ urlpatterns = [
 
     # Move item
     path("items/<int:pk>/move/", views.move_item, name="move_item"),
+    path("items/bulk-move/", views.bulk_move_items, name="bulk_move_items"),
+
+    
     path("warehouses/", views.warehouses_page, name="warehouses_page"),
     path("warehouses/add/", views.warehouse_create, name="warehouse_create"),
     path("warehouses/<int:pk>/edit/", views.warehouse_update, name="warehouse_update"),

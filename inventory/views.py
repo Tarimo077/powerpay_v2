@@ -7,7 +7,7 @@ from django.db.models import Q, Count
 from django.db import transaction
 from .models import InventoryItem, Warehouse, InventoryMovement
 from django.contrib.auth.decorators import login_required
-from .forms import WarehouseForm, InventoryItemForm, BulkInventoryItemForm, InventoryMoveForm
+from .forms import WarehouseForm, InventoryItemForm, BulkInventoryItemForm, InventoryMoveForm, BulkInventoryMoveForm
 from notifications.utils import notify
 from organizations.models import Organization
 
@@ -412,7 +412,7 @@ def move_item(request, pk):
     item = get_object_or_404(InventoryItem, pk=pk)
 
     if request.method == "POST":
-        form = InventoryMoveForm(request.POST)
+        form = InventoryMoveForm(request.POST, item=item)
         if form.is_valid():
             movement = form.save(commit=False)
             movement.item = item
@@ -420,15 +420,139 @@ def move_item(request, pk):
             movement.moved_by = request.user
             movement.save()
 
-            # update item warehouse
             item.current_warehouse = movement.to_warehouse
-            item.save()
-            notify(request.user, "Item Moved", f"{item.serial_number}({item.name}) has been moved from {movement.from_warehouse} warehouse to {movement.to_warehouse} warehouse.", "info")
+            item.save(update_fields=["current_warehouse"])
+
+            notify(
+                request.user,
+                "Item Moved",
+                f"{item.serial_number}({item.name}) has been moved from {movement.from_warehouse} warehouse to {movement.to_warehouse} warehouse.",
+                "info"
+            )
             return redirect("inventory:inventory_page")
     else:
-        form = InventoryMoveForm()
+        form = InventoryMoveForm(item=item)
 
     return render(request, "inventory/move_item.html", {
         "item": item,
         "form": form
     })
+
+@login_required
+def bulk_move_items(request):
+    user = request.user
+    is_superadmin = user.is_superuser or user.role == "superadmin"
+
+    allowed_warehouses = (
+        Warehouse.objects.all()
+        if is_superadmin
+        else Warehouse.objects.filter(organization=user.organization)
+    )
+
+    if request.method == "POST":
+        form = BulkInventoryMoveForm(
+            request.POST,
+            allowed_warehouses=allowed_warehouses,
+        )
+
+        if form.is_valid():
+            serial_numbers = form.cleaned_data["serial_numbers"]
+            from_warehouse = form.cleaned_data.get("from_warehouse")
+            to_warehouse = form.cleaned_data["to_warehouse"]
+            note = form.cleaned_data.get("note") or "Bulk inventory movement"
+
+            items_qs = InventoryItem.objects.select_related("current_warehouse").filter(
+                serial_number__in=serial_numbers
+            )
+
+            if not is_superadmin:
+                items_qs = items_qs.filter(
+                    current_warehouse__organization=user.organization
+                )
+
+            items = list(items_qs)
+            found_serials = {item.serial_number for item in items}
+            missing_serials = [
+                serial for serial in serial_numbers
+                if serial not in found_serials
+            ]
+
+            if missing_serials:
+                form.add_error(
+                    "serial_numbers",
+                    "These serial numbers were not found or are not accessible: "
+                    + ", ".join(missing_serials[:20])
+                    + ("..." if len(missing_serials) > 20 else "")
+                )
+            else:
+                if from_warehouse:
+                    wrong_source_items = [
+                        item.serial_number
+                        for item in items
+                        if item.current_warehouse_id != from_warehouse.id
+                    ]
+
+                    if wrong_source_items:
+                        form.add_error(
+                            "from_warehouse",
+                            "These items are not currently in the selected source warehouse: "
+                            + ", ".join(wrong_source_items[:20])
+                            + ("..." if len(wrong_source_items) > 20 else "")
+                        )
+                        return render(request, "inventory/bulk_move_items.html", {"form": form})
+
+                movable_items = [
+                    item for item in items
+                    if item.current_warehouse_id != to_warehouse.id
+                ]
+
+                already_there = [
+                    item.serial_number for item in items
+                    if item.current_warehouse_id == to_warehouse.id
+                ]
+
+                if not movable_items:
+                    form.add_error(
+                        "to_warehouse",
+                        "All selected items are already in the destination warehouse."
+                    )
+                else:
+                    with transaction.atomic():
+                        movements = [
+                            InventoryMovement(
+                                item=item,
+                                from_warehouse=item.current_warehouse,
+                                to_warehouse=to_warehouse,
+                                moved_by=request.user,
+                                note=note,
+                            )
+                            for item in movable_items
+                        ]
+
+                        InventoryMovement.objects.bulk_create(movements)
+
+                        for item in movable_items:
+                            item.current_warehouse = to_warehouse
+
+                        InventoryItem.objects.bulk_update(
+                            movable_items,
+                            ["current_warehouse"]
+                        )
+
+                    message = f"{len(movable_items)} item(s) moved to {to_warehouse.name}."
+
+                    if already_there:
+                        message += f" {len(already_there)} item(s) were already there and skipped."
+
+                    notify(
+                        request.user,
+                        "Bulk Inventory Movement",
+                        message,
+                        "success"
+                    )
+
+                    return redirect("inventory:inventory_page")
+    else:
+        form = BulkInventoryMoveForm(allowed_warehouses=allowed_warehouses)
+
+    return render(request, "inventory/bulk_move_items.html", {"form": form})

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load dict_extras %}
+
+{% block title %}Powerpay Africa | Bulk Move Inventory{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0 space-y-6" id="page-content">
+        <div class="mx-auto bg-base-100 shadow rounded-lg p-6 mt-6">
+
+            <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">Bulk Move Inventory Items</h2>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Paste serial numbers, choose a destination warehouse, and move all items together.
+                    </p>
+                </div>
+
+                <a href="{% url 'inventory:inventory_page' %}" class="btn btn-ghost btn-accent hover:text-white">
+                    <i class="fa-solid fa-backward-step"></i> Back to Inventory
+                </a>
+            </div>
+
+            <form method="POST" class="space-y-5">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-error text-white">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div>
+                    <label class="label font-semibold">{{ form.from_warehouse.label }}</label>
+                    {{ form.from_warehouse }}
+                    <p class="text-xs text-gray-500 mt-1">{{ form.from_warehouse.help_text }}</p>
+                    {{ form.from_warehouse.errors }}
+                </div>
+
+                <div>
+                    <label class="label font-semibold">{{ form.to_warehouse.label }}</label>
+                    {{ form.to_warehouse }}
+                    {{ form.to_warehouse.errors }}
+                </div>
+
+                <div>
+                    <label class="label font-semibold">{{ form.serial_numbers.label }}</label>
+                    {{ form.serial_numbers }}
+                    <p class="text-xs text-gray-500 mt-1">{{ form.serial_numbers.help_text }}</p>
+                    {{ form.serial_numbers.errors }}
+                </div>
+
+                <div>
+                    <label class="label font-semibold">{{ form.note.label }}</label>
+                    {{ form.note }}
+                    {{ form.note.errors }}
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <a href="{% url 'inventory:inventory_page' %}" class="btn btn-error text-white">
+                        Cancel
+                    </a>
+
+                    <button type="submit" class="btn btn-warning text-white">
+                        <i class="fa-solid fa-truck-moving"></i>
+                        Move Items
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

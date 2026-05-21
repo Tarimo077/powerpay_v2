@@ -1,6 +1,5 @@
 import csv
 from io import StringIO
-
 from django import forms
 from .models import Warehouse, InventoryItem, InventoryMovement
 
@@ -245,3 +244,74 @@ class InventoryMoveForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if item:
             self.fields["to_warehouse"].queryset = Warehouse.objects.exclude(id=item.current_warehouse.id)
+
+
+class BulkInventoryMoveForm(forms.Form):
+    from_warehouse = forms.ModelChoiceField(
+        queryset=Warehouse.objects.none(),
+        required=False,
+        label="Move only items currently in this warehouse",
+        help_text="Optional. Use this to prevent moving items from the wrong warehouse.",
+        widget=forms.Select(attrs={"class": "select select-bordered w-full"}),
+    )
+
+    to_warehouse = forms.ModelChoiceField(
+        queryset=Warehouse.objects.none(),
+        label="Move to warehouse",
+        widget=forms.Select(attrs={"class": "select select-bordered w-full"}),
+    )
+
+    serial_numbers = forms.CharField(
+        label="Serial numbers",
+        help_text="Paste one serial number per line, or separate them with commas.",
+        widget=forms.Textarea(attrs={
+            "class": "textarea textarea-bordered w-full font-mono text-sm",
+            "rows": 12,
+            "placeholder": "SM-001\nSM-002\nSM-003",
+        }),
+    )
+
+    note = forms.CharField(
+        required=False,
+        label="Note",
+        widget=forms.Textarea(attrs={
+            "class": "textarea textarea-bordered w-full",
+            "rows": 3,
+            "placeholder": "Optional movement note",
+        }),
+    )
+
+    def __init__(self, *args, allowed_warehouses=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        warehouse_qs = allowed_warehouses if allowed_warehouses is not None else Warehouse.objects.none()
+        self.fields["from_warehouse"].queryset = warehouse_qs
+        self.fields["to_warehouse"].queryset = warehouse_qs
+
+    def clean_serial_numbers(self):
+        raw = self.cleaned_data["serial_numbers"]
+        serials = []
+        seen = set()
+
+        for token in raw.replace(",", "\n").splitlines():
+            serial = token.strip()
+            if not serial:
+                continue
+
+            if serial not in seen:
+                serials.append(serial)
+                seen.add(serial)
+
+        if not serials:
+            raise forms.ValidationError("Enter at least one serial number.")
+
+        return serials
+
+    def clean(self):
+        cleaned_data = super().clean()
+        from_warehouse = cleaned_data.get("from_warehouse")
+        to_warehouse = cleaned_data.get("to_warehouse")
+
+        if from_warehouse and to_warehouse and from_warehouse.id == to_warehouse.id:
+            raise forms.ValidationError("Source and destination warehouses cannot be the same.")
+
+        return cleaned_data
