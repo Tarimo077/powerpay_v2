@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}
+Powerpay Africa | Device Order #{{ order.id }}
+{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content"
+         class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0 space-y-6">
+
+        <div class="flex flex-wrap justify-between items-center gap-3">
+            <h1 class="text-2xl font-bold">Device Order #{{ order.id }}</h1>
+
+            <a href="{% url 'device_orders:order_list' %}" class="btn btn-ghost btn-accent hover:text-white">
+                <i class="fa-solid fa-backward-step"></i>
+                Back
+            </a>
+        </div>
+
+        <div class="card bg-base-100 shadow">
+            <div class="card-body space-y-4">
+
+                <div class="flex flex-wrap justify-between gap-3">
+                    <h2 class="card-title">{{ order.product_type }}</h2>
+
+                    {% if order.status == "submitted" %}
+                        <span class="badge badge-info text-white">Submitted</span>
+                    {% elif order.status == "approved" %}
+                        <span class="badge badge-success text-white">Approved</span>
+                    {% elif order.status == "rejected" %}
+                        <span class="badge badge-error text-white">Rejected</span>
+                    {% elif order.status == "fulfilled" %}
+                        <span class="badge badge-primary text-white">Fulfilled</span>
+                    {% elif order.status == "cancelled" %}
+                        <span class="badge badge-warning text-white">Cancelled</span>
+                    {% endif %}
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-500">Quantity</p>
+                        <p class="font-semibold">{{ order.quantity }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm text-gray-500">Warehouse</p>
+                        <p class="font-semibold">{{ order.warehouse.name }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm text-gray-500">Organization</p>
+                        <p class="font-semibold">{{ order.organization.name }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm text-gray-500">Requested By</p>
+                        <p class="font-semibold">{{ order.requested_by.email }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm text-gray-500">Created</p>
+                        <p class="font-semibold">{{ order.created_at|date:"M d, Y H:i" }}</p>
+                    </div>
+
+                    {% if order.approved_by %}
+                    <div>
+                        <p class="text-sm text-gray-500">Approved By</p>
+                        <p class="font-semibold">{{ order.approved_by.email }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if order.fulfilled_by %}
+                    <div>
+                        <p class="text-sm text-gray-500">Fulfilled By</p>
+                        <p class="font-semibold">{{ order.fulfilled_by.email }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if order.notes %}
+                <div>
+                    <p class="text-sm text-gray-500">Notes</p>
+                    <p>{{ order.notes }}</p>
+                </div>
+                {% endif %}
+
+                {% if order.rejection_reason %}
+                <div class="alert alert-error text-white">
+                    <div>
+                        <p class="font-semibold">Rejection Reason</p>
+                        <p>{{ order.rejection_reason }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="flex flex-wrap justify-end gap-2 pt-4">
+                    {% if order.status == "submitted" %}
+                        <a href="{% url 'device_orders:order_cancel' order.id %}"
+                           class="btn btn-warning text-white">
+                            Cancel Order
+                        </a>
+                    {% endif %}
+
+                    {% if can_manage and order.status == "submitted" %}
+                        <a href="{% url 'device_orders:order_reject' order.id %}"
+                           class="btn btn-error text-white">
+                            Reject
+                        </a>
+
+                        <a href="{% url 'device_orders:order_approve' order.id %}"
+                           class="btn btn-success text-white">
+                            Approve
+                        </a>
+                    {% endif %}
+
+                    {% if can_manage and order.status == "approved" %}
+                        <a href="{% url 'device_orders:order_fulfill' order.id %}"
+                           class="btn btn-success text-white">
+                            Fulfill Order
+                        </a>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

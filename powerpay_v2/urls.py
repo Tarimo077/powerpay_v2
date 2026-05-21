@@ -17,6 +17,7 @@ urlpatterns = [
     path("organizations/", include("organizations.urls", namespace="organizations")),
     path("notifications/", include("notifications.urls", namespace="notifications")),
     path("api/", include("api.urls", namespace="api")),
+    path("device-orders/", include("device_orders.urls", namespace="device_orders")),
     path("", include("core.urls", namespace="core")),
     
 ]

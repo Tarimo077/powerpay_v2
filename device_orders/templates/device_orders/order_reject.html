@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}
+Powerpay Africa | Reject Device Order
+{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content"
+         class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0">
+
+        <div class="flex justify-between mb-6">
+            <h1 class="text-2xl font-bold">Reject Order #{{ order.id }}</h1>
+
+            <a href="{% url 'device_orders:order_detail' order.id %}" class="btn btn-ghost btn-accent hover:text-white">
+                Back
+            </a>
+        </div>
+
+        <div class="bg-base-100 shadow rounded-lg p-6 max-w-4xl">
+            <form method="post">
+                {% csrf_token %}
+
+                <div>
+                    <label class="label">Reason</label>
+                    {{ form.rejection_reason }}
+                    {{ form.rejection_reason.errors }}
+                </div>
+
+                <div class="flex justify-end gap-2 mt-6">
+                    <a href="{% url 'device_orders:order_detail' order.id %}" class="btn btn-ghost">
+                        Cancel
+                    </a>
+
+                    <button class="btn btn-error text-white">
+                        Reject Order
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

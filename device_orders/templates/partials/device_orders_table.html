@@ -1,0 +1,164 @@
+<div id="device-orders-table" class="relative mb-2">
+
+    <div id="htmx-loading"
+         class="absolute inset-0 bg-base-200/50 flex items-center justify-center z-10 pointer-events-none opacity-0 transition-opacity htmx-indicator">
+        <span class="loading loading-spinner loading-lg text-success"></span>
+    </div>
+
+    <form class="flex flex-wrap gap-2 mt-2 mb-4"
+          hx-get="{% url 'device_orders:order_list' %}"
+          hx-target="#device-orders-table"
+          hx-push-url="true"
+          hx-indicator="#htmx-loading">
+
+        <input name="q"
+               value="{{ q }}"
+               placeholder="Search product type, notes, requester..."
+               class="input input-success flex-1 min-w-40">
+
+        <select name="status" class="select select-success">
+            <option value="">All Statuses</option>
+            {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if status == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <input type="hidden" name="page_size" value="{{ page_size }}">
+
+        <button class="btn btn-success text-white">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            Filter
+        </button>
+
+        {% if q or status %}
+        <a class="btn btn-error text-white"
+           hx-get="{% url 'device_orders:order_list' %}"
+           hx-target="#device-orders-table"
+           hx-push-url="true"
+           hx-indicator="#htmx-loading">
+            <i class="fa-solid fa-times"></i>
+            Reset
+        </a>
+        {% endif %}
+    </form>
+
+    <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
+        <div class="text-sm text-gray-500">
+            Showing
+            <span class="font-semibold text-success">{{ page_obj.paginator.count }}</span>
+            order{{ page_obj.paginator.count|pluralize }}
+        </div>
+
+        <form class="flex items-center gap-2"
+              hx-get="{% url 'device_orders:order_list' %}"
+              hx-target="#device-orders-table"
+              hx-push-url="true"
+              hx-indicator="#htmx-loading">
+
+            <input type="hidden" name="q" value="{{ q }}">
+            <input type="hidden" name="status" value="{{ status }}">
+
+            <span class="text-sm">Rows:</span>
+
+            <select name="page_size"
+                    class="select select-success select-sm"
+                    hx-get="{% url 'device_orders:order_list' %}"
+                    hx-target="#device-orders-table"
+                    hx-push-url="true"
+                    hx-indicator="#htmx-loading">
+                {% for size in page_size_options %}
+                    <option value="{{ size }}" {% if page_size == size %}selected{% endif %}>
+                        {{ size }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    <div class="bg-base-100 rounded-lg shadow overflow-x-auto">
+        <table class="table w-full">
+            <thead class="bg-success text-white">
+                <tr>
+                    <th class="text-center">Order #</th>
+                    <th class="text-center">Product Type</th>
+                    <th class="text-center">Quantity</th>
+                    <th class="text-center">Organization</th>
+                    <th class="text-center">Warehouse</th>
+                    <th class="text-center">Requested By</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-center">Created</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for order in orders %}
+                <tr class="hover">
+                    <td class="text-center font-semibold">#{{ order.id }}</td>
+                    <td class="text-center">{{ order.product_type }}</td>
+                    <td class="text-center">{{ order.quantity }}</td>
+                    <td class="text-center">{{ order.organization.name }}</td>
+                    <td class="text-center">{{ order.warehouse.name }}</td>
+                    <td class="text-center">{{ order.requested_by.email }}</td>
+                    <td class="text-center">
+                        {% if order.status == "submitted" %}
+                            <span class="badge badge-info text-white">Submitted</span>
+                        {% elif order.status == "approved" %}
+                            <span class="badge badge-success text-white">Approved</span>
+                        {% elif order.status == "rejected" %}
+                            <span class="badge badge-error text-white">Rejected</span>
+                        {% elif order.status == "fulfilled" %}
+                            <span class="badge badge-primary text-white">Fulfilled</span>
+                        {% elif order.status == "cancelled" %}
+                            <span class="badge badge-warning text-white">Cancelled</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">{{ order.created_at|date:"M d, Y H:i" }}</td>
+                    <td class="text-center">
+                        <a href="{% url 'device_orders:order_detail' order.id %}"
+                           class="btn btn-sm btn-outline btn-success hover:text-white">
+                            View
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center py-8 text-gray-500">
+                        No device orders found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="join mt-4 flex justify-center">
+        {% if page_obj.has_previous %}
+            <a class="join-item btn"
+               hx-get="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ status }}&page_size={{ page_size }}"
+               hx-target="#device-orders-table"
+               hx-push-url="true"
+               hx-indicator="#htmx-loading">
+                «
+            </a>
+        {% endif %}
+
+        <button class="join-item btn">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </button>
+
+        {% if page_obj.has_next %}
+            <a class="join-item btn"
+               hx-get="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ status }}&page_size={{ page_size }}"
+               hx-target="#device-orders-table"
+               hx-push-url="true"
+               hx-indicator="#htmx-loading">
+                »
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>

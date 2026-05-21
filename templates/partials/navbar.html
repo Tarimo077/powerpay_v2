@@ -162,6 +162,16 @@
                         </li>
 
                         <li>
+                            <!-- Device Orders -->
+                            <a href="{% url 'device_orders:order_list' %}"
+                            class="rounded-xl hover:bg-base-200">
+                                <i class="fa-solid fa-truck-ramp-box"></i>
+                                <span class="link-text">Device Orders</span>
+                            </a>
+
+                        </li>
+
+                        <li>
                             {% if is_superuser %}
                                 <a href="{% url 'support:admin_ticket_list' %}"
                                 class="rounded-xl hover:bg-base-200">
