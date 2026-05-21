@@ -37,35 +37,41 @@
         <table class="table w-full">
             <thead class="bg-success text-white uppercase text-sm">
                 <tr>
-                    <th>Name</th>
-                    <th>Phone</th>
-                    <th>Email</th>
-                    <th>Created</th>
-                    <th class="text-center">Actions</th>
+                    <th class="align-middle">Name</th>
+                    <th class="align-middle">Phone</th>
+                    <th class="align-middle">Email</th>
+                    <th class="align-middle">Created</th>
+                    <th class="text-center align-middle">Actions</th>
                 </tr>
             </thead>
+
             <tbody>
                 {% for org in page_obj %}
-                <tr class="h-16">
-                    <td>{{ org.name }}</td>
-                    <td>{{ org.phone_number|default:"-" }}</td>
-                    <td>{{ org.email|default:"-" }}</td>
-                    <td>{{ org.created_at|date:"j M Y" }}</td>
-                    <td class="flex gap-4 justify-center">
-                        <a href="{% url 'organizations:organization_update' org.id %}"
-                           class="btn btn-info btn-sm text-white">
-                           <i class="fa-solid fa-user-pen"></i> Edit
-                        </a>
+                <tr class="h-20">
+                    <td class="align-middle">{{ org.name }}</td>
+                    <td class="align-middle">{{ org.phone_number|default:"-" }}</td>
+                    <td class="align-middle">{{ org.email|default:"-" }}</td>
+                    <td class="align-middle">{{ org.created_at|date:"j M Y" }}</td>
 
-                        <button onclick="deleteOrg({{ org.id }}, '{{ org.name|escapejs }}')"
-                                class="btn btn-error btn-sm text-white">
-                            <i class="fa-solid fa-trash"></i> Delete
-                        </button>
+                    <td class="align-middle">
+                        <div class="flex gap-4 justify-center items-center">
+                            <a href="{% url 'organizations:organization_update' org.id %}"
+                            class="btn btn-info btn-sm text-white">
+                                <i class="fa-solid fa-user-pen"></i> Edit
+                            </a>
+
+                            <button onclick="deleteOrg({{ org.id }}, '{{ org.name|escapejs }}')"
+                                    class="btn btn-error btn-sm text-white">
+                                <i class="fa-solid fa-trash"></i> Delete
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" class="text-center py-6">No organizations found.</td>
+                    <td colspan="5" class="text-center py-6 align-middle">
+                        No organizations found.
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
