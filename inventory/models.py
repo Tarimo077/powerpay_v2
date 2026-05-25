@@ -51,16 +51,45 @@ class InventoryItem(models.Model):
         return (now().date() - self.date_added).days  # Fallback for items never moved
     
 class InventoryMovement(models.Model):
-    item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, related_name='movements')
-    from_warehouse = models.ForeignKey(Warehouse, on_delete=models.SET_NULL, null=True,blank=True, related_name='moved_from')
-    to_warehouse = models.ForeignKey(Warehouse, on_delete=models.SET_NULL, null=True, related_name='moved_to')
-    moved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    item = models.ForeignKey(
+        InventoryItem,
+        on_delete=models.CASCADE,
+        related_name="movements"
+    )
+
+    from_warehouse = models.ForeignKey(
+        Warehouse,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="moved_from"
+    )
+
+    to_warehouse = models.ForeignKey(
+        Warehouse,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="moved_to"
+    )
+
+    quantity_moved = models.PositiveIntegerField(default=1)
+
+    moved_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
     date_moved = models.DateTimeField(auto_now_add=True)
     note = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f"{self.item.serial_number} → {self.to_warehouse.name} by {self.moved_by} on {self.date_moved}"
+        return (
+            f"{self.item.serial_number} x {self.quantity_moved} "
+            f"→ {self.to_warehouse} by {self.moved_by} on {self.date_moved}"
+        )
+
     class Meta:
         managed = False
-        db_table = 'inventory_movements'
-        ordering = ['-date_moved']
+        db_table = "inventory_movements"
+        ordering = ["-date_moved"]

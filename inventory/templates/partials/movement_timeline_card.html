@@ -1,0 +1,78 @@
+<div class="flex flex-wrap justify-between items-start gap-3 mb-4">
+    <div>
+        <p class="font-bold text-base">
+            {% if m.from_warehouse %}
+                Inventory Movement
+            {% else %}
+                Initial Assignment
+            {% endif %}
+        </p>
+
+        <p class="text-xs text-gray-500 mt-1">
+            Moved by {{ m.moved_by|default:"System" }}
+        </p>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+        <span class="badge badge-warning text-white">
+            Qty {{ m.quantity_moved|default:1 }}
+        </span>
+
+        {% if m.is_current_stay %}
+        <span class="badge badge-info text-white">
+            Current Stay
+        </span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="flex flex-wrap items-center gap-2 mb-4">
+    <span class="badge badge-warning text-white">
+        {{ m.from_warehouse|default:"-" }}
+    </span>
+
+    <i class="fa-solid fa-arrow-right text-gray-400"></i>
+
+    <span class="badge badge-success text-white">
+        {{ m.to_warehouse }}
+    </span>
+</div>
+
+<div class="rounded-lg bg-base-200 p-4 mb-4">
+    <div class="flex items-center gap-2 mb-2">
+        <i class="fa-solid fa-clock text-success"></i>
+        <p class="font-semibold">
+            Days spent in {{ m.to_warehouse }}
+        </p>
+    </div>
+
+    <p class="text-2xl font-bold text-success">
+        {{ m.days_spent }}
+        day{{ m.days_spent|pluralize }}
+    </p>
+
+    <p class="text-xs text-gray-500 mt-1">
+        Duration: {{ m.duration_label }}
+        {% if m.is_current_stay %}
+            and counting
+        {% endif %}
+    </p>
+</div>
+
+<div class="text-sm text-gray-500 space-y-2">
+    <p>
+        <span class="font-semibold text-base-content">Period:</span>
+        {{ m.period_start|date:"j M Y H:i" }}
+        -
+        {% if m.is_current_stay %}
+            Now
+        {% else %}
+            {{ m.period_end|date:"j M Y H:i" }}
+        {% endif %}
+    </p>
+
+    <p>
+        <span class="font-semibold text-base-content">Note:</span>
+        {{ m.note|default:"-" }}
+    </p>
+</div>

@@ -1,7 +1,9 @@
 {% extends "base.html" %}
+
 {% block title %}
   Powerpay Africa | Inventory List
 {% endblock %}
+
 {% block content %}
 {% load humanize %}
 {% include "partials/navbar.html" %}
@@ -12,40 +14,261 @@
     <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
             lg:ml-64 ml-0 space-y-6" id="page-content">
 
-        <h2 class="text-2xl font-bold">Inventory</h2>
+        <!-- PAGE HEADER -->
+        <div class="flex flex-wrap justify-between items-start gap-4 mt-4">
+            <div>
+                <h2 class="text-2xl font-bold">Inventory</h2>
+                <p class="text-sm text-gray-500 mt-1">
+                    Manage unique serialized items and shared quantity-based stock across warehouses.
+                </p>
+            </div>
 
-        <div class="flex flex-wrap justify-end gap-2 w-full mb-4">
-            <a href="{% url 'inventory:bulk_move_items' %}" class="btn btn-warning text-white">
-                <i class="fa-solid fa-truck-moving"></i> Bulk Move Items
-            </a>
+            <div class="flex flex-wrap justify-end gap-2">
+                <a href="{% url 'inventory:bulk_move_items' %}" class="btn btn-warning text-white">
+                    <i class="fa-solid fa-truck-moving"></i>
+                    Bulk Move Items
+                </a>
 
-            <a href="{% url 'inventory:bulk_item_create' %}" class="btn btn-info text-white">
-                <i class="fa-solid fa-layer-group"></i> Bulk Add Items
-            </a>
+                <a href="{% url 'inventory:bulk_item_create' %}" class="btn btn-info text-white">
+                    <i class="fa-solid fa-layer-group"></i>
+                    Bulk Add Items
+                </a>
 
-            <a href="{% url 'inventory:item_create' %}" class="btn btn-success text-white">
-                <i class="fa-solid fa-cart-plus"></i> Add Item
-            </a>
+                <a href="{% url 'inventory:item_create' %}" class="btn btn-success text-white">
+                    <i class="fa-solid fa-cart-plus"></i>
+                    Add Item
+                </a>
+            </div>
         </div>
+
         <!-- STATS -->
-        <div class="w-full grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             <div class="card bg-base-100 shadow border-2 border-success">
-                    <div class="card-body flex flex-col justify-center">
-                        <div class="flex"><p class="text-sm uppercase">Total Items</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-boxes-stacked text-2xl text-green-500"></i></div></div>
-                        <p class="text-2xl font-bold text-success">{{ total_items|intcomma }}</p>
+                <div class="card-body">
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm uppercase">Total Units</p>
+                        <div class="rounded-full bg-base-100 flex items-center justify-center">
+                            <i class="fa-solid fa-boxes-stacked text-xl text-success"></i>
+                        </div>
                     </div>
+
+                    <p class="text-3xl font-bold text-success">
+                        {{ total_items|default:0|intcomma }}
+                    </p>
+
+                    <p class="text-xs">
+                        Total physical quantity across all active inventory rows.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-2 border-success">
+                <div class="card-body">
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm uppercase">Unique Items</p>
+                        <div class="rounded-full bg-base-100 flex items-center justify-center">
+                            <i class="fa-solid fa-fingerprint text-xl text-success"></i>
+                        </div>
+                    </div>
+
+                    <p class="text-3xl font-bold text-success">
+                        {{ unique_items|default:0|intcomma }}
+                    </p>
+
+                    <p class="text-xs">
+                        Individually tracked serial numbers. Each one has quantity 1.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-2 border-success">
+                <div class="card-body">
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm uppercase">Shared Stock Rows</p>
+                        <div class="rounded-full bg-base-100 flex items-center justify-center">
+                            <i class="fa-solid fa-layer-group text-xl text-success"></i>
+                        </div>
+                    </div>
+
+                    <p class="text-3xl font-bold text-success">
+                        {{ shared_rows|default:0|intcomma }}
+                    </p>
+
+                    <p class="text-xs">
+                        Active shared serial rows grouped by serial number and warehouse.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-2 border-success">
+                <div class="card-body">
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm uppercase">Shared Units</p>
+                        <div class="rounded-full bg-base-100 flex items-center justify-center">
+                            <i class="fa-solid fa-cubes text-xl text-success"></i>
+                        </div>
+                    </div>
+
+                    <p class="text-3xl font-bold text-success">
+                        {{ shared_units|default:0|intcomma }}
+                    </p>
+
+                    <p class="text-xs">
+                        Total quantity held by shared serial stock.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUICK USAGE GUIDE -->
+        <div class="collapse collapse-arrow bg-base-100 shadow border border-base-300">
+            <input type="checkbox" />
+
+            <div class="collapse-title font-semibold">
+                Unique vs Shared Items, Bulk Add, and Bulk Move Guide
+            </div>
+
+            <div class="collapse-content">
+                <div class="space-y-4 text-sm">
+
+                    <!-- UNIQUE ITEM EXPLANATION - OWN LINE -->
+                    <div class="card bg-base-100 shadow border-l-4 border-info">
+                        <div class="card-body">
+                            <div class="flex flex-col md:flex-row items-start gap-4">
+                                <div class="w-12 h-12 rounded-full bg-info/10 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-fingerprint text-info text-xl"></i>
+                                </div>
+
+                                <div class="w-full">
+                                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                                        <h3 class="font-bold text-lg">Unique Serial Items</h3>
+                                        <span class="badge badge-info text-white">
+                                            Quantity = 1
+                                        </span>
+                                    </div>
+
+                                    <p class="text-sm text-gray-500">
+                                        A unique item represents one physical asset with its own serial number.
+                                        It cannot be split across warehouses. When moved, the whole item moves from
+                                        one warehouse to another.
+                                    </p>
+
+                                    <div class="mt-4 rounded-lg bg-base-200 p-3">
+                                        <p class="font-semibold mb-1">Example</p>
+                                        <p class="font-mono text-xs overflow-x-auto">
+                                            SM-001 | Smart Meter | Unique | Qty 1 | Warehouse A
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SHARED ITEM EXPLANATION - OWN LINE -->
+                    <div class="card bg-base-100 shadow border-l-4 border-warning">
+                        <div class="card-body">
+                            <div class="flex flex-col md:flex-row items-start gap-4">
+                                <div class="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-boxes-stacked text-warning text-xl"></i>
+                                </div>
+
+                                <div class="w-full">
+                                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                                        <h3 class="font-bold text-lg">Shared Serial Items</h3>
+                                        <span class="badge badge-warning text-white">
+                                            Quantity-based
+                                        </span>
+                                    </div>
+
+                                    <p class="text-sm text-gray-500">
+                                        A shared item can have the same serial number in more than one warehouse.
+                                        The quantity can be split, so you can move all units or only part of the
+                                        available quantity.
+                                    </p>
+
+                                    <div class="mt-4 rounded-lg bg-base-200 p-3 space-y-1">
+                                        <p class="font-semibold mb-1">Example</p>
+                                        <p class="font-mono text-xs overflow-x-auto">
+                                            RES-100 | Resistor | Shared | Qty 2 | Warehouse A
+                                        </p>
+                                        <p class="font-mono text-xs overflow-x-auto">
+                                            RES-100 | Resistor | Shared | Qty 3 | Warehouse B
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BULK USAGE GUIDE -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+                        <div class="rounded-lg bg-base-200 p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i class="fa-solid fa-circle-plus text-success"></i>
+                                <p class="font-semibold">Bulk add unique items</p>
+                            </div>
+
+                            <p class="text-gray-500 mb-3">
+                                Paste one serial per line, or separate serials with commas.
+                                Each unique serial is saved with quantity 1.
+                            </p>
+
+                            <pre class="bg-base-100 rounded p-3 text-xs overflow-x-auto"><code>SM-001
+SM-002
+SM-003</code></pre>
+                        </div>
+
+                        <div class="rounded-lg bg-base-200 p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i class="fa-solid fa-layer-group text-warning"></i>
+                                <p class="font-semibold">Bulk add shared quantities</p>
+                            </div>
+
+                            <p class="text-gray-500 mb-3">
+                                Add quantity beside the shared serial number. If the same serial already exists
+                                in the selected warehouse, its quantity is increased.
+                            </p>
+
+                            <pre class="bg-base-100 rounded p-3 text-xs overflow-x-auto"><code>RES-100,5
+RES-101:3
+RES-102|7</code></pre>
+                        </div>
+
+                        <div class="rounded-lg bg-base-200 p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i class="fa-solid fa-truck-moving text-info"></i>
+                                <p class="font-semibold">Bulk move shared quantities</p>
+                            </div>
+
+                            <p class="text-gray-500 mb-3">
+                                Use only the serial to move all available quantity, or add a quantity to move
+                                only part of the shared stock.
+                            </p>
+
+                            <pre class="bg-base-100 rounded p-3 text-xs overflow-x-auto"><code>RES-100
+RES-101,2
+RES-102:1</code></pre>
+                        </div>
+
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- CHARTS -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div id="itemsWarehouse" class="card bg-base-100 border-2 border-success shadow p-4 outline-none flex flex-col">
-                <div class="flex justify-between items-center mb-2 border-none outline-none">
-                    <h3 class="text-lg font-semibold border-none">
-                        Items Per Warehouse
-                    </h3>
+            <div id="itemsWarehouse" class="card bg-base-100 border-2 border-success shadow p-4 outline-none flex flex-col min-h-96">
+                <div class="flex flex-wrap justify-between items-center gap-2 mb-2 border-none outline-none">
+                    <div>
+                        <h3 class="text-lg font-semibold border-none">
+                            Units Per Warehouse
+                        </h3>
+                        <p class="text-xs text-gray-500">
+                            Uses quantity, not just row count.
+                        </p>
+                    </div>
 
-                    <!-- This button will NOT appear in download -->
                     <button
                         data-ignore-download
                         onclick="downloadCard('itemsWarehouse', 'items-warehouse.png')"
@@ -55,18 +278,23 @@
                         Download
                     </button>
                 </div>
-                <div class="flex-1 border-none outline-none">
+
+                <div class="flex-1 border-none outline-none min-h-72">
                     <canvas id="warehouseChart" class="border-none outline-none w-full h-full"></canvas>
                 </div>
             </div>
 
-            <div id="inventoryGrowth" class="card bg-base-100 border-2 border-success shadow p-4 outline-none">
-                <div class="flex justify-between items-center mb-2 border-none outline-none">
-                    <h3 class="text-lg font-semibold border-none outline-none">
-                        Inventory Growth
-                    </h3>
+            <div id="inventoryGrowth" class="card bg-base-100 border-2 border-success shadow p-4 outline-none flex flex-col min-h-96">
+                <div class="flex flex-wrap justify-between items-center gap-2 mb-2 border-none outline-none">
+                    <div>
+                        <h3 class="text-lg font-semibold border-none outline-none">
+                            Inventory Growth
+                        </h3>
+                        <p class="text-xs text-gray-500">
+                            Running total of inventory units over time.
+                        </p>
+                    </div>
 
-                    <!-- This button will NOT appear in download -->
                     <button
                         data-ignore-download
                         onclick="downloadCard('inventoryGrowth', 'inventory-growth.png')"
@@ -76,38 +304,42 @@
                         Download
                     </button>
                 </div>
-                <div class="flex-1 border-none outline-none">
+
+                <div class="flex-1 border-none outline-none min-h-72">
                     <canvas id="inventoryGrowthChart" class="border-none outline-none w-full h-full"></canvas>
                 </div>
             </div>
         </div>
 
-
         <!-- TABLE -->
-        
         {% include "partials/inventory_table.html" %}
-        
 
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
 <script>
 Chart.defaults.font.family = "'Saira', sans-serif";
 Chart.defaults.font.size = 12;
 
+const growthLabels = {{ growth_labels|safe }};
+const growthData = {{ growth_data|safe }};
+const warehouseLabels = {{ warehouse_labels|safe }};
+const warehouseData = {{ warehouse_data|safe }};
+
 new Chart(document.getElementById("inventoryGrowthChart"), {
     type: "line",
     data: {
-        labels: {{ growth_labels|safe }},
+        labels: growthLabels,
         datasets: [{
-            label: "Total Items",
-            data: {{ growth_data|safe }},
-            borderColor: '#22c55e',
-            backgroundColor: 'rgba(34, 197, 94, 0.2)',
+            label: "Total Units",
+            data: growthData,
+            borderColor: "#22c55e",
+            backgroundColor: "rgba(34, 197, 94, 0.2)",
             fill: true,
-            tension: 0.3,
+            tension: 0.35,
             pointRadius: 4,
             pointHoverRadius: 6,
         }]
@@ -115,35 +347,56 @@ new Chart(document.getElementById("inventoryGrowthChart"), {
     options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+            mode: "index",
+            intersect: false
+        },
         plugins: {
-            legend: { 
-                position: 'bottom',
+            legend: {
+                position: "bottom",
                 labels: {
                     usePointStyle: true,
-                    pointStyle: 'rectRounded',
+                    pointStyle: "rectRounded",
                     padding: 20
                 }
             },
-            tooltip: { mode: 'index', intersect: false, usePointStyle: true }
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return "Total Units: " + Number(context.raw || 0).toLocaleString();
+                    }
+                }
+            }
         },
         scales: {
             y: {
                 beginAtZero: true,
-                ticks: { precision: 0 }
+                ticks: {
+                    precision: 0,
+                    callback: function(value) {
+                        return Number(value).toLocaleString();
+                    }
+                }
             }
         }
     }
-
 });
 
 new Chart(document.getElementById("warehouseChart"), {
     type: "bar",
     data: {
-        labels: {{ warehouse_labels|safe }},
+        labels: warehouseLabels,
         datasets: [{
-            data: {{ warehouse_data|safe }},
+            label: "Units",
+            data: warehouseData,
             backgroundColor: [
-                '#3b82f6','#10b981','#f97316','#8b5cf6','#ef4444','#facc15','#0ea5e9'
+                "#3b82f6",
+                "#10b981",
+                "#f97316",
+                "#8b5cf6",
+                "#ef4444",
+                "#facc15",
+                "#0ea5e9"
             ],
         }]
     },
@@ -151,26 +404,47 @@ new Chart(document.getElementById("warehouseChart"), {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-                x: {
-                    grid: {
-                        display: false // Removes vertical lines
-                    }
-                },
-                y: {
-                    grid: {
-                        display: false // Removes horizontal lines
-                    },
-                    beginAtZero: true
+            x: {
+                grid: {
+                    display: false
                 }
             },
+            y: {
+                grid: {
+                    display: false
+                },
+                beginAtZero: true,
+                ticks: {
+                    precision: 0,
+                    callback: function(value) {
+                        return Number(value).toLocaleString();
+                    }
+                }
+            }
+        },
         plugins: {
-            legend: { display: false },
+            legend: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return "Units: " + Number(context.raw || 0).toLocaleString();
+                    }
+                }
+            },
             datalabels: {
-                color: '#fff',
-                formatter: (value, ctx) => {
-                    const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
-                    const percent = ((value/sum)*100).toFixed(1);
-                    return value.toLocaleString() + ` (${percent}%)`;
+                color: "#fff",
+                formatter: function(value, ctx) {
+                    const data = ctx.chart.data.datasets[0].data || [];
+                    const sum = data.reduce((a, b) => Number(a || 0) + Number(b || 0), 0);
+
+                    if (!sum) {
+                        return Number(value || 0).toLocaleString();
+                    }
+
+                    const percent = ((Number(value || 0) / sum) * 100).toFixed(1);
+                    return Number(value || 0).toLocaleString() + " (" + percent + "%)";
                 },
             }
         }

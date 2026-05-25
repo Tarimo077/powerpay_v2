@@ -1,34 +1,219 @@
+from collections import defaultdict
 from datetime import timedelta
-from django.db.models.functions import TruncMonth
+
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db import transaction
+from django.db.models import Q, Count, Sum
+from django.db.models.functions import TruncMonth
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
-from django.db.models import Q, Count
-from django.db import transaction
+
 from .models import InventoryItem, Warehouse, InventoryMovement
-from django.contrib.auth.decorators import login_required
-from .forms import WarehouseForm, InventoryItemForm, BulkInventoryItemForm, InventoryMoveForm, BulkInventoryMoveForm
+from .forms import (
+    WarehouseForm,
+    InventoryItemForm,
+    BulkInventoryItemForm,
+    InventoryMoveForm,
+    BulkInventoryMoveForm,
+)
 from notifications.utils import notify
 from organizations.models import Organization
+
+
+# =========================
+# HELPERS
+# =========================
+
+def is_superadmin(user):
+    return user.is_superuser or getattr(user, "role", None) == "superadmin"
+
+
+def get_allowed_warehouses(user):
+    if is_superadmin(user):
+        return Warehouse.objects.all()
+
+    return Warehouse.objects.filter(organization=user.organization)
+
+
+def format_duration(delta):
+    total_seconds = max(int(delta.total_seconds()), 0)
+
+    days = total_seconds // 86400
+    hours = (total_seconds % 86400) // 3600
+    minutes = (total_seconds % 3600) // 60
+
+    if days == 1:
+        return "1 day"
+
+    if days > 1:
+        return f"{days} days"
+
+    if hours == 1:
+        return "1 hour"
+
+    if hours > 1:
+        return f"{hours} hours"
+
+    if minutes <= 1:
+        return "Less than 1 minute"
+
+    return f"{minutes} minutes"
+
+
+def build_timeline_movements(movements_qs):
+    """
+    Calculates how long the item/quantity stayed in each destination warehouse.
+
+    Movement A moves stock to Warehouse 1.
+    Movement B happens 5 days later.
+    Movement A shows 5 days spent in Warehouse 1.
+
+    The latest movement shows time from that movement until now.
+    """
+    now = timezone.now()
+    movements_asc = list(movements_qs.order_by("date_moved"))
+
+    for index, movement in enumerate(movements_asc):
+        next_movement = (
+            movements_asc[index + 1]
+            if index + 1 < len(movements_asc)
+            else None
+        )
+
+        period_start = movement.date_moved
+        period_end = next_movement.date_moved if next_movement else now
+        duration = period_end - period_start
+
+        movement.period_start = period_start
+        movement.period_end = period_end
+        movement.days_spent = max(duration.days, 0)
+        movement.duration_label = format_duration(duration)
+        movement.is_current_stay = next_movement is None
+
+    return list(reversed(movements_asc))
+
+
+def find_shared_destination_item(source_item, to_warehouse):
+    return (
+        InventoryItem.objects.select_for_update()
+        .filter(
+            serial_number=source_item.serial_number,
+            item_type=InventoryItem.TYPE_SHARED,
+            current_warehouse=to_warehouse,
+            quantity__gt=0,
+        )
+        .exclude(pk=source_item.pk)
+        .first()
+    )
+
+
+def move_inventory_quantity(*, item, to_warehouse, quantity_to_move, moved_by, note):
+    """
+    Unique item:
+        Move the whole item row.
+
+    Shared item:
+        Move partial or full quantity.
+        If destination already has same shared serial, merge quantities.
+        Otherwise create a new destination stock row.
+    """
+    from_warehouse = item.current_warehouse
+
+    if item.current_warehouse_id == to_warehouse.id:
+        raise ValueError("Source and destination warehouses cannot be the same.")
+
+    if item.item_type == InventoryItem.TYPE_UNIQUE:
+        InventoryMovement.objects.create(
+            item=item,
+            from_warehouse=from_warehouse,
+            to_warehouse=to_warehouse,
+            quantity_moved=1,
+            moved_by=moved_by,
+            note=note,
+        )
+
+        item.current_warehouse = to_warehouse
+        item.quantity = 1
+        item.save(update_fields=["current_warehouse", "quantity"])
+        return item
+
+    if quantity_to_move is None:
+        quantity_to_move = item.quantity
+
+    if quantity_to_move < 1:
+        raise ValueError("Quantity to move must be at least 1.")
+
+    if quantity_to_move > item.quantity:
+        raise ValueError(
+            f"Only {item.quantity} available for {item.serial_number}."
+        )
+
+    destination_item = find_shared_destination_item(item, to_warehouse)
+
+    InventoryMovement.objects.create(
+        item=item,
+        from_warehouse=from_warehouse,
+        to_warehouse=to_warehouse,
+        quantity_moved=quantity_to_move,
+        moved_by=moved_by,
+        note=note,
+    )
+
+    # Full quantity and no destination row:
+    # move the current row to the destination warehouse.
+    if quantity_to_move == item.quantity and destination_item is None:
+        item.current_warehouse = to_warehouse
+        item.save(update_fields=["current_warehouse"])
+        return item
+
+    # Destination already has same shared serial, so merge into it.
+    if destination_item:
+        destination_item.quantity += quantity_to_move
+        destination_item.save(update_fields=["quantity"])
+    else:
+        InventoryItem.objects.create(
+            name=item.name,
+            serial_number=item.serial_number,
+            product_type=item.product_type,
+            item_type=InventoryItem.TYPE_SHARED,
+            quantity=quantity_to_move,
+            current_warehouse=to_warehouse,
+        )
+
+    # Reduce source row. If this reaches 0, the row is inactive.
+    item.quantity -= quantity_to_move
+    item.save(update_fields=["quantity"])
+
+    return item
+
 
 # =========================
 # WAREHOUSES
 # =========================
+
 @login_required
 def warehouses_page(request):
     user = request.user
-    if user.role != "superadmin":
+
+    if not is_superadmin(user):
         return redirect("inventory:inventory_page")
 
     warehouses = Warehouse.objects.annotate(
-        total_items=Count("inventory_items")
+        total_items=Sum("inventory_items__quantity")
     )
 
     total_warehouses = warehouses.count()
-    total_inventory = InventoryItem.objects.count()
+
+    total_inventory = (
+        InventoryItem.objects
+        .filter(quantity__gt=0)
+        .aggregate(total=Sum("quantity"))["total"]
+        or 0
+    )
 
     labels = [w.name for w in warehouses]
-    data = [w.total_items for w in warehouses]
+    data = [w.total_items or 0 for w in warehouses]
 
     return render(
         request,
@@ -47,9 +232,17 @@ def warehouses_page(request):
 def warehouse_create(request):
     if request.method == "POST":
         form = WarehouseForm(request.POST)
+
         if form.is_valid():
             form.save()
-            notify(request.user, "New Warehouse", f"{form.cleaned_data['name']} warehouse has been created.", "success")
+
+            notify(
+                request.user,
+                "New Warehouse",
+                f"{form.cleaned_data['name']} warehouse has been created.",
+                "success",
+            )
+
             return redirect("inventory:warehouses_page")
     else:
         form = WarehouseForm()
@@ -63,9 +256,17 @@ def warehouse_update(request, pk):
 
     if request.method == "POST":
         form = WarehouseForm(request.POST, instance=warehouse)
+
         if form.is_valid():
             form.save()
-            notify(request.user, "Warehouse Update", f"{warehouse.name} warehouse has been updated.", "info")
+
+            notify(
+                request.user,
+                "Warehouse Update",
+                f"{warehouse.name} warehouse has been updated.",
+                "info",
+            )
+
             return redirect("inventory:warehouses_page")
     else:
         form = WarehouseForm(instance=warehouse)
@@ -77,7 +278,14 @@ def warehouse_update(request, pk):
 def warehouse_delete(request, pk):
     warehouse = get_object_or_404(Warehouse, pk=pk)
     warehouse.delete()
-    notify(request.user, "Warehose Deleted", f"{warehouse.name} warehouse has been deleted.", "warning")
+
+    notify(
+        request.user,
+        "Warehouse Deleted",
+        f"{warehouse.name} warehouse has been deleted.",
+        "warning",
+    )
+
     return redirect("inventory:warehouses_page")
 
 
@@ -89,20 +297,67 @@ def warehouse_delete(request, pk):
 def item_create(request):
     if request.method == "POST":
         form = InventoryItemForm(request.POST)
-        if form.is_valid():
-            item = form.save()
 
-            # create initial movement record
-            InventoryMovement.objects.create(
-                item=item,
-                to_warehouse=item.current_warehouse,
-                moved_by=request.user,
-                note="Initial assignment"
+        if form.is_valid():
+            with transaction.atomic():
+                item = form.save(commit=False)
+
+                if item.item_type == InventoryItem.TYPE_UNIQUE:
+                    item.quantity = 1
+                    item.save()
+
+                    InventoryMovement.objects.create(
+                        item=item,
+                        to_warehouse=item.current_warehouse,
+                        quantity_moved=1,
+                        moved_by=request.user,
+                        note="Initial assignment",
+                    )
+
+                else:
+                    quantity_added = item.quantity
+
+                    existing_item = (
+                        InventoryItem.objects.select_for_update()
+                        .filter(
+                            serial_number=item.serial_number,
+                            item_type=InventoryItem.TYPE_SHARED,
+                            current_warehouse=item.current_warehouse,
+                            quantity__gt=0,
+                        )
+                        .first()
+                    )
+
+                    if existing_item:
+                        existing_item.quantity += quantity_added
+                        existing_item.save(update_fields=["quantity"])
+                        item = existing_item
+                    else:
+                        item.save()
+
+                    InventoryMovement.objects.create(
+                        item=item,
+                        to_warehouse=item.current_warehouse,
+                        quantity_moved=quantity_added,
+                        moved_by=request.user,
+                        note="Initial assignment",
+                    )
+
+            notify(
+                request.user,
+                "New Item",
+                f"{item.serial_number}({item.name}) has been created.",
+                "success",
             )
-            notify(request.user, "New Item", f"{item.serial_number}({item.name}) has been created.", "success")
+
             return redirect("inventory:inventory_page")
     else:
-        form = InventoryItemForm(initial={"item_type": InventoryItem.TYPE_UNIQUE, "quantity": 1})
+        form = InventoryItemForm(
+            initial={
+                "item_type": InventoryItem.TYPE_UNIQUE,
+                "quantity": 1,
+            }
+        )
 
     return render(request, "inventory/item_form.html", {"form": form})
 
@@ -110,49 +365,107 @@ def item_create(request):
 @login_required
 def bulk_item_create(request):
     user = request.user
-    is_superadmin = user.role == "superadmin"
-    allowed_warehouses = Warehouse.objects.all() if is_superadmin else Warehouse.objects.filter(organization=user.organization)
+    user_is_superadmin = is_superadmin(user)
+    allowed_warehouses = get_allowed_warehouses(user)
 
     if request.method == "POST":
         form = BulkInventoryItemForm(request.POST, request.FILES)
         form.fields["current_warehouse"].queryset = allowed_warehouses
+
         if form.is_valid():
             warehouse = form.cleaned_data["current_warehouse"]
-            created_items = []
+
+            created_count = 0
+            updated_count = 0
+            total_quantity_added = 0
 
             with transaction.atomic():
                 for row in form.cleaned_rows:
-                    item = InventoryItem.objects.create(
-                        name=row["name"],
-                        serial_number=row["serial_number"],
-                        product_type=row["product_type"],
-                        item_type=row["item_type"],
-                        quantity=row["quantity"],
-                        current_warehouse=warehouse,
-                    )
-                    created_items.append(item)
+                    if row["item_type"] == InventoryItem.TYPE_UNIQUE:
+                        item = InventoryItem.objects.create(
+                            name=row["name"],
+                            serial_number=row["serial_number"],
+                            product_type=row["product_type"],
+                            item_type=InventoryItem.TYPE_UNIQUE,
+                            quantity=1,
+                            current_warehouse=warehouse,
+                        )
 
-                InventoryMovement.objects.bulk_create([
-                    InventoryMovement(
-                        item=item,
-                        to_warehouse=warehouse,
-                        moved_by=request.user,
-                        note="Initial bulk assignment",
-                    )
-                    for item in created_items
-                ])
+                        InventoryMovement.objects.create(
+                            item=item,
+                            to_warehouse=warehouse,
+                            quantity_moved=1,
+                            moved_by=request.user,
+                            note="Initial bulk assignment",
+                        )
 
-            notify(request.user, "Bulk Inventory Added", f"{len(created_items)} inventory item row(s) have been created.", "success")
+                        created_count += 1
+                        total_quantity_added += 1
+
+                    else:
+                        quantity_added = row["quantity"]
+
+                        item = (
+                            InventoryItem.objects.select_for_update()
+                            .filter(
+                                serial_number=row["serial_number"],
+                                item_type=InventoryItem.TYPE_SHARED,
+                                current_warehouse=warehouse,
+                                quantity__gt=0,
+                            )
+                            .first()
+                        )
+
+                        if item:
+                            item.quantity += quantity_added
+                            item.save(update_fields=["quantity"])
+                            updated_count += 1
+                        else:
+                            item = InventoryItem.objects.create(
+                                name=row["name"],
+                                serial_number=row["serial_number"],
+                                product_type=row["product_type"],
+                                item_type=InventoryItem.TYPE_SHARED,
+                                quantity=quantity_added,
+                                current_warehouse=warehouse,
+                            )
+                            created_count += 1
+
+                        InventoryMovement.objects.create(
+                            item=item,
+                            to_warehouse=warehouse,
+                            quantity_moved=quantity_added,
+                            moved_by=request.user,
+                            note="Initial bulk assignment",
+                        )
+
+                        total_quantity_added += quantity_added
+
+            notify(
+                request.user,
+                "Bulk Inventory Added",
+                (
+                    f"{created_count} inventory row(s) created, "
+                    f"{updated_count} shared row(s) updated, "
+                    f"{total_quantity_added} total unit(s) added."
+                ),
+                "success",
+            )
+
             return redirect("inventory:inventory_page")
     else:
         sample_entries = "SM-001\nSM-002\nSM-003"
-        form = BulkInventoryItemForm(initial={
-            "default_name": "Smart Meter",
-            "default_product_type": "Meter",
-            "default_item_type": InventoryItem.TYPE_UNIQUE,
-            "default_quantity": 1,
-            "csv_data": sample_entries,
-        })
+
+        form = BulkInventoryItemForm(
+            initial={
+                "default_name": "Smart Meter",
+                "default_product_type": "Meter",
+                "default_item_type": InventoryItem.TYPE_UNIQUE,
+                "default_quantity": 1,
+                "csv_data": sample_entries,
+            }
+        )
+
         form.fields["current_warehouse"].queryset = allowed_warehouses
 
     return render(request, "inventory/bulk_item_form.html", {"form": form})
@@ -164,9 +477,17 @@ def item_update(request, pk):
 
     if request.method == "POST":
         form = InventoryItemForm(request.POST, instance=item)
+
         if form.is_valid():
             form.save()
-            notify(request.user, "Item Updated", f"{item.serial_number}({item.name}) has been updated.", "info")
+
+            notify(
+                request.user,
+                "Item Updated",
+                f"{item.serial_number}({item.name}) has been updated.",
+                "info",
+            )
+
             return redirect("inventory:inventory_page")
     else:
         form = InventoryItemForm(instance=item)
@@ -178,68 +499,78 @@ def item_update(request, pk):
 def item_delete(request, pk):
     item = get_object_or_404(InventoryItem, pk=pk)
     item.delete()
-    notify(request.user, "Item Deleted", f"{item.serial_number}({item.name}) has been deleted.", "warning")
+
+    notify(
+        request.user,
+        "Item Deleted",
+        f"{item.serial_number}({item.name}) has been deleted.",
+        "warning",
+    )
+
     return redirect("inventory:inventory_page")
+
 
 @login_required
 def inventory_page(request):
     user = request.user
-    is_superadmin = user.role == "superadmin"
+    user_is_superadmin = is_superadmin(user)
     is_htmx = request.headers.get("HX-Request") == "true"
 
-    # ---------------- BASE QUERYSET ----------------
-    qs = InventoryItem.objects.select_related("current_warehouse")
-    if not is_superadmin:
+    qs = InventoryItem.objects.select_related("current_warehouse").filter(
+        quantity__gt=0
+    )
+
+    if not user_is_superadmin:
         qs = qs.filter(current_warehouse__organization=user.organization)
 
-    # ---------------- SEARCH ----------------
     search_query = request.GET.get("q", "").strip()
+
     if search_query:
         qs = qs.filter(
-            Q(name__icontains=search_query) |
-            Q(serial_number__icontains=search_query) |
-            Q(product_type__icontains=search_query) |
-            Q(item_type__icontains=search_query)
+            Q(name__icontains=search_query)
+            | Q(serial_number__icontains=search_query)
+            | Q(product_type__icontains=search_query)
+            | Q(item_type__icontains=search_query)
         )
 
-    # ---------------- FILTERS ----------------
     org_filter = request.GET.get("org", "")
     warehouse_filter = request.GET.get("warehouse", "")
+    item_type_filter = request.GET.get("item_type", "")
     period = request.GET.get("period", "all")
 
-    # Organization filter (superadmins only)
-    if is_superadmin and org_filter:
+    if item_type_filter in {
+        InventoryItem.TYPE_UNIQUE,
+        InventoryItem.TYPE_SHARED,
+    }:
+        qs = qs.filter(item_type=item_type_filter)
+
+    if user_is_superadmin and org_filter:
         qs = qs.filter(current_warehouse__organization_id=org_filter)
 
-    # Warehouse filter
     if warehouse_filter:
         qs = qs.filter(current_warehouse_id=warehouse_filter)
 
-    # Time filter
     today = timezone.now().date()
 
-    if period == "7d":
-        qs = qs.filter(date_added__gte=today - timedelta(days=7))
-    elif period == "30d":
-        qs = qs.filter(date_added__gte=today - timedelta(days=30))
-    elif period == "90d":
-        qs = qs.filter(date_added__gte=today - timedelta(days=90))
-    elif period == "1d":
+    if period == "1d":
         qs = qs.filter(date_added__gte=today - timedelta(days=1))
     elif period == "3d":
         qs = qs.filter(date_added__gte=today - timedelta(days=3))
+    elif period == "7d":
+        qs = qs.filter(date_added__gte=today - timedelta(days=7))
     elif period == "14d":
         qs = qs.filter(date_added__gte=today - timedelta(days=14))
+    elif period == "30d":
+        qs = qs.filter(date_added__gte=today - timedelta(days=30))
     elif period == "60d":
         qs = qs.filter(date_added__gte=today - timedelta(days=60))
+    elif period == "90d":
+        qs = qs.filter(date_added__gte=today - timedelta(days=90))
     elif period == "180d":
         qs = qs.filter(date_added__gte=today - timedelta(days=180))
     elif period == "365d":
         qs = qs.filter(date_added__gte=today - timedelta(days=365))
-    else:
-        pass
 
-    # ---------------- SORTING ----------------
     SORT_MAP = {
         "name": "name",
         "serial": "serial_number",
@@ -258,96 +589,116 @@ def inventory_page(request):
         ("Quantity", "quantity"),
         ("Warehouse", "warehouse"),
         ("Days in Warehouse", "days"),
-        ("Actions", "actions")
+        ("Actions", "actions"),
     ]
 
-    sort = request.GET.get("sort", "name")   # ✅ valid default
+    sort = request.GET.get("sort", "name")
     direction = request.GET.get("dir", "asc")
 
     sort_field = SORT_MAP.get(sort, "name")
+
     if direction == "desc":
         sort_field = f"-{sort_field}"
 
     qs = qs.order_by(sort_field)
     total_results = qs.count()
 
-    # ---------------- NEXT SORT DIRECTIONS ----------------
     next_dirs = {}
+
     for _, field in inventory_fields:
         if field == sort:
             next_dirs[field] = "desc" if direction == "asc" else "asc"
         else:
             next_dirs[field] = "asc"
 
-    organizations = Organization.objects.all() if is_superadmin else None
+    organizations = Organization.objects.all() if user_is_superadmin else None
+    warehouses = get_allowed_warehouses(user)
 
-    warehouses = Warehouse.objects.all()
-    if not is_superadmin:
-        warehouses = warehouses.filter(organization=user.organization)
-
-    # ---------------- PAGINATION ----------------
     allowed_page_sizes = [10, 25, 50, 100]
+
     try:
         page_size = int(request.GET.get("page_size", 10))
     except (TypeError, ValueError):
         page_size = 10
+
     if page_size not in allowed_page_sizes:
         page_size = 10
 
     paginator = Paginator(qs, page_size)
     page_obj = paginator.get_page(request.GET.get("page"))
 
-    # ---------------- HTMX RESPONSE ----------------
+    table_context = {
+        "page_obj": page_obj,
+        "page_size": page_size,
+        "page_size_options": allowed_page_sizes,
+        "search_query": search_query,
+        "current_sort": sort,
+        "current_dir": direction,
+        "inventory_fields": inventory_fields,
+        "next_dirs": next_dirs,
+        "org_filter": org_filter,
+        "warehouse_filter": warehouse_filter,
+        "item_type_filter": item_type_filter,
+        "period": period,
+        "organizations": organizations,
+        "warehouses": warehouses,
+        "is_superadmin": user_is_superadmin,
+        "total_results": total_results,
+    }
+
     if is_htmx:
         return render(
             request,
             "partials/inventory_table.html",
-            {
-                "page_obj": page_obj,
-                "page_size": page_size,
-                "page_size_options": allowed_page_sizes,
-                "search_query": search_query,
-                "current_sort": sort,
-                "current_dir": direction,
-                "inventory_fields": inventory_fields,
-                "next_dirs": next_dirs,
-                "org_filter": org_filter,
-                "warehouse_filter": warehouse_filter,
-                "period": period,
-                "organizations": organizations,
-                "warehouses": warehouses,
-                "is_superadmin": is_superadmin,
-                "total_results": total_results
-            },
+            table_context,
         )
 
-    # ---------------- STATS ----------------
-    total_items = qs.count()
-    last_30_days = timezone.now().date() - timedelta(days=30)
-    new_items_30 = qs.filter(date_added__gte=last_30_days).count()
+    total_items = qs.aggregate(total=Sum("quantity"))["total"] or 0
 
-    # ---------------- ITEMS PER WAREHOUSE ----------------
+    unique_items = qs.filter(
+        item_type=InventoryItem.TYPE_UNIQUE
+    ).count()
+
+    unique_units = qs.filter(
+        item_type=InventoryItem.TYPE_UNIQUE
+    ).aggregate(total=Sum("quantity"))["total"] or 0
+
+    shared_rows = qs.filter(
+        item_type=InventoryItem.TYPE_SHARED
+    ).count()
+
+    shared_units = qs.filter(
+        item_type=InventoryItem.TYPE_SHARED
+    ).aggregate(total=Sum("quantity"))["total"] or 0
+
+    last_30_days = timezone.now().date() - timedelta(days=30)
+
+    new_items_30 = qs.filter(
+        date_added__gte=last_30_days
+    ).aggregate(total=Sum("quantity"))["total"] or 0
+
     warehouse_qs = (
         qs.values("current_warehouse__name")
-        .annotate(total=Count("id"))
+        .annotate(total=Sum("quantity"))
         .order_by("current_warehouse__name")
     )
 
     warehouse_labels = [x["current_warehouse__name"] for x in warehouse_qs]
-    warehouse_data = [x["total"] for x in warehouse_qs]
+    warehouse_data = [x["total"] or 0 for x in warehouse_qs]
 
-    # ---------------- INVENTORY GROWTH ----------------
     growth_qs = (
         qs.annotate(month=TruncMonth("date_added"))
         .values("month")
-        .annotate(count=Count("id"))
+        .annotate(count=Sum("quantity"))
         .order_by("month")
     )
 
-    growth_labels, growth_data = [], []
+    growth_labels = []
+    growth_data = []
     running_total = 0
+
     for row in growth_qs:
-        running_total += row["count"]
+        running_total += row["count"] or 0
         growth_labels.append(row["month"].strftime("%b %Y"))
         growth_data.append(running_total)
 
@@ -355,27 +706,17 @@ def inventory_page(request):
         request,
         "inventory/inventory.html",
         {
-            "page_obj": page_obj,
-            "page_size": page_size,
-            "page_size_options": allowed_page_sizes,
-            "search_query": search_query,
+            **table_context,
             "total_items": total_items,
             "new_items_30": new_items_30,
             "warehouse_labels": warehouse_labels,
             "warehouse_data": warehouse_data,
             "growth_labels": growth_labels,
             "growth_data": growth_data,
-            "current_sort": sort,
-            "current_dir": direction,
-            "inventory_fields": inventory_fields,
-            "next_dirs": next_dirs,
-            "is_superadmin": is_superadmin,
-            "org_filter": org_filter,
-            "warehouse_filter": warehouse_filter,
-            "period": period,
-            "organizations": organizations,
-            "warehouses": warehouses,
-            "total_results": total_results
+            "unique_items": unique_items,
+            "unique_units": unique_units,
+            "shared_rows": shared_rows,
+            "shared_units": shared_units,
         },
     )
 
@@ -384,14 +725,57 @@ def inventory_page(request):
 def inventory_detail(request, pk):
     item = get_object_or_404(
         InventoryItem.objects.select_related("current_warehouse"),
-        pk=pk
+        pk=pk,
     )
 
-    movements = item.movements.select_related(
-        "from_warehouse", "to_warehouse"
+    user = request.user
+    user_is_superadmin = is_superadmin(user)
+
+    serial_items_qs = (
+        InventoryItem.objects
+        .select_related("current_warehouse")
+        .filter(
+            serial_number=item.serial_number,
+            quantity__gt=0,
+        )
     )
 
-    paginator = Paginator(movements, 10)
+    if not user_is_superadmin:
+        serial_items_qs = serial_items_qs.filter(
+            current_warehouse__organization=user.organization
+        )
+
+    warehouse_breakdown = (
+        serial_items_qs
+        .values("current_warehouse__name")
+        .annotate(total_quantity=Sum("quantity"))
+        .order_by("current_warehouse__name")
+    )
+
+    total_quantity_for_serial = (
+        serial_items_qs.aggregate(total=Sum("quantity"))["total"] or 0
+    )
+
+    movements_qs = (
+        InventoryMovement.objects
+        .select_related(
+            "item",
+            "from_warehouse",
+            "to_warehouse",
+            "moved_by",
+        )
+        .filter(item__serial_number=item.serial_number)
+    )
+
+    if not user_is_superadmin:
+        movements_qs = movements_qs.filter(
+            Q(from_warehouse__organization=user.organization)
+            | Q(to_warehouse__organization=user.organization)
+        )
+
+    timeline_movements = build_timeline_movements(movements_qs)
+
+    paginator = Paginator(timeline_movements, 10)
     page_obj = paginator.get_page(request.GET.get("page"))
 
     return render(
@@ -400,8 +784,11 @@ def inventory_detail(request, pk):
         {
             "item": item,
             "page_obj": page_obj,
+            "warehouse_breakdown": warehouse_breakdown,
+            "total_quantity_for_serial": total_quantity_for_serial,
         },
     )
+
 
 # =========================
 # MOVE INVENTORY ITEM
@@ -410,44 +797,74 @@ def inventory_detail(request, pk):
 @login_required
 def move_item(request, pk):
     item = get_object_or_404(InventoryItem, pk=pk)
+    allowed_warehouses = get_allowed_warehouses(request.user)
 
     if request.method == "POST":
-        form = InventoryMoveForm(request.POST, item=item)
-        if form.is_valid():
-            movement = form.save(commit=False)
-            movement.item = item
-            movement.from_warehouse = item.current_warehouse
-            movement.moved_by = request.user
-            movement.save()
+        form = InventoryMoveForm(
+            request.POST,
+            item=item,
+            allowed_warehouses=allowed_warehouses,
+        )
 
-            item.current_warehouse = movement.to_warehouse
-            item.save(update_fields=["current_warehouse"])
+        if form.is_valid():
+            to_warehouse = form.cleaned_data["to_warehouse"]
+            quantity_to_move = form.cleaned_data.get("quantity_to_move")
+            note = form.cleaned_data.get("note") or "Inventory movement"
+
+            with transaction.atomic():
+                locked_item = (
+                    InventoryItem.objects
+                    .select_for_update()
+                    .select_related("current_warehouse")
+                    .get(pk=item.pk)
+                )
+
+                if locked_item.item_type == InventoryItem.TYPE_UNIQUE:
+                    quantity_to_move = 1
+                elif quantity_to_move is None:
+                    quantity_to_move = locked_item.quantity
+
+                move_inventory_quantity(
+                    item=locked_item,
+                    to_warehouse=to_warehouse,
+                    quantity_to_move=quantity_to_move,
+                    moved_by=request.user,
+                    note=note,
+                )
 
             notify(
                 request.user,
                 "Item Moved",
-                f"{item.serial_number}({item.name}) has been moved from {movement.from_warehouse} warehouse to {movement.to_warehouse} warehouse.",
-                "info"
+                (
+                    f"{quantity_to_move} unit(s) of "
+                    f"{item.serial_number}({item.name}) moved to "
+                    f"{to_warehouse.name}."
+                ),
+                "info",
             )
+
             return redirect("inventory:inventory_page")
     else:
-        form = InventoryMoveForm(item=item)
+        form = InventoryMoveForm(
+            item=item,
+            allowed_warehouses=allowed_warehouses,
+        )
 
-    return render(request, "inventory/move_item.html", {
-        "item": item,
-        "form": form
-    })
+    return render(
+        request,
+        "inventory/move_item.html",
+        {
+            "item": item,
+            "form": form,
+        },
+    )
+
 
 @login_required
 def bulk_move_items(request):
     user = request.user
-    is_superadmin = user.is_superuser or user.role == "superadmin"
-
-    allowed_warehouses = (
-        Warehouse.objects.all()
-        if is_superadmin
-        else Warehouse.objects.filter(organization=user.organization)
-    )
+    user_is_superadmin = is_superadmin(user)
+    allowed_warehouses = get_allowed_warehouses(user)
 
     if request.method == "POST":
         form = BulkInventoryMoveForm(
@@ -456,103 +873,130 @@ def bulk_move_items(request):
         )
 
         if form.is_valid():
-            serial_numbers = form.cleaned_data["serial_numbers"]
-            from_warehouse = form.cleaned_data.get("from_warehouse")
+            move_entries = form.cleaned_data["serial_numbers"]
+            from_warehouse = form.cleaned_data["from_warehouse"]
             to_warehouse = form.cleaned_data["to_warehouse"]
             note = form.cleaned_data.get("note") or "Bulk inventory movement"
 
-            items_qs = InventoryItem.objects.select_related("current_warehouse").filter(
-                serial_number__in=serial_numbers
-            )
-
-            if not is_superadmin:
-                items_qs = items_qs.filter(
-                    current_warehouse__organization=user.organization
-                )
-
-            items = list(items_qs)
-            found_serials = {item.serial_number for item in items}
-            missing_serials = [
-                serial for serial in serial_numbers
-                if serial not in found_serials
+            serial_numbers = [
+                entry["serial_number"]
+                for entry in move_entries
             ]
 
-            if missing_serials:
-                form.add_error(
-                    "serial_numbers",
-                    "These serial numbers were not found or are not accessible: "
-                    + ", ".join(missing_serials[:20])
-                    + ("..." if len(missing_serials) > 20 else "")
-                )
-            else:
-                if from_warehouse:
-                    wrong_source_items = [
-                        item.serial_number
-                        for item in items
-                        if item.current_warehouse_id != from_warehouse.id
-                    ]
+            errors = []
 
-                    if wrong_source_items:
-                        form.add_error(
-                            "from_warehouse",
-                            "These items are not currently in the selected source warehouse: "
-                            + ", ".join(wrong_source_items[:20])
-                            + ("..." if len(wrong_source_items) > 20 else "")
-                        )
-                        return render(request, "inventory/bulk_move_items.html", {"form": form})
-
-                movable_items = [
-                    item for item in items
-                    if item.current_warehouse_id != to_warehouse.id
-                ]
-
-                already_there = [
-                    item.serial_number for item in items
-                    if item.current_warehouse_id == to_warehouse.id
-                ]
-
-                if not movable_items:
-                    form.add_error(
-                        "to_warehouse",
-                        "All selected items are already in the destination warehouse."
+            with transaction.atomic():
+                items_qs = (
+                    InventoryItem.objects
+                    .select_for_update()
+                    .select_related("current_warehouse")
+                    .filter(
+                        serial_number__in=serial_numbers,
+                        current_warehouse=from_warehouse,
+                        quantity__gt=0,
                     )
-                else:
-                    with transaction.atomic():
-                        movements = [
-                            InventoryMovement(
-                                item=item,
-                                from_warehouse=item.current_warehouse,
-                                to_warehouse=to_warehouse,
-                                moved_by=request.user,
-                                note=note,
+                )
+
+                if not user_is_superadmin:
+                    items_qs = items_qs.filter(
+                        current_warehouse__organization=user.organization
+                    )
+
+                source_items = list(items_qs)
+                items_by_serial = defaultdict(list)
+
+                for item in source_items:
+                    items_by_serial[item.serial_number].append(item)
+
+                for entry in move_entries:
+                    serial_number = entry["serial_number"]
+                    requested_quantity = entry["quantity"]
+                    matches = items_by_serial.get(serial_number, [])
+
+                    if not matches:
+                        errors.append(
+                            f"{serial_number}: not found in {from_warehouse.name}, or not accessible."
+                        )
+                        continue
+
+                    if len(matches) > 1:
+                        errors.append(
+                            f"{serial_number}: multiple active rows exist in {from_warehouse.name}. Merge or clean duplicates first."
+                        )
+                        continue
+
+                    item = matches[0]
+
+                    if item.current_warehouse_id == to_warehouse.id:
+                        errors.append(
+                            f"{serial_number}: source and destination warehouse are the same."
+                        )
+                        continue
+
+                    if item.item_type == InventoryItem.TYPE_UNIQUE:
+                        if requested_quantity and requested_quantity != 1:
+                            errors.append(
+                                f"{serial_number}: unique items can only move quantity 1."
                             )
-                            for item in movable_items
-                        ]
+                    else:
+                        quantity_to_move = requested_quantity or item.quantity
 
-                        InventoryMovement.objects.bulk_create(movements)
+                        if quantity_to_move < 1:
+                            errors.append(
+                                f"{serial_number}: quantity must be at least 1."
+                            )
 
-                        for item in movable_items:
-                            item.current_warehouse = to_warehouse
+                        if quantity_to_move > item.quantity:
+                            errors.append(
+                                f"{serial_number}: only {item.quantity} available in {from_warehouse.name}."
+                            )
 
-                        InventoryItem.objects.bulk_update(
-                            movable_items,
-                            ["current_warehouse"]
+                if errors:
+                    form.add_error("serial_numbers", errors)
+                else:
+                    moved_rows = 0
+                    moved_quantity = 0
+
+                    for entry in move_entries:
+                        item = items_by_serial[entry["serial_number"]][0]
+
+                        if item.item_type == InventoryItem.TYPE_UNIQUE:
+                            quantity_to_move = 1
+                        else:
+                            quantity_to_move = entry["quantity"] or item.quantity
+
+                        move_inventory_quantity(
+                            item=item,
+                            to_warehouse=to_warehouse,
+                            quantity_to_move=quantity_to_move,
+                            moved_by=request.user,
+                            note=note,
                         )
 
-                    message = f"{len(movable_items)} item(s) moved to {to_warehouse.name}."
-
-                    if already_there:
-                        message += f" {len(already_there)} item(s) were already there and skipped."
+                        moved_rows += 1
+                        moved_quantity += quantity_to_move
 
                     notify(
                         request.user,
                         "Bulk Inventory Movement",
-                        message,
-                        "success"
+                        (
+                            f"{moved_rows} serial row(s), "
+                            f"{moved_quantity} total unit(s), moved from "
+                            f"{from_warehouse.name} to {to_warehouse.name}."
+                        ),
+                        "success",
                     )
 
                     return redirect("inventory:inventory_page")
     else:
-        form = BulkInventoryMoveForm(allowed_warehouses=allowed_warehouses)
+        form = BulkInventoryMoveForm(
+            allowed_warehouses=allowed_warehouses,
+        )
 
-    return render(request, "inventory/bulk_move_items.html", {"form": form})
+    return render(
+        request,
+        "inventory/bulk_move_items.html",
+        {
+            "form": form,
+        },
+    )
