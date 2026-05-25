@@ -113,6 +113,7 @@
                     </a>
 
                     <!-- Testing Batches -->
+                    {% if request.user.is_superuser %}
                     <a href="{% url 'devices:testing_batch_list' %}"
                        class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
                        {% if request.resolver_match.namespace == 'devices' and 'testing-batches' in request.path %}
@@ -123,6 +124,7 @@
                         <i class="fa-solid fa-flask-vial w-5"></i>
                         <span class="link-text">Testing Batches</span>
                     </a>
+                    {% endif %}
 
                 </div>
             </div>
