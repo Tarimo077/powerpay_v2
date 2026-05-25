@@ -36,8 +36,20 @@ from .tasks import cache_dashboard_for_user, cache_dashboard_superadmin, build_d
 from core.org_checker import get_accessible_organizations
 
 
+DEVICE_TEST_EXPORT_MODELS = {
+    "testing_batches",
+    "testing_batch_items",
+    "testing_batch_dispatches",
+}
+
+
 def _user_is_superadmin(user):
     return user.is_superuser or getattr(user, "role", "") == "superadmin"
+
+
+def _user_can_export_device_tests(user):
+    """Device testing exports are restricted to Django superusers only."""
+    return bool(user and user.is_superuser)
 
 
 def _accessible_org_ids(user):
@@ -437,6 +449,10 @@ def export_data_view(request):
 
     user = request.user
     is_superadmin = _user_is_superadmin(user)
+
+    if model in DEVICE_TEST_EXPORT_MODELS and not _user_can_export_device_tests(user):
+        return HttpResponse("Unauthorized", status=403)
+
     accessible_org_ids = _accessible_org_ids(user)
     accessible_devices = _accessible_devices_queryset(user)
     accessible_batches = _accessible_testing_batches_queryset(user)
@@ -620,6 +636,10 @@ def export_count_view(request):
 
     user = request.user
     is_superadmin = _user_is_superadmin(user)
+
+    if model in DEVICE_TEST_EXPORT_MODELS and not _user_can_export_device_tests(user):
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+
     accessible_org_ids = _accessible_org_ids(user)
     accessible_devices = _accessible_devices_queryset(user)
     accessible_batches = _accessible_testing_batches_queryset(user)

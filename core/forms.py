@@ -7,7 +7,14 @@ class ExportForm(forms.Form):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Full list of models
+        # Full list of models.
+        # Device testing exports are shown only to Django superusers.
+        DEVICE_TEST_EXPORTS = {
+            "testing_batches",
+            "testing_batch_items",
+            "testing_batch_dispatches",
+        }
+
         MODEL_CHOICES = [
             ("deviceinfo", "Device Info"),
             ("devicedata", "Device Data"),
@@ -42,9 +49,6 @@ class ExportForm(forms.Form):
             allowed = [
                 "deviceinfo",
                 "devicedata",
-                "testing_batches",
-                "testing_batch_items",
-                "testing_batch_dispatches",
                 "customers",
                 "sales",
                 "transactions",
@@ -70,6 +74,12 @@ class ExportForm(forms.Form):
                 )
             else:
                 self.fields["devices"].queryset = DeviceInfo.objects.none()
+
+        if not (user and user.is_superuser):
+            MODEL_CHOICES = [
+                choice for choice in MODEL_CHOICES
+                if choice[0] not in DEVICE_TEST_EXPORTS
+            ]
 
         self.fields["model"].choices = MODEL_CHOICES
         self.fields["devices"].label_from_instance = self.device_label
