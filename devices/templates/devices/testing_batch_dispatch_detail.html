@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}
+Powerpay Africa | Dispatch Details
+{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0 space-y-6" id="page-content">
+
+        <div class="flex flex-wrap justify-between items-center gap-3">
+            <div>
+                <h2 class="text-2xl font-bold">Dispatch Details</h2>
+                <p class="text-sm text-gray-500 mt-1">
+                    {{ batch.name }}
+                </p>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+                <a href="{% url 'devices:testing_batch_list' %}" class="btn btn-ghost btn-accent hover:text-white">
+                    <i class="fa-solid fa-backward-step"></i>
+                    Back to Batches
+                </a>
+
+                <a href="{% url 'devices:testing_batch_detail' batch.id %}" class="btn btn-info text-white">
+                    <i class="fa-solid fa-eye"></i>
+                    View Batch
+                </a>
+
+                <a href="{% url 'devices:testing_batch_delete' batch.id %}" class="btn btn-error text-white">
+                    <i class="fa-solid fa-trash"></i>
+                    Delete Batch
+                </a>
+            </div>
+        </div>
+
+        {% if dispatch %}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="card bg-base-100 shadow border-2 border-success">
+                <div class="card-body">
+                    <p class="text-sm uppercase">Recipient</p>
+                    <p class="font-bold text-success">{{ dispatch.recipient_name }}</p>
+                    <p class="text-xs text-gray-500">{{ dispatch.recipient_phone|default:"-" }}</p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-2 border-success">
+                <div class="card-body">
+                    <p class="text-sm uppercase">Destination</p>
+                    <p class="font-bold text-success">{{ dispatch.destination|default:"-" }}</p>
+                    <p class="text-xs text-gray-500">{{ dispatch.recipient_organization|default:"-" }}</p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-2 border-success">
+                <div class="card-body">
+                    <p class="text-sm uppercase">Dispatched By</p>
+                    <p class="font-bold text-success">{{ dispatch.dispatched_by|default:"System" }}</p>
+                    <p class="text-xs text-gray-500">{{ dispatch.dispatched_at|date:"j M Y H:i" }}</p>
+                </div>
+            </div>
+        </div>
+
+        {% if dispatch.note %}
+        <div class="alert alert-info">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>{{ dispatch.note }}</span>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="alert alert-warning text-white">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>This batch has not been dispatched yet.</span>
+        </div>
+        {% endif %}
+
+        <div class="bg-base-100 rounded-lg shadow overflow-x-auto">
+            <table class="table w-full">
+                <thead class="bg-success text-white uppercase text-sm">
+                    <tr>
+                        <th>Device ID</th>
+                        <th class="text-center">Test 1</th>
+                        <th class="text-center">Test 2</th>
+                        <th class="text-center">Packed</th>
+                        <th class="text-center">Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for row in items %}
+                    <tr class="h-16">
+                        <td class="align-middle font-mono font-semibold">
+                            {{ row.device.deviceid }}
+                        </td>
+
+                        <td class="align-middle text-center">
+                            {% if row.test_one_passed %}
+                                <span class="badge badge-success text-white">Passed</span>
+                            {% else %}
+                                <span class="badge badge-error text-white">Failed</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="align-middle text-center">
+                            {% if row.test_two_passed %}
+                                <span class="badge badge-success text-white">Passed</span>
+                            {% else %}
+                                <span class="badge badge-error text-white">Failed</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="align-middle text-center">
+                            {% if row.packed %}
+                                <span class="badge badge-success text-white">Packed</span>
+                            {% else %}
+                                <span class="badge badge-error text-white">Not Packed</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="align-middle text-center">
+                            {% if batch.status == "dispatched" %}
+                                <span class="badge badge-success text-white">Dispatched</span>
+                            {% elif row.ready_for_dispatch %}
+                                <span class="badge badge-accent text-white">Ready</span>
+                            {% else %}
+                                <span class="badge badge-warning text-white">Not Ready</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-8">
+                            No devices found in this batch.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

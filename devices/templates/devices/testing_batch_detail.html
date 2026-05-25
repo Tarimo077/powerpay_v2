@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}
+Powerpay Africa | {{ batch.name }}
+{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0 space-y-6" id="page-content">
+
+        <div class="flex flex-wrap justify-between items-center gap-3">
+            <div>
+                <h2 class="text-2xl font-bold">{{ batch.name }}</h2>
+                <p class="text-sm text-gray-500 mt-1">
+                    Created {{ batch.created_at|date:"j M Y H:i" }}
+                </p>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+                <a href="{% url 'devices:testing_batch_list' %}" class="btn btn-ghost btn-accent hover:text-white">
+                    <i class="fa-solid fa-backward-step"></i>
+                    Back
+                </a>
+
+                <a href="{% url 'devices:testing_batch_delete' batch.id %}" class="btn btn-error text-white">
+                    <i class="fa-solid fa-trash"></i>
+                    Delete Batch
+                </a>
+
+                {% if batch.status == "ready" %}
+                <a href="{% url 'devices:testing_batch_dispatch' batch.id %}" class="btn btn-success text-white">
+                    <i class="fa-solid fa-truck"></i>
+                    Dispatch Batch
+                </a>
+                {% endif %}
+
+                {% if batch.status == "dispatched" %}
+                <a href="{% url 'devices:testing_batch_dispatch_detail' batch.id %}" class="btn btn-warning text-white">
+                    <i class="fa-solid fa-receipt"></i>
+                    Dispatch Details
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="card bg-base-100 shadow border-2 border-success">
+                <div class="card-body">
+                    <p class="text-sm uppercase">Total Devices</p>
+                    <p class="text-3xl font-bold text-success">{{ batch.total_devices }}</p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-2 border-info">
+                <div class="card-body">
+                    <p class="text-sm uppercase">Passed Tests</p>
+                    <p class="text-3xl font-bold text-info">{{ batch.passed_devices }}</p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-2 border-warning">
+                <div class="card-body">
+                    <p class="text-sm uppercase">Packed</p>
+                    <p class="text-3xl font-bold text-warning">{{ batch.packed_devices }}</p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-2 border-accent">
+                <div class="card-body">
+                    <p class="text-sm uppercase">Status</p>
+                    {% if batch.status == "dispatched" %}
+                        <span class="badge badge-success text-white badge-lg">Dispatched</span>
+                    {% elif batch.status == "ready" %}
+                        <span class="badge badge-accent text-white badge-lg">Ready</span>
+                    {% elif batch.status == "in_progress" %}
+                        <span class="badge badge-warning text-white badge-lg">In Progress</span>
+                    {% else %}
+                        <span class="badge badge-ghost badge-lg">Open</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% if batch.note %}
+        <div class="alert alert-info">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>{{ batch.note }}</span>
+        </div>
+        {% endif %}
+
+        <div class="bg-base-100 rounded-lg shadow p-4">
+            <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
+                <div>
+                    <h3 class="font-bold text-lg">Batch Testing Table</h3>
+                    <p class="text-sm text-gray-500">
+                        Tick Test 1, Test 2, and Packed for each device. A device can only be packed after both tests pass.
+                    </p>
+                </div>
+
+                {% if batch.status != "dispatched" %}
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" onclick="toggleColumn('test_one_passed', true)" class="btn btn-sm btn-info text-white">
+                        Mark All Test 1
+                    </button>
+
+                    <button type="button" onclick="toggleColumn('test_two_passed', true)" class="btn btn-sm btn-warning text-white">
+                        Mark All Test 2
+                    </button>
+
+                    <button type="button" onclick="togglePackedReady()" class="btn btn-sm btn-success text-white">
+                        Pack Ready
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+
+            <form method="POST" action="{% url 'devices:testing_batch_update_results' batch.id %}">
+                {% csrf_token %}
+
+                <div class="overflow-x-auto">
+                    <table class="table w-full">
+                        <thead class="bg-success text-white uppercase text-sm">
+                            <tr>
+                                <th>Device ID</th>
+                                <th class="text-center">Test 1</th>
+                                <th class="text-center">Test 2</th>
+                                <th class="text-center">Packed</th>
+                                <th class="text-center">Status</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for row in items %}
+                            <tr class="align-middle">
+                                <td class="align-middle">
+                                    <input type="hidden" name="item_id" value="{{ row.id }}">
+
+                                    <div>
+                                        <p class="font-mono font-semibold">{{ row.device.deviceid }}</p>
+                                        {% if row.tested_by %}
+                                        <p class="text-xs text-gray-500">
+                                            Tested by {{ row.tested_by }}
+                                            {% if row.tested_at %}
+                                                on {{ row.tested_at|date:"j M Y H:i" }}
+                                            {% endif %}
+                                        </p>
+                                        {% endif %}
+                                    </div>
+                                </td>
+
+                                <td class="text-center align-middle">
+                                    <input type="checkbox"
+                                           name="test_one_passed"
+                                           value="{{ row.id }}"
+                                           class="checkbox checkbox-info test-one-checkbox"
+                                           {% if row.test_one_passed %}checked{% endif %}
+                                           {% if batch.status == "dispatched" %}disabled{% endif %}>
+                                </td>
+
+                                <td class="text-center align-middle">
+                                    <input type="checkbox"
+                                           name="test_two_passed"
+                                           value="{{ row.id }}"
+                                           class="checkbox checkbox-warning test-two-checkbox"
+                                           {% if row.test_two_passed %}checked{% endif %}
+                                           {% if batch.status == "dispatched" %}disabled{% endif %}>
+                                </td>
+
+                                <td class="text-center align-middle">
+                                    <input type="checkbox"
+                                           name="packed"
+                                           value="{{ row.id }}"
+                                           class="checkbox checkbox-success packed-checkbox"
+                                           {% if row.packed %}checked{% endif %}
+                                           {% if batch.status == "dispatched" %}disabled{% endif %}>
+                                </td>
+
+                                <td class="text-center align-middle">
+                                    {% if batch.status == "dispatched" %}
+                                        <span class="badge badge-success text-white">Dispatched</span>
+                                    {% elif row.ready_for_dispatch %}
+                                        <span class="badge badge-accent text-white">Ready</span>
+                                    {% elif row.passed_tests %}
+                                        <span class="badge badge-info text-white">Passed</span>
+                                    {% elif row.test_one_passed or row.test_two_passed %}
+                                        <span class="badge badge-warning text-white">Testing</span>
+                                    {% else %}
+                                        <span class="badge badge-ghost">Pending</span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="align-middle min-w-96">
+                                    <details class="collapse collapse-arrow bg-base-200">
+                                        <summary class="collapse-title text-sm font-medium">
+                                            Notes
+                                        </summary>
+
+                                        <div class="collapse-content space-y-2">
+                                            <textarea name="test_one_notes_{{ row.id }}"
+                                                      class="textarea textarea-bordered w-full text-sm"
+                                                      rows="2"
+                                                      placeholder="Test 1 notes"
+                                                      {% if batch.status == "dispatched" %}disabled{% endif %}>{{ row.test_one_notes|default:"" }}</textarea>
+
+                                            <textarea name="test_two_notes_{{ row.id }}"
+                                                      class="textarea textarea-bordered w-full text-sm"
+                                                      rows="2"
+                                                      placeholder="Test 2 notes"
+                                                      {% if batch.status == "dispatched" %}disabled{% endif %}>{{ row.test_two_notes|default:"" }}</textarea>
+
+                                            <textarea name="packing_notes_{{ row.id }}"
+                                                      class="textarea textarea-bordered w-full text-sm"
+                                                      rows="2"
+                                                      placeholder="Packing notes"
+                                                      {% if batch.status == "dispatched" %}disabled{% endif %}>{{ row.packing_notes|default:"" }}</textarea>
+                                        </div>
+                                    </details>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-8">
+                                    No devices in this batch.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if batch.status != "dispatched" %}
+                <div class="flex justify-end mt-4">
+                    <button type="submit" class="btn btn-success text-white">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Save Results
+                    </button>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function toggleColumn(name, checked) {
+    document.querySelectorAll('input[name="' + name + '"]').forEach(function(input) {
+        if (!input.disabled) {
+            input.checked = checked;
+        }
+    });
+}
+
+function togglePackedReady() {
+    document.querySelectorAll("tbody tr").forEach(function(row) {
+        const testOne = row.querySelector(".test-one-checkbox");
+        const testTwo = row.querySelector(".test-two-checkbox");
+        const packed = row.querySelector(".packed-checkbox");
+
+        if (testOne && testTwo && packed && !packed.disabled) {
+            packed.checked = testOne.checked && testTwo.checked;
+        }
+    });
+}
+</script>
+{% endblock %}

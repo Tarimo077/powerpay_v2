@@ -5038,6 +5038,9 @@
   .col-span-12 {
     grid-column: span 12 / span 12;
   }
+  .col-span-full {
+    grid-column: 1 / -1;
+  }
   .timeline-end {
     @layer daisyui.l1.l2.l3 {
       grid-column-start: 1;
@@ -7148,6 +7151,9 @@
   .min-w-50 {
     min-width: calc(var(--spacing) * 50);
   }
+  .min-w-96 {
+    min-width: calc(var(--spacing) * 96);
+  }
   .min-w-full {
     min-width: 100%;
   }
@@ -8406,12 +8412,6 @@
   }
   .bg-red-700 {
     background-color: var(--color-red-700);
-  }
-  .bg-secondary\/10 {
-    background-color: var(--color-secondary);
-    @supports (color: color-mix(in lab, red, red)) {
-      background-color: color-mix(in oklab, var(--color-secondary) 10%, transparent);
-    }
   }
   .bg-success {
     background-color: var(--color-success);
@@ -10854,6 +10854,13 @@
       }
     }
   }
+  .hover\:border-success {
+    &:hover {
+      @media (hover: hover) {
+        border-color: var(--color-success);
+      }
+    }
+  }
   .hover\:bg-base-200 {
     &:hover {
       @media (hover: hover) {
@@ -11419,11 +11426,6 @@
       width: calc(var(--spacing) * 96);
     }
   }
-  .md\:max-w-md {
-    @media (width >= 48rem) {
-      max-width: var(--container-md);
-    }
-  }
   .md\:max-w-xl {
     @media (width >= 48rem) {
       max-width: var(--container-xl);
@@ -11557,11 +11559,6 @@
       translate: var(--tw-translate-x) var(--tw-translate-y);
     }
   }
-  .lg\:grid-cols-1 {
-    @media (width >= 64rem) {
-      grid-template-columns: repeat(1, minmax(0, 1fr));
-    }
-  }
   .lg\:grid-cols-2 {
     @media (width >= 64rem) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -11621,6 +11618,11 @@
   .xl\:col-span-8 {
     @media (width >= 80rem) {
       grid-column: span 8 / span 8;
+    }
+  }
+  .xl\:grid-cols-3 {
+    @media (width >= 80rem) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
   .xl\:grid-cols-4 {

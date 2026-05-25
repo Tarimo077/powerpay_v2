@@ -22,6 +22,10 @@
 
         {% if is_superuser %}
         <div class="flex flex-wrap justify-end gap-2 w-full mb-4">
+                <a href="{% url 'devices:testing_batch_create' %}" class="btn btn-info text-white">
+                    <i class="fa-solid fa-plus"></i>
+                    Create Test Batch
+                </a>
                 <a href="{% url 'devices:device_bulk_create' %}"
                 class="btn btn-warning text-white">
                     <i class="fa-solid fa-layer-group"></i> Bulk Add Devices

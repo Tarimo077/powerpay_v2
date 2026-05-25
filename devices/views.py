@@ -1,6 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.timezone import now, make_aware, is_naive
-from .models import DeviceInfo, DeviceData, DeviceCommandSchedule, TrackKwh
 from .services.energy import (
     kwh_for_device,
     last_energy_timestamp
@@ -14,7 +13,6 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Sum, Q, OuterRef, Subquery
 from notifications.utils import notify
-from .forms import DeviceForm, DeviceCommandScheduleForm, BulkDeviceCreateForm
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
@@ -24,11 +22,323 @@ from organizations.models import Organization
 from core.org_checker import get_accessible_organizations
 from inventory.models import InventoryItem
 from django.db import transaction
-import csv
-
+from django.db import transaction
+from django.utils import timezone
+from .models import (
+    DeviceInfo,
+    DeviceData,
+    DeviceCommandSchedule,
+    TrackKwh,
+    DeviceTestingBatch,
+    DeviceTestingBatchItem,
+    DeviceBatchDispatch,
+)
+from .forms import (
+    DeviceTestingBatchForm,
+    DeviceBatchDispatchForm,
+    DeviceForm, 
+    DeviceCommandScheduleForm, 
+    BulkDeviceCreateForm
+)
 
 COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
 
+def is_superadmin(user):
+    return user.is_superuser or getattr(user, "role", None) == "superadmin"
+
+
+def _accessible_testing_batch_queryset(user):
+    """
+    Test batches no longer belong to an organization directly.
+    Superadmins can see all batches.
+    Other users can see batches they created or batches containing devices
+    from organizations they can access.
+    """
+    qs = DeviceTestingBatch.objects.select_related("created_by")
+
+    if is_superadmin(user):
+        return qs.distinct()
+
+    accessible_orgs = get_accessible_organizations(user)
+
+    return (
+        qs.filter(
+            Q(created_by=user)
+            | Q(items__device__organization__in=accessible_orgs)
+            | Q(items__device__organizations__in=accessible_orgs)
+        )
+        .distinct()
+    )
+
+
+@login_required
+def testing_batch_list(request):
+    batches = _accessible_testing_batch_queryset(request.user)
+
+    return render(
+        request,
+        "devices/testing_batch_list.html",
+        {
+            "batches": batches,
+        },
+    )
+
+
+@login_required
+def testing_batch_create(request):
+    if request.method == "POST":
+        form = DeviceTestingBatchForm(request.POST, user=request.user)
+
+        if form.is_valid():
+            with transaction.atomic():
+                batch = form.save(commit=False)
+                batch.created_by = request.user
+                batch.save()
+
+                selected_devices = form.cleaned_data["devices"]
+
+                DeviceTestingBatchItem.objects.bulk_create([
+                    DeviceTestingBatchItem(
+                        batch=batch,
+                        device=device,
+                    )
+                    for device in selected_devices
+                ])
+
+                batch.refresh_status()
+
+            notify(
+                request.user,
+                "Testing Batch Created",
+                f"{batch.name} has been created with {selected_devices.count()} device(s).",
+                "success",
+            )
+
+            return redirect("devices:testing_batch_detail", pk=batch.pk)
+    else:
+        form = DeviceTestingBatchForm(user=request.user)
+
+    return render(
+        request,
+        "devices/testing_batch_form.html",
+        {
+            "form": form,
+        },
+    )
+
+
+@login_required
+def testing_batch_detail(request, pk):
+    batch = get_object_or_404(
+        _accessible_testing_batch_queryset(request.user),
+        pk=pk,
+    )
+
+    items = (
+        DeviceTestingBatchItem.objects
+        .select_related("device", "tested_by")
+        .filter(batch=batch)
+        .order_by("device__deviceid")
+    )
+
+    return render(
+        request,
+        "devices/testing_batch_detail.html",
+        {
+            "batch": batch,
+            "items": items,
+        },
+    )
+
+
+@login_required
+def testing_batch_update_results(request, pk):
+    batch = get_object_or_404(
+        _accessible_testing_batch_queryset(request.user),
+        pk=pk,
+    )
+
+    if batch.status == DeviceTestingBatch.STATUS_DISPATCHED:
+        notify(
+            request.user,
+            "Batch Locked",
+            "This batch has already been dispatched and can no longer be edited.",
+            "warning",
+        )
+        return redirect("devices:testing_batch_detail", pk=batch.pk)
+
+    if request.method != "POST":
+        return redirect("devices:testing_batch_detail", pk=batch.pk)
+
+    item_ids = request.POST.getlist("item_id")
+    test_one_ids = set(request.POST.getlist("test_one_passed"))
+    test_two_ids = set(request.POST.getlist("test_two_passed"))
+    packed_ids = set(request.POST.getlist("packed"))
+
+    current_time = timezone.now()
+
+    with transaction.atomic():
+        items = list(
+            DeviceTestingBatchItem.objects
+            .select_for_update()
+            .filter(batch=batch, id__in=item_ids)
+        )
+
+        for item in items:
+            item_id = str(item.id)
+
+            old_test_one = item.test_one_passed
+            old_test_two = item.test_two_passed
+            old_packed = item.packed
+
+            item.test_one_passed = item_id in test_one_ids
+            item.test_two_passed = item_id in test_two_ids
+
+            requested_packed = item_id in packed_ids
+            item.packed = requested_packed and item.test_one_passed and item.test_two_passed
+
+            item.test_one_notes = request.POST.get(f"test_one_notes_{item.id}", "").strip()
+            item.test_two_notes = request.POST.get(f"test_two_notes_{item.id}", "").strip()
+            item.packing_notes = request.POST.get(f"packing_notes_{item.id}", "").strip()
+
+            if (
+                item.test_one_passed != old_test_one
+                or item.test_two_passed != old_test_two
+            ):
+                item.tested_by = request.user
+                item.tested_at = current_time
+
+            if item.packed and not old_packed:
+                item.packed_at = current_time
+
+            if not item.packed:
+                item.packed_at = None
+
+            item.save()
+
+        batch.refresh_status()
+
+    notify(
+        request.user,
+        "Batch Updated",
+        f"{batch.name} test and packing results have been saved.",
+        "success",
+    )
+
+    return redirect("devices:testing_batch_detail", pk=batch.pk)
+
+
+@login_required
+def testing_batch_dispatch(request, pk):
+    batch = get_object_or_404(
+        _accessible_testing_batch_queryset(request.user),
+        pk=pk,
+    )
+
+    if batch.status == DeviceTestingBatch.STATUS_DISPATCHED:
+        return redirect("devices:testing_batch_dispatch_detail", pk=batch.pk)
+
+    batch.refresh_status()
+
+    if not batch.is_ready_for_dispatch:
+        notify(
+            request.user,
+            "Batch Not Ready",
+            "All devices must pass Test 1, pass Test 2, and be packed before dispatch.",
+            "warning",
+        )
+        return redirect("devices:testing_batch_detail", pk=batch.pk)
+
+    if request.method == "POST":
+        form = DeviceBatchDispatchForm(request.POST)
+
+        if form.is_valid():
+            with transaction.atomic():
+                dispatch = form.save(commit=False)
+                dispatch.batch = batch
+                dispatch.dispatched_by = request.user
+                dispatch.save()
+
+                batch.status = DeviceTestingBatch.STATUS_DISPATCHED
+                batch.save(update_fields=["status", "updated_at"])
+
+            notify(
+                request.user,
+                "Batch Dispatched",
+                f"{batch.name} has been dispatched by {request.user}.",
+                "success",
+            )
+
+            return redirect("devices:testing_batch_dispatch_detail", pk=batch.pk)
+    else:
+        form = DeviceBatchDispatchForm()
+
+    return render(
+        request,
+        "devices/testing_batch_dispatch.html",
+        {
+            "batch": batch,
+            "form": form,
+        },
+    )
+
+
+@login_required
+def testing_batch_dispatch_detail(request, pk):
+    batch = get_object_or_404(
+        _accessible_testing_batch_queryset(request.user),
+        pk=pk,
+    )
+
+    items = (
+        DeviceTestingBatchItem.objects
+        .select_related("device")
+        .filter(batch=batch)
+        .order_by("device__deviceid")
+    )
+
+    dispatch = getattr(batch, "dispatch", None)
+
+    return render(
+        request,
+        "devices/testing_batch_dispatch_detail.html",
+        {
+            "batch": batch,
+            "items": items,
+            "dispatch": dispatch,
+        },
+    )
+
+
+@login_required
+def testing_batch_delete(request, pk):
+    batch = get_object_or_404(
+        _accessible_testing_batch_queryset(request.user),
+        pk=pk,
+    )
+
+    if request.method == "POST":
+        batch_name = batch.name
+
+        with transaction.atomic():
+            batch.delete()
+
+        notify(
+            request.user,
+            "Testing Batch Deleted",
+            f"{batch_name} and its related testing records have been deleted.",
+            "success",
+        )
+
+        return redirect("devices:testing_batch_list")
+
+    return render(
+        request,
+        "devices/testing_batch_confirm_delete.html",
+        {
+            "batch": batch,
+        },
+    )
 
 def _user_is_device_admin(user):
     return user.is_superuser or getattr(user, "role", None) == "superadmin"
@@ -1001,17 +1311,43 @@ class DeviceScheduleListView(ListView):
     context_object_name = "schedules"
     ordering = ["-scheduled_time"]
 
+    page_size_options = [10, 25, 50, 100]
+
     def get_queryset(self):
         user = self.request.user
 
+        qs = (
+            DeviceCommandSchedule.objects
+            .select_related("created_by", "organization")
+            .prefetch_related("devices")
+            .order_by("-scheduled_time")
+        )
+
         if _user_is_device_admin(user):
-            return DeviceCommandSchedule.objects.all().order_by("-scheduled_time")
+            return qs
 
         accessible_orgs = get_accessible_organizations(user)
 
-        return DeviceCommandSchedule.objects.filter(
-            organization__in=accessible_orgs
-        ).order_by("-scheduled_time")
+        return qs.filter(organization__in=accessible_orgs)
+
+    def get_paginate_by(self, queryset):
+        try:
+            page_size = int(self.request.GET.get("page_size", 10))
+        except (TypeError, ValueError):
+            page_size = 10
+
+        if page_size not in self.page_size_options:
+            page_size = 10
+
+        self.page_size = page_size
+        return page_size
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["page_size"] = getattr(self, "page_size", 10)
+        context["page_size_options"] = self.page_size_options
+        context["total_results"] = self.get_queryset().count()
+        return context
 
 
 class DeviceScheduleCreateView(CreateView):

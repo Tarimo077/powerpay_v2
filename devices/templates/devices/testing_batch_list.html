@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}
+Powerpay Africa | Device Testing Batches
+{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0 space-y-6" id="page-content">
+
+        <div class="flex flex-wrap justify-between items-center gap-3">
+            <div>
+                <h2 class="text-2xl font-bold">Device Testing Batches</h2>
+                <p class="text-sm text-gray-500 mt-1">
+                    Group devices, test them, pack them, then dispatch when ready.
+                </p>
+            </div>
+
+            <a href="{% url 'devices:testing_batch_create' %}" class="btn btn-success text-white">
+                <i class="fa-solid fa-plus"></i>
+                New Testing Batch
+            </a>
+        </div>
+
+        <div class="bg-base-100 rounded-lg shadow overflow-x-auto">
+            <table class="table w-full">
+                <thead class="bg-success text-white uppercase text-sm">
+                    <tr>
+                        <th class="align-middle">Batch</th>
+                        <th class="align-middle text-center">Devices</th>
+                        <th class="align-middle text-center">Passed</th>
+                        <th class="align-middle text-center">Packed</th>
+                        <th class="align-middle text-center">Status</th>
+                        <th class="align-middle">Created</th>
+                        <th class="align-middle text-center">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for batch in batches %}
+                    <tr class="h-20">
+                        <td class="align-middle">
+                            <div>
+                                <p class="font-semibold">{{ batch.name }}</p>
+                                <p class="text-xs text-gray-500">
+                                    Created by {{ batch.created_by|default:"System" }}
+                                </p>
+                            </div>
+                        </td>
+
+                        <td class="align-middle text-center">
+                            <span class="badge badge-neutral">
+                                {{ batch.total_devices }}
+                            </span>
+                        </td>
+
+                        <td class="align-middle text-center">
+                            <span class="badge badge-info text-white">
+                                {{ batch.passed_devices }}/{{ batch.total_devices }}
+                            </span>
+                        </td>
+
+                        <td class="align-middle text-center">
+                            <span class="badge badge-warning text-white">
+                                {{ batch.packed_devices }}/{{ batch.total_devices }}
+                            </span>
+                        </td>
+
+                        <td class="align-middle text-center">
+                            {% if batch.status == "dispatched" %}
+                                <span class="badge badge-success text-white">Dispatched</span>
+                            {% elif batch.status == "ready" %}
+                                <span class="badge badge-accent text-white">Ready</span>
+                            {% elif batch.status == "in_progress" %}
+                                <span class="badge badge-warning text-white">In Progress</span>
+                            {% else %}
+                                <span class="badge badge-ghost">Open</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="align-middle">
+                            {{ batch.created_at|date:"j M Y H:i" }}
+                        </td>
+
+                        <td class="align-middle">
+                            <div class="flex flex-wrap justify-center gap-2 items-center">
+                                <a href="{% url 'devices:testing_batch_detail' batch.id %}"
+                                   class="btn btn-sm btn-info text-white">
+                                    <i class="fa-solid fa-eye"></i>
+                                    View
+                                </a>
+
+                                <a href="{% url 'devices:testing_batch_delete' batch.id %}"
+                                   class="btn btn-sm btn-error text-white">
+                                    <i class="fa-solid fa-trash"></i>
+                                    Delete
+                                </a>
+
+                                {% if batch.status == "ready" %}
+                                <a href="{% url 'devices:testing_batch_dispatch' batch.id %}"
+                                   class="btn btn-sm btn-success text-white">
+                                    <i class="fa-solid fa-truck"></i>
+                                    Dispatch
+                                </a>
+                                {% endif %}
+
+                                {% if batch.status == "dispatched" %}
+                                <a href="{% url 'devices:testing_batch_dispatch_detail' batch.id %}"
+                                   class="btn btn-sm btn-warning text-white">
+                                    <i class="fa-solid fa-receipt"></i>
+                                    Dispatch Details
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-8">
+                            No testing batches found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

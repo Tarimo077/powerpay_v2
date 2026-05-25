@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}
+Powerpay Africa | Delete Testing Batch
+{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0 space-y-6" id="page-content">
+
+        <div class="max-w-3xl mx-auto bg-base-100 rounded-lg shadow p-6">
+            <div class="flex flex-wrap justify-between items-start gap-3 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-error">Delete Testing Batch</h2>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Confirm that you want to delete this testing batch.
+                    </p>
+                </div>
+
+                <a href="{% url 'devices:testing_batch_detail' batch.id %}" class="btn btn-ghost btn-accent hover:text-white">
+                    <i class="fa-solid fa-backward-step"></i>
+                    Back to Batch
+                </a>
+            </div>
+
+            <div class="alert alert-error text-white mb-6">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div>
+                    <p class="font-semibold">This action cannot be undone.</p>
+                    <p class="text-sm">
+                        Deleting this batch will also delete its testing rows and dispatch record, if any.
+                    </p>
+                </div>
+            </div>
+
+            <div class="rounded-lg bg-base-200 p-4 mb-6">
+                <p class="text-sm text-gray-500">Batch</p>
+                <p class="text-xl font-bold">{{ batch.name }}</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase">Devices</p>
+                        <p class="font-semibold">{{ batch.total_devices }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase">Status</p>
+                        {% if batch.status == "dispatched" %}
+                            <span class="badge badge-success text-white">Dispatched</span>
+                        {% elif batch.status == "ready" %}
+                            <span class="badge badge-accent text-white">Ready</span>
+                        {% elif batch.status == "in_progress" %}
+                            <span class="badge badge-warning text-white">In Progress</span>
+                        {% else %}
+                            <span class="badge badge-ghost">Open</span>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase">Created</p>
+                        <p class="font-semibold">{{ batch.created_at|date:"j M Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <form method="POST" class="flex flex-wrap justify-between gap-3">
+                {% csrf_token %}
+
+                <a href="{% url 'devices:testing_batch_detail' batch.id %}" class="btn btn-ghost btn-accent hover:text-white">
+                    Cancel
+                </a>
+
+                <button type="submit" class="btn btn-error text-white">
+                    <i class="fa-solid fa-trash"></i>
+                    Yes, Delete Batch
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

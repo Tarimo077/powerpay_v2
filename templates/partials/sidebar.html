@@ -72,29 +72,60 @@
             </a>
             {% endif %}
 
-            <!-- Devices -->
-            <a href="{% url 'devices:device_list' %}"
-               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
-               {% if 'devices' in request.path and 'schedules' not in request.path %}
-                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
-               {% else %}
-                    hover:text-success
-               {% endif %}">
-                <i class="fas fa-plug w-5"></i>
-                <span class="link-text">Devices</span>
-            </a>
+            <!-- Devices Group -->
+            <div class="collapse collapse-arrow rounded-none bg-base-100 mx-3">
 
-            <!-- Device Schedules -->
-            <a href="{% url 'devices:device_schedule_list' %}"
-               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
-               {% if 'schedules' in request.path %}
-                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
-               {% else %}
-                    hover:text-success
-               {% endif %}">
-                <i class="fa-solid fa-calendar-day w-5"></i>
-                <span class="link-text">Device Schedules</span>
-            </a>
+                <input type="checkbox"
+                       {% if request.resolver_match.namespace == 'devices' %}checked{% endif %} />
+
+                <!-- Parent is NOT highlighted. Only submenu links are highlighted. -->
+                <div class="collapse-title px-4 py-4 hover:text-success">
+                    <div class="flex items-center gap-4">
+                        <i class="fas fa-plug w-5"></i>
+                        <span class="link-text">Devices</span>
+                    </div>
+                </div>
+
+                <div class="collapse-content mx-1">
+
+                    <!-- All Devices -->
+                    <a href="{% url 'devices:device_list' %}"
+                       class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+                       {% if request.resolver_match.namespace == 'devices' and 'schedules' not in request.path and 'testing-batches' not in request.path %}
+                            bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                       {% else %}
+                            hover:text-success
+                       {% endif %}">
+                        <i class="fas fa-microchip w-5"></i>
+                        <span class="link-text">Device List</span>
+                    </a>
+
+                    <!-- Device Schedules -->
+                    <a href="{% url 'devices:device_schedule_list' %}"
+                       class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+                       {% if request.resolver_match.namespace == 'devices' and 'schedules' in request.path %}
+                            bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                       {% else %}
+                            hover:text-success
+                       {% endif %}">
+                        <i class="fa-solid fa-calendar-day w-5"></i>
+                        <span class="link-text">Device Schedules</span>
+                    </a>
+
+                    <!-- Testing Batches -->
+                    <a href="{% url 'devices:testing_batch_list' %}"
+                       class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+                       {% if request.resolver_match.namespace == 'devices' and 'testing-batches' in request.path %}
+                            bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                       {% else %}
+                            hover:text-success
+                       {% endif %}">
+                        <i class="fa-solid fa-flask-vial w-5"></i>
+                        <span class="link-text">Testing Batches</span>
+                    </a>
+
+                </div>
+            </div>
 
             <!-- Customers -->
             {% if 'customers' in allowed_apps %}
@@ -150,6 +181,7 @@
                 <i class="fa-solid fa-boxes-stacked w-5"></i>
                 <span class="link-text">Inventory</span>
             </a>
+
             {% if request.user.is_superuser %}
             <a href="{% url 'inventory:warehouses_page' %}"
                class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
@@ -162,7 +194,7 @@
                 <span class="link-text">Warehouses</span>
             </a>
             {% endif %}
-            {% endif %} 
+            {% endif %}
 
             <!-- Transactions -->
             {% if 'transactions' in allowed_apps %}
@@ -242,7 +274,7 @@
 
                 </div>
             </div>
-            {% endif %} 
+            {% endif %}
 
         </div>
     </div>

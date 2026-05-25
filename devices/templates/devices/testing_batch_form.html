@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}
+Powerpay Africa | New Testing Batch
+{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0 space-y-6" id="page-content">
+
+        <div class="bg-base-100 rounded-lg shadow p-6">
+            <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">Create Testing Batch</h2>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Select devices that are part of the current testing batch. Organization is not required for batches.
+                    </p>
+                </div>
+
+                <a href="{% url 'devices:testing_batch_list' %}" class="btn btn-ghost btn-accent hover:text-white">
+                    <i class="fa-solid fa-backward-step"></i>
+                    Back to Batches
+                </a>
+            </div>
+
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-error text-white">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div>
+                    <label class="label font-semibold">{{ form.name.label }}</label>
+                    {{ form.name }}
+                    {{ form.name.errors }}
+                </div>
+
+                <div>
+                    <label class="label font-semibold">{{ form.note.label }}</label>
+                    {{ form.note }}
+                    {{ form.note.errors }}
+                </div>
+
+                <div class="rounded-lg border border-base-300 bg-base-200 p-4">
+                    <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
+                        <div>
+                            <h3 class="font-bold text-lg">Choose Devices</h3>
+                            <p class="text-sm text-gray-500">
+                                Tick devices that belong to this batch. You can search, select visible devices, or clear the selection.
+                            </p>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button type="button" onclick="selectAllDevices()" class="btn btn-sm btn-success text-white">
+                                Select Visible
+                            </button>
+
+                            <button type="button" onclick="clearAllDevices()" class="btn btn-sm btn-error text-white">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <input type="text"
+                           id="device-search"
+                           placeholder="Search device ID..."
+                           class="input input-bordered w-full mb-4"
+                           onkeyup="filterDevices()">
+
+                    <div class="max-h-96 overflow-y-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                        {% for checkbox in form.devices %}
+                            <label class="device-option cursor-pointer rounded-lg bg-base-100 border border-base-300 p-3 flex items-center gap-3 hover:border-success">
+                                {{ checkbox.tag }}
+                                <span class="font-mono text-sm device-label">
+                                    {{ checkbox.choice_label }}
+                                </span>
+                            </label>
+                        {% empty %}
+                            <div class="col-span-full text-center py-6 text-gray-500">
+                                No devices available.
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-3">
+                        {{ form.devices.errors }}
+                    </div>
+                </div>
+
+                <div class="flex justify-between">
+                    <a href="{% url 'devices:testing_batch_list' %}" class="btn btn-error text-white">
+                        Cancel
+                    </a>
+
+                    <button type="submit" class="btn btn-success text-white">
+                        <i class="fa-solid fa-flask-vial"></i>
+                        Create Batch
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function selectAllDevices() {
+    document.querySelectorAll('input[name="devices"]').forEach(function(input) {
+        const option = input.closest(".device-option");
+        if (option && !option.classList.contains("hidden")) {
+            input.checked = true;
+        }
+    });
+}
+
+function clearAllDevices() {
+    document.querySelectorAll('input[name="devices"]').forEach(function(input) {
+        input.checked = false;
+    });
+}
+
+function filterDevices() {
+    const query = document.getElementById("device-search").value.toLowerCase();
+
+    document.querySelectorAll(".device-option").forEach(function(option) {
+        const label = option.querySelector(".device-label").innerText.toLowerCase();
+
+        if (label.includes(query)) {
+            option.classList.remove("hidden");
+        } else {
+            option.classList.add("hidden");
+        }
+    });
+}
+</script>
+{% endblock %}

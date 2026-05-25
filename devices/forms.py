@@ -1,8 +1,92 @@
 from django import forms
-from .models import DeviceInfo, DeviceCommandSchedule
 from inventory.models import Warehouse
 from organizations.models import Organization
+from .models import (
+    DeviceInfo,
+    DeviceTestingBatch,
+    DeviceBatchDispatch,
+    DeviceCommandSchedule,
+)
+from django.db.models import Q
 
+
+class DeviceTestingBatchForm(forms.ModelForm):
+    devices = forms.ModelMultipleChoiceField(
+        queryset=DeviceInfo.objects.none(),
+        widget=forms.CheckboxSelectMultiple,
+        required=True,
+        label="Devices in this testing batch",
+    )
+
+    class Meta:
+        model = DeviceTestingBatch
+        fields = ["name", "note", "devices"]
+        widgets = {
+            "name": forms.TextInput(attrs={
+                "class": "input input-bordered w-full",
+                "placeholder": "e.g. Batch 2026-05-25",
+            }),
+            "note": forms.Textarea(attrs={
+                "class": "textarea textarea-bordered w-full",
+                "rows": 3,
+                "placeholder": "Optional batch note",
+            }),
+        }
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+
+        if user and (user.is_superuser or getattr(user, "role", None) == "superadmin"):
+            self.fields["devices"].queryset = DeviceInfo.objects.all().order_by("deviceid")
+        elif user and getattr(user, "organization", None):
+            self.fields["devices"].queryset = (
+                DeviceInfo.objects
+                .filter(
+                    Q(organization=user.organization)
+                    | Q(organizations=user.organization)
+                )
+                .distinct()
+                .order_by("deviceid")
+            )
+        else:
+            self.fields["devices"].queryset = DeviceInfo.objects.none()
+
+
+class DeviceBatchDispatchForm(forms.ModelForm):
+    class Meta:
+        model = DeviceBatchDispatch
+        fields = [
+            "recipient_name",
+            "recipient_phone",
+            "recipient_organization",
+            "destination",
+            "note",
+        ]
+
+        widgets = {
+            "recipient_name": forms.TextInput(attrs={
+                "class": "input input-bordered w-full",
+                "placeholder": "Recipient full name",
+            }),
+            "recipient_phone": forms.TextInput(attrs={
+                "class": "input input-bordered w-full",
+                "placeholder": "Recipient phone",
+            }),
+            "recipient_organization": forms.TextInput(attrs={
+                "class": "input input-bordered w-full",
+                "placeholder": "Recipient organization",
+            }),
+            "destination": forms.TextInput(attrs={
+                "class": "input input-bordered w-full",
+                "placeholder": "Dispatch destination",
+            }),
+            "note": forms.Textarea(attrs={
+                "class": "textarea textarea-bordered w-full",
+                "rows": 3,
+                "placeholder": "Optional dispatch note",
+            }),
+        }
 
 class DeviceForm(forms.ModelForm):
 

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}
+Powerpay Africa | Dispatch {{ batch.name }}
+{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0 space-y-6" id="page-content">
+
+        <div class="bg-base-100 rounded-lg shadow p-6">
+            <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">Dispatch Batch</h2>
+                    <p class="text-sm text-gray-500 mt-1">
+                        {{ batch.name }} · {{ batch.total_devices }} device{{ batch.total_devices|pluralize }}
+                    </p>
+                </div>
+
+                <a href="{% url 'devices:testing_batch_detail' batch.id %}" class="btn btn-ghost btn-accent hover:text-white">
+                    <i class="fa-solid fa-backward-step"></i>
+                    Back to Batch
+                </a>
+            </div>
+
+            <div class="alert alert-success text-white mb-6">
+                <i class="fa-solid fa-circle-check"></i>
+                <span>
+                    All devices have passed Test 1, passed Test 2, and are packed. Dispatch will be recorded under your logged-in account.
+                </span>
+            </div>
+
+            <form method="POST" class="space-y-5">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-error text-white">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="label font-semibold">Recipient Name</label>
+                        {{ form.recipient_name }}
+                        {{ form.recipient_name.errors }}
+                    </div>
+
+                    <div>
+                        <label class="label font-semibold">Recipient Phone</label>
+                        {{ form.recipient_phone }}
+                        {{ form.recipient_phone.errors }}
+                    </div>
+
+                    <div>
+                        <label class="label font-semibold">Recipient Organization</label>
+                        {{ form.recipient_organization }}
+                        {{ form.recipient_organization.errors }}
+                    </div>
+
+                    <div>
+                        <label class="label font-semibold">Destination</label>
+                        {{ form.destination }}
+                        {{ form.destination.errors }}
+                    </div>
+                </div>
+
+                <div>
+                    <label class="label font-semibold">Dispatch Note</label>
+                    {{ form.note }}
+                    {{ form.note.errors }}
+                </div>
+
+                <div class="rounded-lg bg-base-200 p-4">
+                    <p class="text-sm text-gray-500">Dispatched By</p>
+                    <p class="font-semibold">
+                        {{ request.user }}
+                    </p>
+                </div>
+
+                <div class="flex justify-between">
+                    <a href="{% url 'devices:testing_batch_detail' batch.id %}" class="btn btn-error text-white">
+                        Cancel
+                    </a>
+
+                    <button type="submit" class="btn btn-success text-white">
+                        <i class="fa-solid fa-truck"></i>
+                        Confirm Dispatch
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
