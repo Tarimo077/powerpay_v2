@@ -1,6 +1,12 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-from devices.models import DeviceInfo, DeviceData
+from devices.models import (
+    DeviceInfo,
+    DeviceData,
+    DeviceTestingBatch,
+    DeviceTestingBatchItem,
+    DeviceBatchDispatch,
+)
 from organizations.models import Organization
 from devices.services.energy import (
     kwh_today_for_devices,
@@ -70,6 +76,153 @@ def _accessible_devices_queryset(user):
     )
 
 
+def _accessible_testing_batches_queryset(user):
+    """
+    Testing batches available to this user.
+
+    Testing batches no longer belong directly to an organization. Non-superadmins
+    can export batches they created, plus batches containing devices from
+    organizations they can access.
+    """
+    queryset = DeviceTestingBatch.objects.select_related("created_by")
+
+    if _user_is_superadmin(user):
+        return queryset.distinct()
+
+    org_ids = _accessible_org_ids(user)
+
+    return (
+        queryset
+        .filter(
+            Q(created_by=user) |
+            Q(items__device__organization_id__in=org_ids) |
+            Q(items__device__organizations__id__in=org_ids)
+        )
+        .distinct()
+    )
+
+
+def _clean_export_value(value):
+    if isinstance(value, Model):
+        value = str(value)
+
+    if hasattr(value, "tzinfo") and value.tzinfo is not None:
+        value = value.replace(tzinfo=None)
+
+    return value
+
+
+def _testing_export_rows(queryset, model):
+    """Return explicit headers and rows for testing batch exports."""
+    if model == "testing_batches":
+        fields = [
+            "id",
+            "name",
+            "status",
+            "total_devices",
+            "passed_devices",
+            "packed_devices",
+            "ready_devices",
+            "created_by",
+            "created_at",
+            "updated_at",
+            "note",
+        ]
+
+        rows = [
+            [
+                batch.id,
+                batch.name,
+                batch.status,
+                batch.total_devices,
+                batch.passed_devices,
+                batch.packed_devices,
+                batch.ready_devices,
+                batch.created_by,
+                batch.created_at,
+                batch.updated_at,
+                batch.note,
+            ]
+            for batch in queryset
+        ]
+
+        return fields, rows
+
+    if model == "testing_batch_items":
+        fields = [
+            "id",
+            "batch_id",
+            "batch_name",
+            "deviceid",
+            "test_one_passed",
+            "test_two_passed",
+            "packed",
+            "ready_for_dispatch",
+            "test_one_notes",
+            "test_two_notes",
+            "packing_notes",
+            "tested_by",
+            "tested_at",
+            "packed_at",
+        ]
+
+        rows = [
+            [
+                item.id,
+                item.batch_id,
+                item.batch.name if item.batch else "",
+                item.device.deviceid if item.device else "",
+                item.test_one_passed,
+                item.test_two_passed,
+                item.packed,
+                item.ready_for_dispatch,
+                item.test_one_notes,
+                item.test_two_notes,
+                item.packing_notes,
+                item.tested_by,
+                item.tested_at,
+                item.packed_at,
+            ]
+            for item in queryset
+        ]
+
+        return fields, rows
+
+    if model == "testing_batch_dispatches":
+        fields = [
+            "id",
+            "batch_id",
+            "batch_name",
+            "recipient_name",
+            "recipient_phone",
+            "recipient_organization",
+            "destination",
+            "dispatched_by",
+            "dispatched_at",
+            "note",
+        ]
+
+        rows = [
+            [
+                dispatch.id,
+                dispatch.batch_id,
+                dispatch.batch.name if dispatch.batch else "",
+                dispatch.recipient_name,
+                dispatch.recipient_phone,
+                dispatch.recipient_organization,
+                dispatch.destination,
+                dispatch.dispatched_by,
+                dispatch.dispatched_at,
+                dispatch.note,
+            ]
+            for dispatch in queryset
+        ]
+
+        return fields, rows
+
+    return [], []
+
+
 @login_required
 def index(request):
     user = request.user
@@ -130,6 +283,16 @@ def export_csv(user, queryset, is_superadmin, model, filename):
     writer = csv.writer(response)
     notify(user, "Download Completed", f"File {filename} was downloaded successfully.", "success")
 
+    # 🔥 Testing batch exports use explicit human-friendly columns
+    if model in ["testing_batches", "testing_batch_items", "testing_batch_dispatches"]:
+        fields, rows = _testing_export_rows(queryset, model)
+        writer.writerow(fields)
+
+        for row in rows:
+            writer.writerow([_clean_export_value(value) for value in row])
+
+        return response
+
     # 🔥 If aggregated (DeviceData)
     if model == "devicedata":
         fields = ["deviceid", "total_kwh"]
@@ -182,6 +345,24 @@ def export_excel(user, queryset, is_superadmin, model, filename):
 
     wb = Workbook()
     ws = wb.active
+
+    # 🔥 Testing batch exports use explicit human-friendly columns
+    if model in ["testing_batches", "testing_batch_items", "testing_batch_dispatches"]:
+        fields, rows = _testing_export_rows(queryset, model)
+        ws.append(fields)
+
+        for row in rows:
+            ws.append([_clean_export_value(value) for value in row])
+
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        filename = filename + ".xlsx"
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        response.set_cookie('download_started', 'true', max_age=60)
+        wb.save(response)
+        notify(user, "Download Completed", f"File {filename} was downloaded successfully.", "success")
+        return response
 
     # 🔥 Aggregated case (DeviceData)
     if model == "devicedata":
@@ -258,6 +439,7 @@ def export_data_view(request):
     is_superadmin = _user_is_superadmin(user)
     accessible_org_ids = _accessible_org_ids(user)
     accessible_devices = _accessible_devices_queryset(user)
+    accessible_batches = _accessible_testing_batches_queryset(user)
 
     queryset = None
 
@@ -345,6 +527,48 @@ def export_data_view(request):
             queryset = queryset.filter(time__range=(start, end))
 
     # ---------------------------
+    # DEVICE TESTING BATCHES
+    # ---------------------------
+    elif model == "testing_batches":
+        queryset = DeviceTestingBatch.objects.select_related("created_by")
+
+        if not is_superadmin:
+            queryset = accessible_batches
+
+        if start and end:
+            queryset = queryset.filter(created_at__date__range=(start, end))
+
+        queryset = queryset.distinct().order_by("-created_at")
+
+    elif model == "testing_batch_items":
+        queryset = (
+            DeviceTestingBatchItem.objects
+            .select_related("batch", "device", "tested_by")
+        )
+
+        if not is_superadmin:
+            queryset = queryset.filter(batch__in=accessible_batches)
+
+        if start and end:
+            queryset = queryset.filter(batch__created_at__date__range=(start, end))
+
+        queryset = queryset.distinct().order_by("batch__name", "device__deviceid")
+
+    elif model == "testing_batch_dispatches":
+        queryset = (
+            DeviceBatchDispatch.objects
+            .select_related("batch", "dispatched_by")
+        )
+
+        if not is_superadmin:
+            queryset = queryset.filter(batch__in=accessible_batches)
+
+        if start and end:
+            queryset = queryset.filter(dispatched_at__date__range=(start, end))
+
+        queryset = queryset.distinct().order_by("-dispatched_at")
+
+    # ---------------------------
     # SUPERADMIN ONLY MODELS
     # ---------------------------
     elif model == "inventory":
@@ -398,6 +622,7 @@ def export_count_view(request):
     is_superadmin = _user_is_superadmin(user)
     accessible_org_ids = _accessible_org_ids(user)
     accessible_devices = _accessible_devices_queryset(user)
+    accessible_batches = _accessible_testing_batches_queryset(user)
 
     queryset = None
     count = 0
@@ -482,6 +707,42 @@ def export_count_view(request):
         if start and end:
             queryset = queryset.filter(time__range=(start, end))
         count = queryset.count()
+
+    # ---------------------------
+    # DEVICE TESTING BATCHES
+    # ---------------------------
+    elif model == "testing_batches":
+        queryset = DeviceTestingBatch.objects.all()
+
+        if not is_superadmin:
+            queryset = accessible_batches
+
+        if start and end:
+            queryset = queryset.filter(created_at__date__range=(start, end))
+
+        count = queryset.distinct().count()
+
+    elif model == "testing_batch_items":
+        queryset = DeviceTestingBatchItem.objects.all()
+
+        if not is_superadmin:
+            queryset = queryset.filter(batch__in=accessible_batches)
+
+        if start and end:
+            queryset = queryset.filter(batch__created_at__date__range=(start, end))
+
+        count = queryset.distinct().count()
+
+    elif model == "testing_batch_dispatches":
+        queryset = DeviceBatchDispatch.objects.all()
+
+        if not is_superadmin:
+            queryset = queryset.filter(batch__in=accessible_batches)
+
+        if start and end:
+            queryset = queryset.filter(dispatched_at__date__range=(start, end))
+
+        count = queryset.distinct().count()
 
     # ---------------------------
     # SUPERADMIN ONLY MODELS

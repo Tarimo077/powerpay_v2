@@ -11,6 +11,9 @@ class ExportForm(forms.Form):
         MODEL_CHOICES = [
             ("deviceinfo", "Device Info"),
             ("devicedata", "Device Data"),
+            ("testing_batches", "Device Testing Batches"),
+            ("testing_batch_items", "Device Testing Batch Items"),
+            ("testing_batch_dispatches", "Device Batch Dispatches"),
             ("customers", "Customers"),
             ("sales", "Sales"),
             ("transactions", "Transactions"),
@@ -36,7 +39,16 @@ class ExportForm(forms.Form):
         )
 
         if not is_superadmin:
-            allowed = ["deviceinfo", "devicedata", "customers", "sales", "transactions"]
+            allowed = [
+                "deviceinfo",
+                "devicedata",
+                "testing_batches",
+                "testing_batch_items",
+                "testing_batch_dispatches",
+                "customers",
+                "sales",
+                "transactions",
+            ]
             MODEL_CHOICES = [m for m in MODEL_CHOICES if m[0] in allowed]
 
             if user and getattr(user, "organization", None):

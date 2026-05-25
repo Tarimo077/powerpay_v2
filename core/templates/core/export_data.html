@@ -155,7 +155,16 @@ document.addEventListener("DOMContentLoaded", function () {
         // -------------------
         // DATE FILTERS
         // -------------------
-        if (value === "transactions" || value === "devicedata" || value === "sales" || value=== "customers" || value === "inventory") {
+        if (
+            value === "transactions" ||
+            value === "devicedata" ||
+            value === "sales" ||
+            value === "customers" ||
+            value === "inventory" ||
+            value === "testing_batches" ||
+            value === "testing_batch_items" ||
+            value === "testing_batch_dispatches"
+        ) {
             startDateField.classList.remove("hidden");
             endDateField.classList.remove("hidden");
         } else {
