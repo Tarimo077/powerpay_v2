@@ -25,7 +25,7 @@ def user_roles(request):
     can_manage_support = user.is_authenticated and (
         is_django_superuser
         or is_role_superadmin
-        or getattr(user, "role", None) in ["admin", "support"]
+        or getattr(user, "role", None) in ["support"]
         or user.is_staff
     )
 
