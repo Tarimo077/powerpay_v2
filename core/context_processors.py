@@ -1,41 +1,117 @@
 from notifications.models import Notification
 
+
 def unread_notifications_count(request):
-    if request.user.is_authenticated:
-        return {'unread_notif_count': request.user.notifications.filter(is_read=False).count()}
-    return {'unread_notif_count': 0}
+    user = getattr(request, "user", None)
+
+    if not user or not user.is_authenticated:
+        return {
+            "unread_notif_count": 0,
+        }
+
+    try:
+        count = user.notifications.filter(is_read=False).count()
+    except AttributeError:
+        count = Notification.objects.filter(
+            user=user,
+            is_read=False,
+        ).count()
+
+    return {
+        "unread_notif_count": count,
+    }
+
 
 def user_roles(request):
-    user = request.user
+    user = getattr(request, "user", None)
 
-    is_role_superadmin = (
-        user.is_authenticated
-        and getattr(user, "role", None) == "superadmin"
-    )
-    is_django_superuser = user.is_authenticated and user.is_superuser
-    is_platform_admin = user.is_authenticated and (
+    if not user or not user.is_authenticated:
+        return {
+            "is_django_superuser": False,
+            "is_role_superadmin": False,
+            "is_role_admin": False,
+            "is_role_support": False,
+            "is_platform_admin": False,
+            "is_admin": False,
+            "is_superuser": False,
+            "can_manage_organizations": False,
+            "can_manage_devices": False,
+            "can_manage_device_testing": False,
+            "can_manage_inventory": False,
+            "can_manage_warehouses": False,
+            "can_manage_billing": False,
+            "can_manage_support": False,
+            "user_org": None,
+            "user_role": None,
+        }
+
+    role = getattr(user, "role", None)
+
+    is_django_superuser = bool(user.is_superuser)
+    is_role_superadmin = role == "superadmin"
+    is_role_admin = role == "admin"
+    is_role_support = role == "support"
+
+    is_platform_admin = (
         is_django_superuser
         or is_role_superadmin
-        or getattr(user, "role", None) == "admin"
+        or is_role_admin
     )
-    can_manage_billing = user.is_authenticated and (
-        is_django_superuser
-        or (is_role_superadmin and getattr(user, "organization_id", None) == 1)
-    )
-    can_manage_support = user.is_authenticated and (
+
+    can_manage_organizations = (
         is_django_superuser
         or is_role_superadmin
-        or getattr(user, "role", None) in ["support"]
+    )
+
+    can_manage_devices = is_platform_admin
+
+    # Keep this strict if testing batches should only be visible to real Django superusers.
+    can_manage_device_testing = is_django_superuser
+
+    can_manage_inventory = is_platform_admin
+
+    can_manage_warehouses = is_django_superuser
+
+    can_manage_billing = (
+        is_django_superuser
+        or is_role_superadmin
+        or is_role_admin
+    )
+
+    can_manage_support = (
+        is_django_superuser
+        or is_role_superadmin
+        or is_role_admin
+        or is_role_support
         or user.is_staff
     )
 
     return {
-        # Template-facing permission flags. `is_superuser` intentionally includes
-        # both Django superusers and users with the platform superadmin role so
-        # menus/buttons match backend access checks.
-        "is_superuser": is_django_superuser or is_role_superadmin,
+        # Exact Django permission flag.
+        # Do not mix role-based superadmin into this.
+        "is_django_superuser": is_django_superuser,
+
+        # Role-specific flags.
+        "is_role_superadmin": is_role_superadmin,
+        "is_role_admin": is_role_admin,
+        "is_role_support": is_role_support,
+
+        # Platform-level aliases.
+        "is_platform_admin": is_platform_admin,
         "is_admin": is_platform_admin,
+
+        # Keep this backwards compatible, but make it mean true Django superuser only.
+        "is_superuser": is_django_superuser,
+
+        # Template-facing permission flags.
+        "can_manage_organizations": can_manage_organizations,
+        "can_manage_devices": can_manage_devices,
+        "can_manage_device_testing": can_manage_device_testing,
+        "can_manage_inventory": can_manage_inventory,
+        "can_manage_warehouses": can_manage_warehouses,
         "can_manage_billing": can_manage_billing,
         "can_manage_support": can_manage_support,
+
         "user_org": getattr(user, "organization", None),
+        "user_role": role,
     }
