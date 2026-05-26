@@ -15,10 +15,22 @@ from organizations.models import Organization
 from core.org_utils import get_user_orgs, get_user_org_ids
 
 
+def _user_is_superadmin(user):
+    return bool(
+        user
+        and user.is_authenticated
+        and (user.is_superuser or getattr(user, "role", None) == "superadmin")
+    )
+
+
+def _accessible_customer_queryset(user):
+    return Customer.objects.filter(organization_id__in=get_user_org_ids(user))
+
+
 @login_required
 def customers_page(request):
     user = request.user
-    is_superadmin = user.role == "superadmin"
+    is_superadmin = _user_is_superadmin(user)
     is_htmx = request.headers.get("HX-Request") == "true"
 
     # ---------------- ACCESSIBLE ORGS ----------------
@@ -241,7 +253,7 @@ def customers_page(request):
 
 @login_required
 def customer_detail(request, pk):
-    customer = get_object_or_404(Customer, pk=pk)
+    customer = get_object_or_404(_accessible_customer_queryset(request.user), pk=pk)
 
     # ---- SALES TABLE LOGIC ----
     search_query = request.GET.get("q", "").strip()
@@ -333,8 +345,8 @@ def customer_create(request):
 
 @login_required
 def customer_update(request, pk):
-    customer = get_object_or_404(Customer, pk=pk)
-    form = CustomerForm(request.POST or None, instance=customer)
+    customer = get_object_or_404(_accessible_customer_queryset(request.user), pk=pk)
+    form = CustomerForm(request.POST or None, instance=customer, user=request.user)
 
     if form.is_valid():
         form.save()
@@ -350,7 +362,7 @@ def customer_update(request, pk):
 @login_required
 @require_POST
 def customer_delete(request, pk):
-    customer = get_object_or_404(Customer, pk=pk)
+    customer = get_object_or_404(_accessible_customer_queryset(request.user), pk=pk)
     customer.delete()
     notify(request.user, "Customer Deleted", f"{customer.name} has been deleted as a customer.", "warning")
     return JsonResponse({"success": True})

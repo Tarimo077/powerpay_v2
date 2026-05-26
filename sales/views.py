@@ -20,12 +20,24 @@ from django.conf import settings
 import os
 
 
+def _user_is_superadmin(user):
+    return bool(
+        user
+        and user.is_authenticated
+        and (user.is_superuser or getattr(user, "role", None) == "superadmin")
+    )
+
+
+def _accessible_sale_queryset(user):
+    return Sale.objects.filter(organization_id__in=get_user_org_ids(user))
+
+
 @login_required
 def customer_search(request):
     q = request.GET.get("q", "").strip()
 
     # 🔐 Base queryset
-    if getattr(request.user, "role", None) == "superadmin":
+    if _user_is_superadmin(request.user):
         customers = Customer.objects.all()
     else:
         customers = Customer.objects.filter(
@@ -57,7 +69,7 @@ def sales_page(request):
     search_query = request.GET.get("q", "").strip()
     sort = request.GET.get("sort", "date")
     direction = request.GET.get("dir", "desc")
-    is_superadmin = request.user.role == "superadmin"
+    is_superadmin = _user_is_superadmin(request.user)
 
 
     # ---------------- FILTERS ----------------
@@ -281,7 +293,10 @@ def sales_page(request):
 
 @login_required
 def sale_detail(request, pk):
-    sale = get_object_or_404(Sale.objects.select_related("customer", "organization"), pk=pk)
+    sale = get_object_or_404(
+        _accessible_sale_queryset(request.user).select_related("customer", "organization"),
+        pk=pk,
+    )
     return render(
         request,
         "sales/sale_detail.html",
@@ -306,7 +321,7 @@ def sale_create(request):
 
 @login_required
 def sale_update(request, pk):
-    sale = get_object_or_404(Sale, pk=pk)
+    sale = get_object_or_404(_accessible_sale_queryset(request.user), pk=pk)
 
     if request.method == "POST":
         form = SaleForm(request.POST, instance=sale, user=request.user)
@@ -324,7 +339,7 @@ def sale_update(request, pk):
 
 @login_required
 def sale_delete(request, pk):
-    sale = get_object_or_404(Sale, pk=pk)
+    sale = get_object_or_404(_accessible_sale_queryset(request.user), pk=pk)
 
     if request.method == "POST":
         sale.delete()
@@ -361,7 +376,10 @@ def generate_sale_receipt_pdf(sale):
 
 @login_required
 def sale_receipt_pdf(request, pk):
-    sale = get_object_or_404(Sale.objects.select_related("customer", "organization"), pk=pk)
+    sale = get_object_or_404(
+        _accessible_sale_queryset(request.user).select_related("customer", "organization"),
+        pk=pk,
+    )
     pdf = generate_sale_receipt_pdf(sale)
 
     if not pdf:
@@ -374,7 +392,10 @@ def sale_receipt_pdf(request, pk):
 
 @login_required
 def sale_receipt_email(request, pk):
-    sale = get_object_or_404(Sale.objects.select_related("customer", "organization"), pk=pk)
+    sale = get_object_or_404(
+        _accessible_sale_queryset(request.user).select_related("customer", "organization"),
+        pk=pk,
+    )
 
     if request.method != "POST":
         return redirect("sales:sale_detail", pk=sale.pk)

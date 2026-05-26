@@ -28,7 +28,7 @@ class CustomerForm(forms.ModelForm):
         self.user = user
 
         # Superadmin → show organization
-        if user and getattr(user, "role", None) == "superadmin":
+        if user and (user.is_superuser or getattr(user, "role", None) == "superadmin"):
             pass
         else:
             # Normal user → hide organization field
@@ -39,7 +39,10 @@ class CustomerForm(forms.ModelForm):
         customer = super().save(commit=False)
 
         # Force organization for non-superadmins
-        if self.user and getattr(self.user, "role", None) != "superadmin":
+        if self.user and not (
+            self.user.is_superuser
+            or getattr(self.user, "role", None) == "superadmin"
+        ):
             customer.organization = self.user.organization
 
         if commit:

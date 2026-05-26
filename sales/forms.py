@@ -63,7 +63,7 @@ class SaleForm(forms.ModelForm):
         self.user = user
 
         # Superadmin can see everything (used only for validation if needed)
-        if user and getattr(user, "role", None) == "superadmin":
+        if user and (user.is_superuser or getattr(user, "role", None) == "superadmin"):
             self.customer_queryset = Customer.objects.all()
         else:
             org = user.organization
@@ -84,7 +84,10 @@ class SaleForm(forms.ModelForm):
     def save(self, commit=True):
         sale = super().save(commit=False)
 
-        if self.user and getattr(self.user, "role", None) != "superadmin":
+        if self.user and not (
+            self.user.is_superuser
+            or getattr(self.user, "role", None) == "superadmin"
+        ):
             sale.organization = self.user.organization
 
         if commit:

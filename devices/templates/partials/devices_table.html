@@ -126,13 +126,13 @@
                         <option value="deactivate">Activate selected</option>
                         <option value="activate">Deactivate selected</option>
 
-                        {% if is_superuser %}
+                        {% if can_manage_devices or is_superuser %}
                             <option value="add_to_org">Add selected to organization</option>
                             <option value="delete">Delete selected</option>
                         {% endif %}
                     </select>
 
-                    {% if is_superuser %}
+                    {% if can_manage_devices or is_superuser %}
                     <select
                         name="target_org"
                         id="target-org-select"
@@ -262,7 +262,7 @@
 
                 <tbody>
                     {% for stat in device_stats %}
-                        {% include "partials/device-row.html" with device=stat.device deviceid=stat.device.deviceid active=stat.device.active last_seen=stat.last_seen is_admin=is_admin is_superuser=is_superuser organizations=stat.device.organizations.all organization=stat.device.organization %}
+                        {% include "partials/device-row.html" with device=stat.device deviceid=stat.device.deviceid active=stat.device.active last_seen=stat.last_seen is_admin=is_admin is_superuser=is_superuser can_manage_devices=can_manage_devices organizations=stat.device.organizations.all organization=stat.device.organization %}
                     {% empty %}
                         <tr>
                             <td colspan="{% if request.accessible_orgs|length > 1 %}7{% else %}5{% endif %}"

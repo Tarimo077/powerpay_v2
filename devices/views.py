@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from functools import wraps
 from django.utils.timezone import now, make_aware, is_naive
 from .services.energy import (
     kwh_for_device,
@@ -6,7 +7,7 @@ from .services.energy import (
 )
 from django.core.paginator import Paginator
 import requests
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
@@ -15,13 +16,13 @@ from django.db.models import Sum, Q, OuterRef, Subquery
 from notifications.utils import notify
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
 from .services.device_api import call_change_status_api
 from organizations.models import Organization
 from core.org_checker import get_accessible_organizations
 from inventory.models import InventoryItem
-from django.db import transaction
 from django.db import transaction
 from django.utils import timezone
 from .models import (
@@ -340,8 +341,27 @@ def testing_batch_delete(request, pk):
         },
     )
 
+def _user_has_global_device_access(user):
+    return bool(
+        user
+        and user.is_authenticated
+        and (
+            user.is_superuser
+            or getattr(user, "role", None) == "superadmin"
+        )
+    )
+
+
+def _user_can_manage_devices(user):
+    # Platform device management is role-aware. This prevents users with the
+    # superadmin role from being sent to the login page by Django's
+    # user_passes_test while keeping global device access restricted.
+    return _user_has_global_device_access(user)
+
+
 def _user_is_device_admin(user):
-    return user.is_superuser or getattr(user, "role", None) == "superadmin"
+    # Backward-compatible alias used by existing templates/context.
+    return _user_can_manage_devices(user)
 
 
 def _accessible_device_queryset(user):
@@ -356,14 +376,14 @@ def _accessible_device_queryset(user):
     This keeps old devices visible even if they have not yet been backfilled
     into devactivity_organizations.
     """
-    if _user_is_device_admin(user):
+    if _user_has_global_device_access(user):
         accessible_orgs = Organization.objects.all()
     else:
         accessible_orgs = get_accessible_organizations(user)
 
     accessible_ids = list(accessible_orgs.values_list("id", flat=True))
 
-    if _user_is_device_admin(user):
+    if _user_has_global_device_access(user):
         devices = (
             DeviceInfo.objects
             .all()
@@ -506,6 +526,7 @@ def device_list(request):
         "organizations": organizations,
         "is_admin": is_admin,
         "is_superuser": is_admin,
+        "can_manage_devices": is_admin,
         "total_devices": total_devices,
         "active_devices": active_devices,
         "inactive_devices": inactive_devices,
@@ -886,8 +907,9 @@ def change_device_status(request):
                 "user": request.user,
                 "organization": device.organization,
                 "organizations": device.organizations.all(),
-                "is_superuser": _user_is_device_admin(request.user),
-                "is_admin": _user_is_device_admin(request.user),
+                "is_superuser": _user_can_manage_devices(request.user),
+                "is_admin": _user_can_manage_devices(request.user),
+                "can_manage_devices": _user_can_manage_devices(request.user),
             }
         )
 
@@ -959,11 +981,20 @@ def change_device_status_partial(request):
         return HttpResponse(f"Unexpected error: {e}", status=500)
 
 
-def superuser_required(view):
-    return user_passes_test(lambda u: u.is_superuser)(view)
+def device_admin_required(view_func):
+    @login_required
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if _user_can_manage_devices(request.user):
+            return view_func(request, *args, **kwargs)
+
+        messages.error(request, "You do not have permission to manage devices.")
+        return redirect("devices:device_list")
+
+    return _wrapped_view
 
 
-@superuser_required
+@device_admin_required
 def device_create(request):
     form = DeviceForm(request.POST or None, user=request.user)
 
@@ -989,9 +1020,9 @@ def device_create(request):
     })
 
 
-@superuser_required
+@device_admin_required
 def device_edit(request, deviceid):
-    device = get_object_or_404(DeviceInfo, deviceid=deviceid)
+    device = _accessible_device_or_404(request.user, deviceid)
 
     inventory = InventoryItem.objects.filter(
         serial_number=device.deviceid
@@ -1050,10 +1081,10 @@ def device_edit(request, deviceid):
     })
 
 
-@superuser_required
+@device_admin_required
 @require_POST
 def device_delete(request, deviceid):
-    device = get_object_or_404(DeviceInfo, deviceid=deviceid)
+    device = _accessible_device_or_404(request.user, deviceid)
 
     with transaction.atomic():
         InventoryItem.objects.filter(
@@ -1069,7 +1100,7 @@ def device_delete(request, deviceid):
     return redirect("devices:device_list")
 
 
-@superuser_required
+@device_admin_required
 def device_bulk_create(request):
     form = BulkDeviceCreateForm(request.POST or None, user=request.user)
 
@@ -1305,7 +1336,7 @@ def device_live_view(request, deviceid):
 # Device Schedules
 # ------------------------------
 
-class DeviceScheduleListView(ListView):
+class DeviceScheduleListView(LoginRequiredMixin, ListView):
     model = DeviceCommandSchedule
     template_name = "devices/device_schedule_list.html"
     context_object_name = "schedules"
@@ -1323,7 +1354,7 @@ class DeviceScheduleListView(ListView):
             .order_by("-scheduled_time")
         )
 
-        if _user_is_device_admin(user):
+        if _user_has_global_device_access(user):
             return qs
 
         accessible_orgs = get_accessible_organizations(user)
@@ -1350,7 +1381,7 @@ class DeviceScheduleListView(ListView):
         return context
 
 
-class DeviceScheduleCreateView(CreateView):
+class DeviceScheduleCreateView(LoginRequiredMixin, CreateView):
     model = DeviceCommandSchedule
     form_class = DeviceCommandScheduleForm
     template_name = "devices/device_schedule_form.html"
@@ -1364,7 +1395,7 @@ class DeviceScheduleCreateView(CreateView):
     def get_schedule_organization(self, form):
         user = self.request.user
 
-        if not _user_is_device_admin(user):
+        if not _user_has_global_device_access(user):
             return user.organization
 
         selected_devices = form.cleaned_data.get("devices")
@@ -1401,7 +1432,7 @@ class DeviceScheduleCreateView(CreateView):
         return super().form_valid(form)
 
 
-class DeviceScheduleUpdateView(UpdateView):
+class DeviceScheduleUpdateView(LoginRequiredMixin, UpdateView):
     model = DeviceCommandSchedule
     form_class = DeviceCommandScheduleForm
     template_name = "devices/device_schedule_form.html"
@@ -1410,7 +1441,7 @@ class DeviceScheduleUpdateView(UpdateView):
     def get_queryset(self):
         user = self.request.user
 
-        if _user_is_device_admin(user):
+        if _user_has_global_device_access(user):
             return DeviceCommandSchedule.objects.all()
 
         accessible_orgs = get_accessible_organizations(user)
@@ -1427,7 +1458,7 @@ class DeviceScheduleUpdateView(UpdateView):
     def get_schedule_organization(self, form):
         user = self.request.user
 
-        if not _user_is_device_admin(user):
+        if not _user_has_global_device_access(user):
             return user.organization
 
         selected_devices = form.cleaned_data.get("devices")
@@ -1466,7 +1497,7 @@ class DeviceScheduleUpdateView(UpdateView):
         return super().form_valid(form)
 
 
-class DeviceScheduleDeleteView(DeleteView):
+class DeviceScheduleDeleteView(LoginRequiredMixin, DeleteView):
     model = DeviceCommandSchedule
     template_name = "devices/device_schedule_confirm_delete.html"
     success_url = reverse_lazy("devices:device_schedule_list")
@@ -1474,7 +1505,7 @@ class DeviceScheduleDeleteView(DeleteView):
     def get_queryset(self):
         user = self.request.user
 
-        if _user_is_device_admin(user):
+        if _user_has_global_device_access(user):
             return DeviceCommandSchedule.objects.all()
 
         accessible_orgs = get_accessible_organizations(user)
@@ -1484,10 +1515,11 @@ class DeviceScheduleDeleteView(DeleteView):
         )
 
 
+@login_required
 def trigger_schedule(request, pk):
     user = request.user
 
-    if _user_is_device_admin(user):
+    if _user_has_global_device_access(user):
         schedule = get_object_or_404(DeviceCommandSchedule, pk=pk)
     else:
         accessible_orgs = get_accessible_organizations(user)

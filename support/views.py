@@ -1,14 +1,37 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
+from functools import wraps
+from django.contrib.auth.decorators import login_required
 from .models import Ticket, TicketMessage
 from .forms import TicketForm
 from django.core.paginator import Paginator
 from notifications.utils import notify
 from accounts.models import User
+from django.contrib import messages
 
-# Admin views
+# Admin/support views
 def is_admin(user):
-    return user.is_superuser
+    return bool(
+        user
+        and user.is_authenticated
+        and (
+            user.is_superuser
+            or getattr(user, "role", None) in ["superadmin", "admin", "support"]
+            or user.is_staff
+        )
+    )
+
+
+def support_admin_required(view_func):
+    @login_required
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if is_admin(request.user):
+            return view_func(request, *args, **kwargs)
+
+        messages.error(request, "You do not have permission to manage support tickets.")
+        return redirect("support:support_ticket_list")
+
+    return _wrapped_view
 
 @login_required
 def create_ticket(request):
@@ -70,18 +93,7 @@ def ticket_detail(request, ticket_id):
     })
 
 
-@user_passes_test(is_admin)
-def admin_ticket_list(request):
-    tickets = Ticket.objects.all().order_by("-created_at")
-
-    paginator = Paginator(tickets, 10)
-    page = request.GET.get("page")
-    tickets_page = paginator.get_page(page)
-
-    return render(request, "support/admin_ticket_list.html", {"tickets_page": tickets_page})
-
-
-@user_passes_test(is_admin)
+@support_admin_required
 def admin_ticket_list(request):
     per_page = int(request.GET.get("per_page", 10))
     page = request.GET.get("page", 1)
@@ -96,7 +108,7 @@ def admin_ticket_list(request):
     })
 
 
-@user_passes_test(is_admin)
+@support_admin_required
 def admin_ticket_detail(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
     

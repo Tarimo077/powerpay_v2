@@ -26,7 +26,7 @@
             </h1>
 
             <!-- Only Superadmin can create invoices -->
-            {% if request.user.is_superuser %}
+            {% if can_manage_billing %}
             <div class="flex items-center gap-2">
 
                 <a href="{% url 'billing:saas_rule_list' %}"
@@ -146,7 +146,7 @@
 
                                 <!-- Send (only draft + admin/superadmin) -->
                                 {% if invoice.status == "DRAFT" %}
-                                    {% if request.user.is_superuser or request.user.role == "superadmin" or request.user.role == "admin" %}
+                                    {% if can_manage_billing or request.user.role == "superadmin" or request.user.role == "admin" %}
                                         <a href="{% url 'billing:invoice_send' invoice.id %}"
                                         class="btn btn-sm btn-success text-white"
                                         title="Click to send invoice to {{ invoice.organization.name }} via email."
@@ -158,7 +158,7 @@
                                 {% endif %}
 
                                 <!-- Edit (superadmin only) -->
-                                {% if request.user.is_superuser %}
+                                {% if can_manage_billing %}
                                     <a href="{% url 'billing:invoice_edit' invoice.id %}"
                                     class="btn btn-sm btn-warning text-white"
                                     title="Click to edit the invoice."

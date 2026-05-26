@@ -112,7 +112,7 @@
                 View <i class="fa-solid fa-binoculars"></i>
             </a>
 
-            {% if is_superuser %}
+            {% if can_manage_devices or is_superuser %}
             <a href="{% url 'devices:device_edit' deviceid %}"
                class="btn btn-sm btn-info text-white">
                 <i class="fa-solid fa-pen-to-square"></i> Edit

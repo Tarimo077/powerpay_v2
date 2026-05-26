@@ -181,7 +181,7 @@
                         </li>
 
                         <li>
-                            {% if is_superuser %}
+                            {% if can_manage_support %}
                                 <a href="{% url 'support:admin_ticket_list' %}"
                                 class="rounded-xl hover:bg-base-200">
                                     <i class="fa-solid fa-headset"></i>

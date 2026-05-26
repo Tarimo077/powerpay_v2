@@ -113,7 +113,7 @@
                     </a>
 
                     <!-- Testing Batches -->
-                    {% if request.user.is_superuser %}
+                    {% if is_superuser %}
                     <a href="{% url 'devices:testing_batch_list' %}"
                        class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
                        {% if request.resolver_match.namespace == 'devices' and 'testing-batches' in request.path %}
@@ -201,7 +201,7 @@
                     </a>
 
                     <!-- Warehouses -->
-                    {% if request.user.is_superuser %}
+                    {% if is_superuser %}
                     <a href="{% url 'inventory:warehouses_page' %}"
                        class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
                        {% if request.resolver_match.namespace == 'inventory' and 'warehouses' in request.path %}

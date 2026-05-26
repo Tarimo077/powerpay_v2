@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from .models import Invoice, InvoiceItem, Receipt, SaaSBillingRule
 from .forms import HardwareInvoiceForm, SaaSInvoiceForm, SaaSBillingRuleForm
 from .services import (
@@ -26,10 +27,16 @@ from .tasks import run_due_saas_billing_rules
 # Can create/edit/delete invoices
 # ==========================================
 def billing_manage_access(user):
-    return (
-        user.is_authenticated and
-        getattr(user, "role", "") == "superadmin" and
-        getattr(user, "organization_id", None) == 1
+    return bool(
+        user
+        and user.is_authenticated
+        and (
+            user.is_superuser
+            or (
+                getattr(user, "role", "") == "superadmin"
+                and getattr(user, "organization_id", None) == 1
+            )
+        )
     )
 
 
@@ -39,10 +46,30 @@ def billing_manage_access(user):
 # for their own organization
 # ==========================================
 def billing_view_access(user):
-    return (
-        user.is_authenticated and
-        getattr(user, "role", None) in ["superadmin", "admin"]
+    return bool(
+        user
+        and user.is_authenticated
+        and (
+            billing_manage_access(user)
+            or getattr(user, "role", None) in ["superadmin", "admin"]
+        )
     )
+
+
+def can_access_invoice(user, invoice):
+    if billing_manage_access(user):
+        return True
+
+    return bool(
+        billing_view_access(user)
+        and getattr(user, "organization_id", None)
+        and invoice.organization_id == user.organization_id
+    )
+
+
+def can_access_receipt(user, receipt):
+    invoice = getattr(receipt, "invoice", None)
+    return bool(invoice and can_access_invoice(user, invoice))
 
 
 
@@ -59,6 +86,7 @@ def billing_org_devices(org_id):
 # Internal billing sees all
 # Customer org users see theirs only
 # ==========================================
+@login_required
 def invoice_list(request):
     user = request.user
 
@@ -84,6 +112,7 @@ def invoice_list(request):
 # CREATE HARDWARE INVOICE
 # INTERNAL ONLY
 # ==========================================
+@login_required
 def create_hardware(request):
     if not billing_manage_access(request.user):
         return HttpResponseForbidden()
@@ -123,6 +152,7 @@ def create_hardware(request):
 # CREATE SAAS INVOICE
 # INTERNAL ONLY
 # ==========================================
+@login_required
 def create_saas(request):
     if not billing_manage_access(request.user):
         return HttpResponseForbidden()
@@ -172,17 +202,11 @@ def create_saas(request):
 # Internal billing -> any invoice
 # Customer users -> own org invoices only
 # ==========================================
+@login_required
 def invoice_detail(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
 
-    if billing_manage_access(request.user):
-        pass
-
-    elif billing_view_access(request.user):
-        if invoice.organization != request.user.organization:
-            return HttpResponseForbidden()
-
-    else:
+    if not can_access_invoice(request.user, invoice):
         return HttpResponseForbidden()
 
     return render(
@@ -196,6 +220,7 @@ def invoice_detail(request, pk):
 # EDIT INVOICE
 # INTERNAL ONLY
 # ==========================================
+@login_required
 def invoice_edit(request, pk):
     if not billing_manage_access(request.user):
         return HttpResponseForbidden()
@@ -304,6 +329,7 @@ def invoice_edit(request, pk):
 # DELETE INVOICE
 # INTERNAL ONLY
 # ==========================================
+@login_required
 def invoice_delete(request, pk):
     if not billing_manage_access(request.user):
         return HttpResponseForbidden()
@@ -319,17 +345,11 @@ def invoice_delete(request, pk):
 # Internal billing -> any invoice
 # Customer users -> own org invoices only
 # ==========================================
+@login_required
 def invoice_pdf(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
 
-    if billing_manage_access(request.user):
-        pass
-
-    elif billing_view_access(request.user):
-        if invoice.organization != request.user.organization:
-            return HttpResponseForbidden()
-
-    else:
+    if not can_access_invoice(request.user, invoice):
         return HttpResponseForbidden()
 
     pdf = generate_pdf(invoice)
@@ -350,6 +370,7 @@ def invoice_pdf(request, pk):
 # AJAX DEVICES BY ORG
 # INTERNAL ONLY
 # ==========================================
+@login_required
 def devices_by_org(request, org_id):
     if not billing_manage_access(request.user):
         return HttpResponseForbidden()
@@ -361,11 +382,15 @@ def devices_by_org(request, org_id):
         safe=False
     )
 
+@login_required
 def send_invoice_view(request, pk):
     if not billing_view_access(request.user):
         return HttpResponseForbidden()
 
     invoice = get_object_or_404(Invoice, pk=pk)
+
+    if not can_access_invoice(request.user, invoice):
+        return HttpResponseForbidden()
 
     if send_invoice(invoice, request.user):
         invoice.status = "SENT"
@@ -373,14 +398,15 @@ def send_invoice_view(request, pk):
 
     return redirect("billing:invoice_detail", pk=invoice.pk)
 
+@login_required
 def receipt_list(request):
 
     user = request.user
 
-    if user.role in ["superadmin"]:
+    if billing_manage_access(user):
         receipts = Receipt.objects.all()
 
-    elif user.role in ["admin"]:
+    elif billing_view_access(user):
         receipts = Receipt.objects.filter(
             invoice__organization=user.organization
         )
@@ -398,6 +424,7 @@ def receipt_list(request):
         }
     )
 
+@login_required
 def sync_invoice_payments(request):
     if not billing_manage_access(request.user):
         return HttpResponseForbidden()
@@ -423,20 +450,15 @@ def sync_invoice_payments(request):
 
     return redirect("billing:receipt_list")
 
+@login_required
 def receipt_detail(request, pk):
 
     receipt = get_object_or_404(
-        Receipt,
+        Receipt.objects.select_related("invoice", "invoice__organization"),
         pk=pk
     )
 
-    user = request.user
-
-    if (
-        not user.is_superuser
-        and user.role in ["superadmin", "admin"]
-        and receipt.invoice.organization != user.organization
-    ):
+    if not can_access_receipt(request.user, receipt):
         return HttpResponseForbidden()
 
     return render(
@@ -447,12 +469,16 @@ def receipt_detail(request, pk):
         }
     )
 
+@login_required
 def receipt_pdf(request, pk):
 
     receipt = get_object_or_404(
-        Receipt,
+        Receipt.objects.select_related("invoice", "invoice__organization"),
         pk=pk
     )
+
+    if not can_access_receipt(request.user, receipt):
+        return HttpResponseForbidden()
 
     pdf = generate_receipt_pdf(receipt)
 
@@ -471,6 +497,7 @@ def receipt_pdf(request, pk):
 # SAAS BILLING RULES
 # INTERNAL ONLY
 # ==========================================
+@login_required
 def saas_rule_list(request):
     if not billing_manage_access(request.user):
         return HttpResponseForbidden()
@@ -480,6 +507,7 @@ def saas_rule_list(request):
     return render(request, "billing/saas_rule_list.html", {"rules": rules})
 
 
+@login_required
 def saas_rule_create(request):
     if not billing_manage_access(request.user):
         return HttpResponseForbidden()
@@ -496,6 +524,7 @@ def saas_rule_create(request):
     return render(request, "billing/saas_rule_form.html", {"form": form, "title": "Create SaaS Billing Rule"})
 
 
+@login_required
 def saas_rule_edit(request, pk):
     if not billing_manage_access(request.user):
         return HttpResponseForbidden()
@@ -511,6 +540,7 @@ def saas_rule_edit(request, pk):
     return render(request, "billing/saas_rule_form.html", {"form": form, "title": "Edit SaaS Billing Rule", "rule": rule})
 
 
+@login_required
 def saas_rule_delete(request, pk):
     if not billing_manage_access(request.user):
         return HttpResponseForbidden()
@@ -525,6 +555,7 @@ def saas_rule_delete(request, pk):
     return redirect("billing:saas_rule_list")
 
 
+@login_required
 def saas_rule_run_now(request, pk):
     if not billing_manage_access(request.user):
         return HttpResponseForbidden()
@@ -547,6 +578,7 @@ def saas_rule_run_now(request, pk):
     return redirect("billing:invoice_detail", pk=invoice.pk)
 
 
+@login_required
 def run_due_saas_rules_view(request):
     if not billing_manage_access(request.user):
         return HttpResponseForbidden()

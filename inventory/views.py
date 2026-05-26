@@ -53,6 +53,15 @@ def get_allowed_warehouses(user):
     return Warehouse.objects.filter(organization=user.organization)
 
 
+def get_allowed_inventory_items(user):
+    qs = InventoryItem.objects.select_related("current_warehouse")
+
+    if is_superadmin(user):
+        return qs
+
+    return qs.filter(current_warehouse__organization=user.organization)
+
+
 def format_duration(delta):
     total_seconds = max(int(delta.total_seconds()), 0)
 
@@ -348,6 +357,9 @@ def warehouses_page(request):
 
 @login_required
 def warehouse_create(request):
+    if not is_superadmin(request.user):
+        return redirect("inventory:inventory_page")
+
     if request.method == "POST":
         form = WarehouseForm(request.POST)
 
@@ -370,6 +382,9 @@ def warehouse_create(request):
 
 @login_required
 def warehouse_update(request, pk):
+    if not is_superadmin(request.user):
+        return redirect("inventory:inventory_page")
+
     warehouse = get_object_or_404(Warehouse, pk=pk)
 
     if request.method == "POST":
@@ -394,6 +409,9 @@ def warehouse_update(request, pk):
 
 @login_required
 def warehouse_delete(request, pk):
+    if not is_superadmin(request.user):
+        return redirect("inventory:inventory_page")
+
     warehouse = get_object_or_404(Warehouse, pk=pk)
     warehouse.delete()
 
@@ -413,8 +431,11 @@ def warehouse_delete(request, pk):
 
 @login_required
 def item_create(request):
+    allowed_warehouses = get_allowed_warehouses(request.user)
+
     if request.method == "POST":
         form = InventoryItemForm(request.POST)
+        form.fields["current_warehouse"].queryset = allowed_warehouses
 
         if form.is_valid():
             with transaction.atomic():
@@ -476,6 +497,7 @@ def item_create(request):
                 "quantity": 1,
             }
         )
+        form.fields["current_warehouse"].queryset = allowed_warehouses
 
     return render(request, "inventory/item_form.html", {"form": form})
 
@@ -591,10 +613,11 @@ def bulk_item_create(request):
 
 @login_required
 def item_update(request, pk):
-    item = get_object_or_404(InventoryItem, pk=pk)
+    item = get_object_or_404(get_allowed_inventory_items(request.user), pk=pk)
 
     if request.method == "POST":
         form = InventoryItemForm(request.POST, instance=item)
+        form.fields["current_warehouse"].queryset = get_allowed_warehouses(request.user)
 
         if form.is_valid():
             form.save()
@@ -609,13 +632,14 @@ def item_update(request, pk):
             return redirect("inventory:inventory_page")
     else:
         form = InventoryItemForm(instance=item)
+        form.fields["current_warehouse"].queryset = get_allowed_warehouses(request.user)
 
     return render(request, "inventory/item_form.html", {"form": form})
 
 
 @login_required
 def item_delete(request, pk):
-    item = get_object_or_404(InventoryItem, pk=pk)
+    item = get_object_or_404(get_allowed_inventory_items(request.user), pk=pk)
     item.delete()
 
     notify(
@@ -842,7 +866,7 @@ def inventory_page(request):
 @login_required
 def inventory_detail(request, pk):
     item = get_object_or_404(
-        InventoryItem.objects.select_related("current_warehouse"),
+        get_allowed_inventory_items(request.user),
         pk=pk,
     )
 
@@ -915,7 +939,7 @@ def inventory_detail(request, pk):
 @login_required
 def move_item(request, pk):
     item = get_object_or_404(
-        InventoryItem.objects.select_related("current_warehouse"),
+        get_allowed_inventory_items(request.user),
         pk=pk,
         quantity__gt=0,
     )

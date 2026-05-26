@@ -128,8 +128,8 @@ class AppAccessMiddleware:
         if not request.user.is_authenticated:
             return self.get_response(request)
 
-        # Skip superadmins (IMPORTANT)
-        if request.user.role == "superadmin":
+        # Skip Django superusers and platform superadmins (IMPORTANT)
+        if request.user.is_superuser or getattr(request.user, "role", None) == "superadmin":
             return self.get_response(request)
 
         # Get current app

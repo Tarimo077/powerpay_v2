@@ -168,7 +168,10 @@ def send_invite_email(invite):
 
 @login_required
 def invite_user(request):
-    if not (request.user.is_superuser or request.user.role == "admin"):
+    if not (
+        request.user.is_superuser
+        or getattr(request.user, "role", None) in ["superadmin", "admin"]
+    ):
         messages.error(request, "You are not allowed to invite users.")
         return redirect("core:index")
 
@@ -178,7 +181,10 @@ def invite_user(request):
             invite = form.save(commit=False)
             invite.invited_by = request.user
 
-            if not request.user.is_superuser:
+            if not (
+                request.user.is_superuser
+                or getattr(request.user, "role", None) == "superadmin"
+            ):
                 invite.organization = request.user.organization
 
             invite.save()

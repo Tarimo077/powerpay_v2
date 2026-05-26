@@ -14,14 +14,26 @@ from .forms import DeviceOrderForm, DeviceOrderRejectForm, DeviceOrderFulfillFor
 
 
 def can_manage_orders(user):
-    return user.role in ["superadmin", "admin"] or user.is_superuser
+    return bool(
+        user
+        and user.is_authenticated
+        and (
+            user.is_superuser
+            or getattr(user, "role", None) in ["superadmin", "admin"]
+        )
+    )
 
 
-@login_required
-def order_list(request):
-    user = request.user
+def user_has_global_order_access(user):
+    return bool(
+        user
+        and user.is_authenticated
+        and (user.is_superuser or getattr(user, "role", None) == "superadmin")
+    )
 
-    orders = DeviceOrder.objects.select_related(
+
+def accessible_order_queryset(user):
+    qs = DeviceOrder.objects.select_related(
         "requested_by",
         "organization",
         "warehouse",
@@ -29,8 +41,17 @@ def order_list(request):
         "fulfilled_by",
     )
 
-    if user.role != "superadmin":
-        orders = orders.filter(organization=user.organization)
+    if user_has_global_order_access(user):
+        return qs
+
+    return qs.filter(organization=user.organization)
+
+
+@login_required
+def order_list(request):
+    user = request.user
+
+    orders = accessible_order_queryset(user)
 
     q = request.GET.get("q", "").strip()
     status = request.GET.get("status", "")
@@ -100,19 +121,7 @@ def order_create(request):
 
 @login_required
 def order_detail(request, pk):
-    order = get_object_or_404(
-        DeviceOrder.objects.select_related(
-            "requested_by",
-            "organization",
-            "warehouse",
-            "approved_by",
-            "fulfilled_by",
-        ),
-        pk=pk,
-    )
-
-    if request.user.role != "superadmin" and order.organization != request.user.organization:
-        return redirect("device_orders:order_list")
+    order = get_object_or_404(accessible_order_queryset(request.user), pk=pk)
 
     return render(request, "device_orders/order_detail.html", {
         "order": order,
@@ -125,7 +134,7 @@ def order_approve(request, pk):
     if not can_manage_orders(request.user):
         return redirect("device_orders:order_list")
 
-    order = get_object_or_404(DeviceOrder, pk=pk)
+    order = get_object_or_404(accessible_order_queryset(request.user), pk=pk)
 
     if order.status == "submitted":
         order.status = "approved"
@@ -148,7 +157,7 @@ def order_reject(request, pk):
     if not can_manage_orders(request.user):
         return redirect("device_orders:order_list")
 
-    order = get_object_or_404(DeviceOrder, pk=pk)
+    order = get_object_or_404(accessible_order_queryset(request.user), pk=pk)
 
     if request.method == "POST":
         form = DeviceOrderRejectForm(request.POST)
@@ -175,7 +184,7 @@ def order_reject(request, pk):
 
 @login_required
 def order_cancel(request, pk):
-    order = get_object_or_404(DeviceOrder, pk=pk)
+    order = get_object_or_404(accessible_order_queryset(request.user), pk=pk)
 
     if order.requested_by != request.user and not can_manage_orders(request.user):
         return redirect("device_orders:order_list")
@@ -199,7 +208,7 @@ def order_fulfill(request, pk):
     if not can_manage_orders(request.user):
         return redirect("device_orders:order_list")
 
-    order = get_object_or_404(DeviceOrder, pk=pk)
+    order = get_object_or_404(accessible_order_queryset(request.user), pk=pk)
 
     if order.status != "approved":
         return redirect("device_orders:order_detail", pk=order.pk)

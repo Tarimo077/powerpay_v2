@@ -35,7 +35,7 @@ Powerpay Africa | Invoice {{ invoice.invoice_number }}
                 </a>
 
                 {% if invoice.status == "DRAFT" %}
-                    {% if request.user.is_superuser or request.user.role == "superadmin" or request.user.role == "admin" %}
+                    {% if can_manage_billing or request.user.role == "superadmin" or request.user.role == "admin" %}
                         <a href="{% url 'billing:invoice_send' invoice.id %}"
                             class="btn btn-sm btn-success text-white"
                             title="Click to send invoice to {{ invoice.organization.name }} via email."

@@ -27,7 +27,7 @@ class DeviceOrderForm(forms.ModelForm):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if user and user.role == "superadmin":
+        if user and (user.is_superuser or getattr(user, "role", None) == "superadmin"):
             self.fields["warehouse"].queryset = Warehouse.objects.all()
         else:
             self.fields["warehouse"].queryset = Warehouse.objects.filter(

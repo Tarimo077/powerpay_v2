@@ -123,8 +123,8 @@ class InviteUserForm(forms.ModelForm):
 
         self.user = user
 
-        # Superuser can pick any org and role
-        if self.user.is_superuser:
+        # Django superusers and platform superadmins can pick any org and role
+        if self.user.is_superuser or getattr(self.user, "role", None) == "superadmin":
             self.fields["role"].choices = [
                 ("superadmin", "Super Admin"),
                 ("admin", "Admin"),

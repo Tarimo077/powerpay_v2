@@ -20,8 +20,8 @@ class AppAccessMiddleware:
         if not request.user.is_authenticated:
             return self.get_response(request)
 
-        # Superusers bypass everything
-        if request.user.is_superuser:
+        # Django superusers and platform superadmins bypass app restrictions.
+        if request.user.is_superuser or getattr(request.user, "role", None) == "superadmin":
             return self.get_response(request)
 
         path = request.path
