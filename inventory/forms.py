@@ -205,6 +205,7 @@ class BulkInventoryItemForm(forms.Form):
 
         serial_number = value
         quantity = default_quantity
+        quantity_value = None
 
         for separator in (":", "|"):
             if separator in value:
@@ -218,8 +219,6 @@ class BulkInventoryItemForm(forms.Form):
             if len(parts) == 2 and parts[1].isdigit():
                 serial_number = parts[0]
                 quantity_value = parts[1]
-            else:
-                quantity_value = None
 
         if quantity_value is not None:
             try:
@@ -280,7 +279,6 @@ class BulkInventoryItemForm(forms.Form):
                     }
 
             else:
-                # Unique items support one per line or comma-separated serials.
                 serial_numbers = [
                     token.strip()
                     for token in line.split(",")
@@ -393,7 +391,79 @@ class BulkInventoryItemForm(forms.Form):
         return cleaned_data
 
 
-class InventoryMoveForm(forms.ModelForm):
+class DeliveryNoteFieldsMixin:
+    def add_delivery_note_fields(self):
+        self.fields["create_delivery_note"] = forms.BooleanField(
+            required=False,
+            label="Create delivery note for this movement",
+            widget=forms.CheckboxInput(attrs={
+                "class": "checkbox checkbox-success text-white",
+            }),
+        )
+
+        self.fields["delivery_recipient_name"] = forms.CharField(
+            required=False,
+            label="Receiver name",
+            widget=forms.TextInput(attrs={
+                "class": "input input-bordered w-full",
+                "placeholder": "Name of person or company receiving the goods",
+            }),
+        )
+
+        self.fields["delivery_recipient_email"] = forms.EmailField(
+            required=False,
+            label="Receiver email",
+            help_text="Optional. Required only if you want to email the delivery note.",
+            widget=forms.EmailInput(attrs={
+                "class": "input input-bordered w-full",
+                "placeholder": "receiver@example.com",
+            }),
+        )
+
+        self.fields["delivery_recipient_phone"] = forms.CharField(
+            required=False,
+            label="Receiver phone",
+            widget=forms.TextInput(attrs={
+                "class": "input input-bordered w-full",
+                "placeholder": "+254...",
+            }),
+        )
+
+        self.fields["delivery_recipient_organization"] = forms.CharField(
+            required=False,
+            label="Receiver company / organization",
+            widget=forms.TextInput(attrs={
+                "class": "input input-bordered w-full",
+                "placeholder": "e.g. PowerPay Africa / Customer company",
+            }),
+        )
+
+        self.fields["delivery_destination_address"] = forms.CharField(
+            required=False,
+            label="Delivery address",
+            widget=forms.Textarea(attrs={
+                "class": "textarea textarea-bordered w-full",
+                "rows": 3,
+                "placeholder": "Delivery destination / consignee address",
+            }),
+        )
+
+    def clean_delivery_note_fields(self, cleaned_data):
+        if cleaned_data.get("create_delivery_note"):
+            recipient_name = (
+                cleaned_data.get("delivery_recipient_name") or ""
+            ).strip()
+
+            if not recipient_name:
+                self.add_error(
+                    "delivery_recipient_name",
+                    "Receiver name is required when creating a delivery note.",
+                )
+
+        return cleaned_data
+
+
+class InventoryMoveForm(DeliveryNoteFieldsMixin, forms.ModelForm):
     quantity_to_move = forms.IntegerField(
         required=False,
         min_value=1,
@@ -425,6 +495,8 @@ class InventoryMoveForm(forms.ModelForm):
     def __init__(self, *args, item=None, allowed_warehouses=None, **kwargs):
         self.item = item
         super().__init__(*args, **kwargs)
+
+        self.add_delivery_note_fields()
 
         warehouse_qs = (
             allowed_warehouses
@@ -466,8 +538,12 @@ class InventoryMoveForm(forms.ModelForm):
 
         return quantity
 
+    def clean(self):
+        cleaned_data = super().clean()
+        return self.clean_delivery_note_fields(cleaned_data)
 
-class BulkInventoryMoveForm(forms.Form):
+
+class BulkInventoryMoveForm(DeliveryNoteFieldsMixin, forms.Form):
     from_warehouse = forms.ModelChoiceField(
         queryset=Warehouse.objects.none(),
         required=True,
@@ -511,6 +587,8 @@ class BulkInventoryMoveForm(forms.Form):
     def __init__(self, *args, allowed_warehouses=None, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.add_delivery_note_fields()
+
         warehouse_qs = (
             allowed_warehouses
             if allowed_warehouses is not None
@@ -528,6 +606,7 @@ class BulkInventoryMoveForm(forms.Form):
 
         serial_number = value
         quantity = None
+        quantity_value = None
 
         for separator in (":", "|"):
             if separator in value:
@@ -542,8 +621,6 @@ class BulkInventoryMoveForm(forms.Form):
             if len(parts) == 2 and parts[1].isdigit():
                 serial_number = parts[0]
                 quantity_value = parts[1]
-            else:
-                quantity_value = None
 
         if quantity_value is not None:
             try:
@@ -599,7 +676,6 @@ class BulkInventoryMoveForm(forms.Form):
                 if serial_number in entries_by_serial:
                     existing = entries_by_serial[serial_number]
 
-                    # None means "move all available".
                     if existing["quantity"] is None or quantity is None:
                         existing["quantity"] = None
                     else:
@@ -628,4 +704,32 @@ class BulkInventoryMoveForm(forms.Form):
                 "Source and destination warehouses cannot be the same."
             )
 
-        return cleaned_data
+        return self.clean_delivery_note_fields(cleaned_data)
+
+
+class DeliveryNoteReceiveForm(forms.Form):
+    received_by_name = forms.CharField(
+        label="Your name",
+        widget=forms.TextInput(attrs={
+            "class": "input input-bordered w-full",
+            "placeholder": "Name of person receiving the goods",
+        }),
+    )
+
+    received_in_good_condition = forms.BooleanField(
+        label="I confirm the goods were received in good order and condition",
+        required=True,
+        widget=forms.CheckboxInput(attrs={
+            "class": "checkbox checkbox-success",
+        }),
+    )
+
+    receiver_note = forms.CharField(
+        required=False,
+        label="Receiver note",
+        widget=forms.Textarea(attrs={
+            "class": "textarea textarea-bordered w-full",
+            "rows": 3,
+            "placeholder": "Optional note",
+        }),
+    )

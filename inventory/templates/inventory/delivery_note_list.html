@@ -1,0 +1,447 @@
+{% extends "base.html" %}
+
+{% block title %}
+Powerpay Africa | Delivery Notes
+{% endblock %}
+
+{% block content %}
+{% load humanize %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0 space-y-6" id="page-content">
+
+        <!-- PAGE HEADER -->
+        <div class="flex flex-wrap justify-between items-start gap-4 mt-4">
+            <div>
+                <h2 class="text-2xl font-bold">Delivery Notes</h2>
+                <p class="text-sm mt-1">
+                    View, download, email, and track receiver confirmation for inventory delivery notes.
+                </p>
+            </div>
+
+        </div>
+
+        <!-- STATS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+
+            <div class="card bg-base-100 shadow border-2 border-success">
+                <div class="card-body">
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm uppercase">Delivery Notes</p>
+                        <i class="fa-solid fa-file-signature text-xl text-success"></i>
+                    </div>
+
+                    <p class="text-3xl font-bold text-success">
+                        {{ total_results|default:0|intcomma }}
+                    </p>
+
+                    <p class="text-xs">
+                        Total notes matching current filters.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-2 border-warning">
+                <div class="card-body">
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm uppercase">Pending Receipt</p>
+                        <i class="fa-solid fa-clock text-xl text-warning"></i>
+                    </div>
+
+                    <p class="text-3xl font-bold text-warning">
+                        {{ pending_count|default:0|intcomma }}
+                    </p>
+
+                    <p class="text-xs">
+                        Receiver has not confirmed yet.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-2 border-info">
+                <div class="card-body">
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm uppercase">Confirmed</p>
+                        <i class="fa-solid fa-circle-check text-xl text-info"></i>
+                    </div>
+
+                    <p class="text-3xl font-bold text-info">
+                        {{ confirmed_count|default:0|intcomma }}
+                    </p>
+
+                    <p class="text-xs">
+                        Received in good order and condition.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-2 border-success">
+                <div class="card-body">
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm uppercase">Total Units</p>
+                        <i class="fa-solid fa-cubes text-xl text-success"></i>
+                    </div>
+
+                    <p class="text-3xl font-bold text-success">
+                        {{ total_units|default:0|intcomma }}
+                    </p>
+
+                    <p class="text-xs">
+                        Units included in matching delivery notes.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- FILTERS -->
+        <div class="card bg-base-100 shadow">
+            <div class="card-body">
+                <form method="get" class="space-y-4">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+
+                        <div>
+                            <label class="label font-semibold">Search</label>
+                            <input type="text"
+                                   name="q"
+                                   value="{{ search_query }}"
+                                   placeholder="Note no, receiver, serial, item..."
+                                   class="input input-bordered w-full">
+                        </div>
+
+                        <div>
+                            <label class="label font-semibold">Status</label>
+                            <select name="status" class="select select-bordered w-full">
+                                <option value="">All statuses</option>
+                                <option value="pending" {% if status_filter == "pending" %}selected{% endif %}>
+                                    Pending Receipt
+                                </option>
+                                <option value="confirmed" {% if status_filter == "confirmed" %}selected{% endif %}>
+                                    Confirmed Good
+                                </option>
+                                <option value="issue" {% if status_filter == "issue" %}selected{% endif %}>
+                                    Received With Issue
+                                </option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="label font-semibold">From Warehouse</label>
+                            <select name="from_warehouse" class="select select-bordered w-full">
+                                <option value="">All source warehouses</option>
+                                {% for warehouse in warehouses %}
+                                    <option value="{{ warehouse.id }}"
+                                            {% if from_warehouse_filter|stringformat:"s" == warehouse.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ warehouse.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="label font-semibold">To Warehouse</label>
+                            <select name="to_warehouse" class="select select-bordered w-full">
+                                <option value="">All destination warehouses</option>
+                                {% for warehouse in warehouses %}
+                                    <option value="{{ warehouse.id }}"
+                                            {% if to_warehouse_filter|stringformat:"s" == warehouse.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ warehouse.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="label font-semibold">Date From</label>
+                            <input type="date"
+                                   name="date_from"
+                                   value="{{ date_from }}"
+                                   class="input input-bordered w-full">
+                        </div>
+
+                        <div>
+                            <label class="label font-semibold">Date To</label>
+                            <input type="date"
+                                   name="date_to"
+                                   value="{{ date_to }}"
+                                   class="input input-bordered w-full">
+                        </div>
+
+                    </div>
+
+                    <input type="hidden" name="page_size" value="{{ page_size }}">
+                    <input type="hidden" name="sort" value="{{ current_sort }}">
+                    <input type="hidden" name="dir" value="{{ current_dir }}">
+
+                    <div class="flex flex-wrap justify-between items-center gap-2">
+                        <a href="{% url 'inventory:delivery_note_list' %}" class="btn btn-outline btn-error hover:text-white">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            Reset
+                        </a>
+
+                        <button type="submit" class="btn btn-success text-white">
+                            <i class="fa-solid fa-filter"></i>
+                            Apply Filters
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="bg-base-100 rounded-lg shadow overflow-x-auto">
+            <table class="table w-full">
+                <thead class="bg-success text-white uppercase text-sm">
+                    <tr>
+                        <th>
+                            <a class="flex items-center gap-2"
+                               href="?q={{ search_query }}&status={{ status_filter }}&from_warehouse={{ from_warehouse_filter }}&to_warehouse={{ to_warehouse_filter }}&date_from={{ date_from }}&date_to={{ date_to }}&page_size={{ page_size }}&sort=number&dir={{ next_dirs.number }}">
+                                No.
+                                {% if current_sort == "number" %}
+                                    {% if current_dir == "asc" %}
+                                        <i class="fa-solid fa-arrow-up"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-arrow-down"></i>
+                                    {% endif %}
+                                {% endif %}
+                            </a>
+                        </th>
+
+                        <th>
+                            <a class="flex items-center gap-2"
+                               href="?q={{ search_query }}&status={{ status_filter }}&from_warehouse={{ from_warehouse_filter }}&to_warehouse={{ to_warehouse_filter }}&date_from={{ date_from }}&date_to={{ date_to }}&page_size={{ page_size }}&sort=recipient&dir={{ next_dirs.recipient }}">
+                                Receiver
+                                {% if current_sort == "recipient" %}
+                                    {% if current_dir == "asc" %}
+                                        <i class="fa-solid fa-arrow-up"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-arrow-down"></i>
+                                    {% endif %}
+                                {% endif %}
+                            </a>
+                        </th>
+
+                        <th>
+                            <a class="flex items-center gap-2"
+                               href="?q={{ search_query }}&status={{ status_filter }}&from_warehouse={{ from_warehouse_filter }}&to_warehouse={{ to_warehouse_filter }}&date_from={{ date_from }}&date_to={{ date_to }}&page_size={{ page_size }}&sort=from&dir={{ next_dirs.from }}">
+                                From
+                            </a>
+                        </th>
+
+                        <th>
+                            <a class="flex items-center gap-2"
+                               href="?q={{ search_query }}&status={{ status_filter }}&from_warehouse={{ from_warehouse_filter }}&to_warehouse={{ to_warehouse_filter }}&date_from={{ date_from }}&date_to={{ date_to }}&page_size={{ page_size }}&sort=to&dir={{ next_dirs.to }}">
+                                To
+                            </a>
+                        </th>
+
+                        <th class="text-center">
+                            <a class="flex justify-center items-center gap-2"
+                               href="?q={{ search_query }}&status={{ status_filter }}&from_warehouse={{ from_warehouse_filter }}&to_warehouse={{ to_warehouse_filter }}&date_from={{ date_from }}&date_to={{ date_to }}&page_size={{ page_size }}&sort=quantity&dir={{ next_dirs.quantity }}">
+                                Qty
+                            </a>
+                        </th>
+
+                        <th class="text-center">Status</th>
+
+                        <th>
+                            <a class="flex items-center gap-2"
+                               href="?q={{ search_query }}&status={{ status_filter }}&from_warehouse={{ from_warehouse_filter }}&to_warehouse={{ to_warehouse_filter }}&date_from={{ date_from }}&date_to={{ date_to }}&page_size={{ page_size }}&sort=created&dir={{ next_dirs.created }}">
+                                Created
+                                {% if current_sort == "created" %}
+                                    {% if current_dir == "asc" %}
+                                        <i class="fa-solid fa-arrow-up"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-arrow-down"></i>
+                                    {% endif %}
+                                {% endif %}
+                            </a>
+                        </th>
+
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for note in page_obj %}
+                    <tr class="hover">
+                        <td class="align-middle">
+                            <span class="font-mono font-semibold">
+                                DN-{{ note.id|stringformat:"05d" }}
+                            </span>
+                        </td>
+
+                        <td class="align-middle">
+                            <div>
+                                <p class="font-semibold">{{ note.recipient_name }}</p>
+
+                                {% if note.recipient_organization %}
+                                    <p class="text-xs">
+                                        {{ note.recipient_organization }}
+                                    </p>
+                                {% endif %}
+
+                                {% if note.recipient_email %}
+                                    <p class="text-xs">
+                                        {{ note.recipient_email }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <td class="align-middle">
+                            <span class="badge badge-warning text-white">
+                                {{ note.from_warehouse|default:"-" }}
+                            </span>
+                        </td>
+
+                        <td class="align-middle">
+                            <span class="badge badge-success text-white">
+                                {{ note.to_warehouse|default:"-" }}
+                            </span>
+                        </td>
+
+                        <td class="align-middle text-center">
+                            <span class="badge badge-info text-white">
+                                {{ note.total_quantity|default:0|intcomma }}
+                            </span>
+                        </td>
+
+                        <td class="align-middle text-center">
+                            {% if note.received_at %}
+                                {% if note.received_in_good_condition %}
+                                    <span class="badge badge-success text-white">
+                                        Confirmed
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-error text-white">
+                                        Issue Reported
+                                    </span>
+                                {% endif %}
+
+                                <p class="text-xs mt-1">
+                                    {{ note.received_at|date:"j M Y H:i" }}
+                                </p>
+                            {% else %}
+                                <span class="badge badge-warning text-white">
+                                    Pending
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td class="align-middle">
+                            <div>
+                                <p>{{ note.created_at|date:"j M Y H:i" }}</p>
+                                <p class="text-xs">
+                                    By {{ note.created_by|default:"System" }}
+                                </p>
+                            </div>
+                        </td>
+
+                        <td class="align-middle">
+                            <div class="flex flex-wrap justify-center gap-2">
+                                <a href="{% url 'inventory:delivery_note_detail' note.id %}"
+                                   class="btn btn-sm btn-info text-white">
+                                    <i class="fa-solid fa-eye"></i>
+                                    View
+                                </a>
+
+                                <a href="{% url 'inventory:delivery_note_pdf' note.id %}"
+                                   class="btn btn-sm btn-success text-white">
+                                    <i class="fa-solid fa-download"></i>
+                                    PDF
+                                </a>
+
+                                {% if note.recipient_email %}
+                                <a href="{% url 'inventory:delivery_note_email' note.id %}"
+                                   class="btn btn-sm btn-warning text-white">
+                                    <i class="fa-solid fa-envelope"></i>
+                                    Email
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-8">
+                            <div class="flex flex-col items-center gap-2">
+                                <i class="fa-solid fa-file-signature text-3xl"></i>
+                                <p>No delivery notes found.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PAGINATION + PAGE SIZE -->
+        <div class="flex flex-wrap justify-between items-center gap-4 bg-base-100 rounded-lg shadow p-4">
+
+            <form method="get" class="flex flex-wrap items-center gap-2">
+                <input type="hidden" name="q" value="{{ search_query }}">
+                <input type="hidden" name="status" value="{{ status_filter }}">
+                <input type="hidden" name="from_warehouse" value="{{ from_warehouse_filter }}">
+                <input type="hidden" name="to_warehouse" value="{{ to_warehouse_filter }}">
+                <input type="hidden" name="date_from" value="{{ date_from }}">
+                <input type="hidden" name="date_to" value="{{ date_to }}">
+                <input type="hidden" name="sort" value="{{ current_sort }}">
+                <input type="hidden" name="dir" value="{{ current_dir }}">
+
+                <span class="text-sm">Items per page</span>
+
+                <select name="page_size"
+                        class="select select-bordered select-sm"
+                        onchange="this.form.submit()">
+                    {% for size in page_size_options %}
+                        <option value="{{ size }}" {% if page_size == size %}selected{% endif %}>
+                            {{ size }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+
+            <div class="text-sm">
+                Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                · {{ total_results|default:0|intcomma }} result{{ total_results|pluralize }}
+            </div>
+
+            <div class="join">
+                {% if page_obj.has_previous %}
+                    <a class="join-item btn btn-sm"
+                       href="?q={{ search_query }}&status={{ status_filter }}&from_warehouse={{ from_warehouse_filter }}&to_warehouse={{ to_warehouse_filter }}&date_from={{ date_from }}&date_to={{ date_to }}&page_size={{ page_size }}&sort={{ current_sort }}&dir={{ current_dir }}&page={{ page_obj.previous_page_number }}">
+                        <i class="fa-solid fa-chevron-left"></i>
+                        Previous
+                    </a>
+                {% else %}
+                    <button class="join-item btn btn-sm" disabled>
+                        <i class="fa-solid fa-chevron-left"></i>
+                        Previous
+                    </button>
+                {% endif %}
+
+                {% if page_obj.has_next %}
+                    <a class="join-item btn btn-sm"
+                       href="?q={{ search_query }}&status={{ status_filter }}&from_warehouse={{ from_warehouse_filter }}&to_warehouse={{ to_warehouse_filter }}&date_from={{ date_from }}&date_to={{ date_to }}&page_size={{ page_size }}&sort={{ current_sort }}&dir={{ current_dir }}&page={{ page_obj.next_page_number }}">
+                        Next
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                {% else %}
+                    <button class="join-item btn btn-sm" disabled>
+                        Next
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}

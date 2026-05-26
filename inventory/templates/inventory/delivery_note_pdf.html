@@ -1,0 +1,227 @@
+{% load static %}
+{% load humanize %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 11px;
+            color: #111;
+        }
+        .header {
+            width: 100%;
+            margin-bottom: 18px;
+        }
+        .logo {
+            height: 55px;
+            max-width: 140px;
+            object-fit: contain;
+        }
+        .title {
+            font-size: 19px;
+            font-weight: bold;
+            color: #16a34a;
+            text-align: right;
+        }
+        .small {
+            font-size: 9px;
+            color: #555;
+        }
+        .section-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #16a34a;
+            margin-top: 12px;
+            margin-bottom: 5px;
+        }
+        table.info {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+        }
+        table.info td {
+            padding: 5px;
+            vertical-align: top;
+            border: 1px solid #e5e7eb;
+        }
+        table.items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+        table.items th {
+            background-color: #16a34a;
+            color: white;
+            padding: 7px;
+            border: 1px solid #16a34a;
+        }
+        table.items td {
+            border: 1px solid #d1d5db;
+            padding: 7px;
+        }
+        .status {
+            padding: 5px 9px;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 3px;
+        }
+        .confirmed { background-color: #16a34a; }
+        .pending { background-color: #f97316; }
+        .note-box {
+            margin-top: 14px;
+            padding: 9px;
+            border: 1px dashed #16a34a;
+            background-color: #f0fdf4;
+        }
+        .signature-table {
+            width: 100%;
+            margin-top: 30px;
+            border-collapse: collapse;
+        }
+        .signature-table td {
+            width: 50%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            vertical-align: top;
+            height: 85px;
+        }
+        .line {
+            border-bottom: 1px solid #111;
+            height: 22px;
+            margin-top: 10px;
+        }
+        .footer {
+            margin-top: 25px;
+            font-size: 9px;
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<table class="header">
+    <tr>
+        <td>
+            <img src="{{ STATIC_ROOT }}/images/powerpaylogo.png" class="logo">
+            <div class="small">Appliances For The Next Billion</div>
+            <br>
+            <strong>Powerpay Africa</strong><br>
+            Nairobi, Kenya<br>
+            support@powerpayafrica.com<br>
+            +254 725 481 878
+        </td>
+        <td align="right">
+            <div class="title">DELIVERY NOTE</div>
+            <div><strong>{{ delivery_note.delivery_number }}</strong></div>
+            <div>Created: {{ delivery_note.created_at|date:"j M Y H:i" }}</div>
+            <div style="margin-top: 8px;">
+                {% if delivery_note.is_received %}
+                    <span class="status confirmed">RECEIVED</span>
+                {% else %}
+                    <span class="status pending">PENDING RECEIPT</span>
+                {% endif %}
+            </div>
+        </td>
+    </tr>
+</table>
+
+<div class="section-title">Order Information</div>
+<table class="info">
+    <tr>
+        <td><strong>From Warehouse:</strong><br>{{ delivery_note.from_warehouse|default:"-" }}</td>
+        <td><strong>To Warehouse:</strong><br>{{ delivery_note.to_warehouse|default:"-" }}</td>
+    </tr>
+    <tr>
+        <td><strong>Dispatched By:</strong><br>{{ delivery_note.created_by|default:"System" }}</td>
+        <td><strong>Delivery Date:</strong><br>{{ delivery_note.created_at|date:"j M Y" }}</td>
+    </tr>
+</table>
+
+<div class="section-title">Consignee / Receiver</div>
+<table class="info">
+    <tr>
+        <td><strong>Name:</strong><br>{{ delivery_note.recipient_name }}</td>
+        <td><strong>Company:</strong><br>{{ delivery_note.recipient_organization|default:"-" }}</td>
+    </tr>
+    <tr>
+        <td><strong>Phone:</strong><br>{{ delivery_note.recipient_phone|default:"-" }}</td>
+        <td><strong>Email:</strong><br>{{ delivery_note.recipient_email|default:"-" }}</td>
+    </tr>
+    <tr>
+        <td colspan="2"><strong>Address / Destination:</strong><br>{{ delivery_note.destination_address|default:"-"|linebreaksbr }}</td>
+    </tr>
+</table>
+
+<div class="section-title">Packing Details</div>
+<table class="items">
+    <tr>
+        <th>Product</th>
+        <th>Description</th>
+        <th>Serial Number</th>
+        <th>Qty Sent</th>
+    </tr>
+    {% for row in delivery_items %}
+    <tr>
+        <td>{{ row.product_type }}</td>
+        <td>{{ row.item_name }}</td>
+        <td>{{ row.serial_number }}</td>
+        <td align="center">{{ row.quantity|intcomma }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% if delivery_note.note %}
+<div class="note-box">
+    <strong>Dispatch Note:</strong><br>
+    {{ delivery_note.note|linebreaksbr }}
+</div>
+{% endif %}
+
+{% if confirmation_url and not delivery_note.is_received %}
+<div class="note-box">
+    <strong>Receiver confirmation link:</strong><br>
+    {{ confirmation_url }}<br><br>
+    The receiver should use this link to confirm that the goods were received in good order and condition.
+</div>
+{% endif %}
+
+<table class="signature-table">
+    <tr>
+        <td>
+            <strong>Dispatched By</strong><br>
+            Name: {{ delivery_note.created_by|default:"System" }}<br>
+            Date: {{ delivery_note.created_at|date:"j M Y" }}
+            <div class="line"></div>
+            Signature
+        </td>
+        <td>
+            <strong>Received By</strong><br>
+            Name: {{ delivery_note.received_by_name|default:"" }}<br>
+            Date: {% if delivery_note.received_at %}{{ delivery_note.received_at|date:"j M Y" }}{% endif %}
+            <div class="line"></div>
+            Signature
+        </td>
+    </tr>
+</table>
+
+<div class="section-title">Received in Good Order and Condition</div>
+<table class="info">
+    <tr>
+        <td><strong>Confirmed:</strong> {% if delivery_note.is_received %}Yes{% else %}No{% endif %}</td>
+        <td><strong>Confirmed At:</strong> {% if delivery_note.received_at %}{{ delivery_note.received_at|date:"j M Y H:i" }}{% else %}-{% endif %}</td>
+    </tr>
+    <tr>
+        <td colspan="2"><strong>Receiver Note:</strong><br>{{ delivery_note.receiver_note|default:"-"|linebreaksbr }}</td>
+    </tr>
+</table>
+
+<div class="footer">
+    This delivery note was generated by Powerpay Africa inventory system.
+</div>
+
+</body>
+</html>

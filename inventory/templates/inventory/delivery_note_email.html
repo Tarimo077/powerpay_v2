@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; color: #333;">
+    <h2 style="color:#16a34a;">Powerpay Africa Delivery Note {{ delivery_note.delivery_number }}</h2>
+
+    <p>Hello {{ delivery_note.recipient_name }},</p>
+
+    <p>Your delivery note is attached.</p>
+
+    <p>
+        <strong>From:</strong> {{ delivery_note.from_warehouse|default:"-" }}<br>
+        <strong>To:</strong> {{ delivery_note.to_warehouse|default:"-" }}<br>
+        <strong>Date:</strong> {{ delivery_note.created_at|date:"j M Y H:i" }}
+    </p>
+
+    <p>Please confirm receipt of the goods in good order and condition using this link:</p>
+
+    <p>
+        <a href="{{ confirmation_url }}" style="background:#16a34a;color:white;padding:10px 16px;text-decoration:none;border-radius:6px;">
+            Confirm Receipt
+        </a>
+    </p>
+
+    <p>If the button does not work, copy and open this link:</p>
+    <p>{{ confirmation_url }}</p>
+
+    <p>Thank you.</p>
+</body>
+</html>

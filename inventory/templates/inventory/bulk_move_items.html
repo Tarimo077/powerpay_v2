@@ -16,7 +16,7 @@
                 <div>
                     <h2 class="text-2xl font-bold">Bulk Move Inventory Items</h2>
                     <p class="text-sm text-gray-500 mt-1">
-                        Paste serial numbers, choose a destination warehouse, and move all items together.
+                        Paste serial numbers, choose a destination warehouse, and optionally create one delivery note for the movement.
                     </p>
                 </div>
 
@@ -34,17 +34,19 @@
                     </div>
                 {% endif %}
 
-                <div>
-                    <label class="label font-semibold">{{ form.from_warehouse.label }}</label>
-                    {{ form.from_warehouse }}
-                    <p class="text-xs text-gray-500 mt-1">{{ form.from_warehouse.help_text }}</p>
-                    {{ form.from_warehouse.errors }}
-                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="label font-semibold">{{ form.from_warehouse.label }}</label>
+                        {{ form.from_warehouse }}
+                        <p class="text-xs text-gray-500 mt-1">{{ form.from_warehouse.help_text }}</p>
+                        {{ form.from_warehouse.errors }}
+                    </div>
 
-                <div>
-                    <label class="label font-semibold">{{ form.to_warehouse.label }}</label>
-                    {{ form.to_warehouse }}
-                    {{ form.to_warehouse.errors }}
+                    <div>
+                        <label class="label font-semibold">{{ form.to_warehouse.label }}</label>
+                        {{ form.to_warehouse }}
+                        {{ form.to_warehouse.errors }}
+                    </div>
                 </div>
 
                 <div>
@@ -58,6 +60,62 @@
                     <label class="label font-semibold">{{ form.note.label }}</label>
                     {{ form.note }}
                     {{ form.note.errors }}
+                </div>
+
+                <!-- Delivery Note Toggle -->
+                <div class="rounded-lg border border-base-300 bg-base-200 p-4">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        {{ form.create_delivery_note }}
+                        <span>
+                            <span class="font-semibold">Create Delivery Note</span>
+                            <span class="block text-xs text-gray-500">
+                                Create one delivery note covering all successfully moved serials/quantities.
+                            </span>
+                        </span>
+                    </label>
+                    {{ form.create_delivery_note.errors }}
+                </div>
+
+                <div id="delivery-note-fields" class="hidden rounded-lg border border-success bg-base-100 p-4 space-y-4">
+                    <div>
+                        <h3 class="font-bold text-lg">Delivery Note Details</h3>
+                        <p class="text-sm text-gray-500">
+                            The receiver can affirm receipt in good order and condition using the public confirmation link.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="label font-semibold">{{ form.delivery_recipient_name.label }}</label>
+                            {{ form.delivery_recipient_name }}
+                            {{ form.delivery_recipient_name.errors }}
+                        </div>
+
+                        <div>
+                            <label class="label font-semibold">{{ form.delivery_recipient_email.label }}</label>
+                            {{ form.delivery_recipient_email }}
+                            <p class="text-xs text-gray-500 mt-1">{{ form.delivery_recipient_email.help_text }}</p>
+                            {{ form.delivery_recipient_email.errors }}
+                        </div>
+
+                        <div>
+                            <label class="label font-semibold">{{ form.delivery_recipient_phone.label }}</label>
+                            {{ form.delivery_recipient_phone }}
+                            {{ form.delivery_recipient_phone.errors }}
+                        </div>
+
+                        <div>
+                            <label class="label font-semibold">{{ form.delivery_recipient_organization.label }}</label>
+                            {{ form.delivery_recipient_organization }}
+                            {{ form.delivery_recipient_organization.errors }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="label font-semibold">{{ form.delivery_destination_address.label }}</label>
+                        {{ form.delivery_destination_address }}
+                        {{ form.delivery_destination_address.errors }}
+                    </div>
                 </div>
 
                 <div class="flex justify-between mt-6">
@@ -75,4 +133,19 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const checkbox = document.getElementById("id_create_delivery_note");
+    const fields = document.getElementById("delivery-note-fields");
+
+    function toggleDeliveryFields() {
+        if (!checkbox || !fields) return;
+        fields.classList.toggle("hidden", !checkbox.checked);
+    }
+
+    checkbox?.addEventListener("change", toggleDeliveryFields);
+    toggleDeliveryFields();
+});
+</script>
 {% endblock %}

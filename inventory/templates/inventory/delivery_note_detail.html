@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}
+Powerpay Africa | Delivery Note {{ delivery_note.delivery_number }}
+{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0 space-y-6" id="page-content">
+
+        <div class="flex flex-wrap justify-between items-center gap-3">
+            <div>
+                <h2 class="text-2xl font-bold">Delivery Note {{ delivery_note.delivery_number }}</h2>
+                <p class="text-sm text-gray-500 mt-1">
+                    Created {{ delivery_note.created_at|date:"j M Y H:i" }} by {{ delivery_note.created_by|default:"System" }}
+                </p>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+                <a href="{% url 'inventory:inventory_page' %}" class="btn btn-ghost btn-accent hover:text-white">
+                    <i class="fa-solid fa-backward-step"></i>
+                    Inventory
+                </a>
+
+                <a href="{% url 'inventory:delivery_note_pdf' delivery_note.id %}" target="_blank" class="btn btn-info text-white">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    Download PDF
+                </a>
+
+                <form method="POST" action="{% url 'inventory:delivery_note_email' delivery_note.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success text-white" {% if not delivery_note.recipient_email %}disabled{% endif %}>
+                        <i class="fa-solid fa-envelope"></i>
+                        Email Delivery Note
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% if not delivery_note.recipient_email %}
+        <div class="alert alert-warning text-white">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>No receiver email was saved for this delivery note. You can still download the PDF and share the confirmation link manually.</span>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="card bg-base-100 shadow border-2 border-success">
+                <div class="card-body">
+                    <p class="text-sm uppercase">Movement</p>
+                    <p class="font-bold text-success">{{ delivery_note.from_warehouse|default:"-" }}</p>
+                    <p class="text-xs text-gray-500">to</p>
+                    <p class="font-bold text-success">{{ delivery_note.to_warehouse|default:"-" }}</p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-2 border-info">
+                <div class="card-body">
+                    <p class="text-sm uppercase">Receiver</p>
+                    <p class="font-bold text-info">{{ delivery_note.recipient_name }}</p>
+                    <p class="text-xs text-gray-500">{{ delivery_note.recipient_organization|default:"-" }}</p>
+                    <p class="text-xs text-gray-500">{{ delivery_note.recipient_phone|default:"-" }}</p>
+                    <p class="text-xs text-gray-500">{{ delivery_note.recipient_email|default:"-" }}</p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border-2 {% if delivery_note.is_received %}border-success{% else %}border-warning{% endif %}">
+                <div class="card-body">
+                    <p class="text-sm uppercase">Receipt Status</p>
+                    {% if delivery_note.is_received %}
+                        <span class="badge badge-success text-white badge-lg">Received</span>
+                        <p class="text-xs text-gray-500 mt-2">
+                            {{ delivery_note.received_by_name }} · {{ delivery_note.received_at|date:"j M Y H:i" }}
+                        </p>
+                    {% else %}
+                        <span class="badge badge-warning text-white badge-lg">Awaiting Confirmation</span>
+                        <p class="text-xs text-gray-500 mt-2">Receiver has not confirmed yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-base-100 shadow rounded-lg p-6 space-y-4">
+            <div class="flex flex-wrap justify-between gap-3 items-start">
+                <div>
+                    <h3 class="font-bold text-lg">Receiver Confirmation Link</h3>
+                    <p class="text-sm text-gray-500">
+                        Share this link with the person receiving the package. They do not need a user account.
+                    </p>
+                </div>
+            </div>
+
+            <div class="join w-full">
+                <input id="confirmation-url" value="{{ confirmation_url }}" readonly class="input input-bordered join-item w-full">
+                <button type="button" onclick="copyConfirmationUrl()" class="btn btn-success text-white join-item">
+                    <i class="fa-solid fa-copy"></i>
+                    Copy
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-base-100 rounded-lg shadow overflow-x-auto">
+            <table class="table w-full">
+                <thead class="bg-success text-white uppercase text-sm">
+                    <tr>
+                        <th>Product</th>
+                        <th>Serial Number</th>
+                        <th>Product Type</th>
+                        <th class="text-center">Quantity Sent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in delivery_items %}
+                    <tr>
+                        <td>{{ row.item_name }}</td>
+                        <td class="font-mono">{{ row.serial_number }}</td>
+                        <td>{{ row.product_type }}</td>
+                        <td class="text-center font-semibold">{{ row.quantity|intcomma }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-6">No items found on this delivery note.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if delivery_note.note or delivery_note.destination_address or delivery_note.receiver_note %}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="card bg-base-100 shadow">
+                <div class="card-body">
+                    <p class="font-bold">Destination</p>
+                    <p class="text-sm text-gray-500 whitespace-pre-line">{{ delivery_note.destination_address|default:"-" }}</p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow">
+                <div class="card-body">
+                    <p class="font-bold">Dispatch Note</p>
+                    <p class="text-sm text-gray-500 whitespace-pre-line">{{ delivery_note.note|default:"-" }}</p>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow">
+                <div class="card-body">
+                    <p class="font-bold">Receiver Note</p>
+                    <p class="text-sm text-gray-500 whitespace-pre-line">{{ delivery_note.receiver_note|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<script>
+function copyConfirmationUrl() {
+    const input = document.getElementById("confirmation-url");
+    input.select();
+    input.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(input.value);
+}
+</script>
+{% endblock %}

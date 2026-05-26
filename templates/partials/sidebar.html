@@ -88,11 +88,11 @@
 
                 <div class="collapse-content mx-1">
 
-                    <!-- All Devices -->
+                    <!-- Device List -->
                     <a href="{% url 'devices:device_list' %}"
                        class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
                        {% if request.resolver_match.namespace == 'devices' and 'schedules' not in request.path and 'testing-batches' not in request.path %}
-                            bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                            bg-success/10 border-l-4 text-success border-success font-semibold
                        {% else %}
                             hover:text-success
                        {% endif %}">
@@ -104,7 +104,7 @@
                     <a href="{% url 'devices:device_schedule_list' %}"
                        class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
                        {% if request.resolver_match.namespace == 'devices' and 'schedules' in request.path %}
-                            bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                            bg-success/10 border-l-4 text-success border-success font-semibold
                        {% else %}
                             hover:text-success
                        {% endif %}">
@@ -117,7 +117,7 @@
                     <a href="{% url 'devices:testing_batch_list' %}"
                        class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
                        {% if request.resolver_match.namespace == 'devices' and 'testing-batches' in request.path %}
-                            bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                            bg-success/10 border-l-4 text-success border-success font-semibold
                        {% else %}
                             hover:text-success
                        {% endif %}">
@@ -171,31 +171,64 @@
             </a>
             {% endif %}
 
-            <!-- Inventory -->
+            <!-- Inventory Group -->
             {% if 'inventory' in allowed_apps %}
-            <a href="{% url 'inventory:inventory_page' %}"
-               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
-               {% if request.path == '/inventory/' %}
-                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
-               {% else %}
-                    hover:text-success
-               {% endif %}">
-                <i class="fa-solid fa-boxes-stacked w-5"></i>
-                <span class="link-text">Inventory</span>
-            </a>
+            <div class="collapse collapse-arrow rounded-none bg-base-100 mx-3">
 
-            {% if request.user.is_superuser %}
-            <a href="{% url 'inventory:warehouses_page' %}"
-               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
-               {% if 'warehouses' in request.path %}
-                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
-               {% else %}
-                    hover:text-success
-               {% endif %}">
-                <i class="fa-solid fa-warehouse w-5"></i>
-                <span class="link-text">Warehouses</span>
-            </a>
-            {% endif %}
+                <input type="checkbox"
+                       {% if request.resolver_match.namespace == 'inventory' %}checked{% endif %} />
+
+                <!-- Parent is NOT highlighted. Only submenu links are highlighted. -->
+                <div class="collapse-title px-4 py-4 hover:text-success">
+                    <div class="flex items-center gap-4">
+                        <i class="fa-solid fa-boxes-stacked w-5"></i>
+                        <span class="link-text">Inventory</span>
+                    </div>
+                </div>
+
+                <div class="collapse-content mx-1">
+
+                    <!-- Inventory List -->
+                    <a href="{% url 'inventory:inventory_page' %}"
+                       class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+                       {% if request.resolver_match.namespace == 'inventory' and 'warehouses' not in request.path and 'delivery-notes' not in request.path %}
+                            bg-success/10 border-l-4 text-success border-success font-semibold
+                       {% else %}
+                            hover:text-success
+                       {% endif %}">
+                        <i class="fa-solid fa-box-open w-5"></i>
+                        <span class="link-text">Inventory List</span>
+                    </a>
+
+                    <!-- Warehouses -->
+                    {% if request.user.is_superuser %}
+                    <a href="{% url 'inventory:warehouses_page' %}"
+                       class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+                       {% if request.resolver_match.namespace == 'inventory' and 'warehouses' in request.path %}
+                            bg-success/10 border-l-4 text-success border-success font-semibold
+                       {% else %}
+                            hover:text-success
+                       {% endif %}">
+                        <i class="fa-solid fa-warehouse w-5"></i>
+                        <span class="link-text">Warehouses</span>
+                    </a>
+
+                    <!-- Delivery Notes -->
+                    <a href="{% url 'inventory:delivery_note_list' %}"
+                       class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+                       {% if request.resolver_match.namespace == 'inventory' and 'delivery-notes' in request.path %}
+                            bg-success/10 border-l-4 text-success border-success font-semibold
+                       {% else %}
+                            hover:text-success
+                       {% endif %}">
+                        <i class="fa-solid fa-file-signature w-5"></i>
+                        <span class="link-text">Delivery Notes</span>
+                    </a>
+
+                    {% endif %}
+
+                </div>
+            </div>
             {% endif %}
 
             <!-- Transactions -->
