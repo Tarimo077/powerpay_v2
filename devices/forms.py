@@ -202,7 +202,6 @@ class DeviceForm(forms.ModelForm):
 
 
 class DeviceCommandScheduleForm(forms.ModelForm):
-
     class Meta:
         model = DeviceCommandSchedule
         fields = ["action", "devices", "scheduled_time"]
@@ -215,9 +214,9 @@ class DeviceCommandScheduleForm(forms.ModelForm):
             "scheduled_time": forms.DateTimeInput(
                 attrs={
                     "class": "input input-bordered w-full max-w-xs form-control",
-                    "type": "datetime-local"
+                    "type": "datetime-local",
                 },
-                format="%Y-%m-%dT%H:%M"
+                format="%Y-%m-%dT%H:%M",
             ),
 
             "devices": forms.CheckboxSelectMultiple(
@@ -226,19 +225,62 @@ class DeviceCommandScheduleForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop("user", None)
+        self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
-        # Ensure datetime-local parses correctly
         self.fields["scheduled_time"].input_formats = ("%Y-%m-%dT%H:%M",)
 
-        if user:
-            if user.role == "superadmin":
-                self.fields["devices"].queryset = DeviceInfo.objects.all().distinct()
+        if self.user:
+            if getattr(self.user, "role", None) == "superadmin" or self.user.is_superuser:
+                self.fields["devices"].queryset = (
+                    DeviceInfo.objects
+                    .select_related("organization")
+                    .all()
+                    .distinct()
+                    .order_by("deviceid")
+                )
             else:
-                self.fields["devices"].queryset = DeviceInfo.objects.filter(
-                    organizations=user.organization
-                ).distinct()
+                self.fields["devices"].queryset = (
+                    DeviceInfo.objects
+                    .select_related("organization")
+                    .filter(organizations=self.user.organization)
+                    .distinct()
+                    .order_by("deviceid")
+                )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        devices = cleaned_data.get("devices")
+
+        if not devices:
+            return cleaned_data
+
+        user_is_superadmin = bool(
+            self.user
+            and (
+                getattr(self.user, "role", None) == "superadmin"
+                or self.user.is_superuser
+            )
+        )
+
+        if user_is_superadmin:
+            primary_org_ids = set(
+                devices.exclude(organization__isnull=True)
+                .values_list("organization_id", flat=True)
+            )
+
+            if len(primary_org_ids) > 1:
+                raise forms.ValidationError(
+                    "Choose devices from one organization only. "
+                    "A device schedule can only belong to one organization."
+                )
+
+            if not primary_org_ids:
+                raise forms.ValidationError(
+                    "The selected devices do not have a primary organization."
+                )
+
+        return cleaned_data
 
 
 class BulkDeviceCreateForm(forms.Form):

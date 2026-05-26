@@ -1361,11 +1361,42 @@ class DeviceScheduleCreateView(CreateView):
         kwargs["user"] = self.request.user
         return kwargs
 
-    def form_valid(self, form):
-        form.instance.created_by = self.request.user
+    def get_schedule_organization(self, form):
+        user = self.request.user
 
-        if not _user_is_device_admin(self.request.user):
-            form.instance.organization = self.request.user.organization
+        if not _user_is_device_admin(user):
+            return user.organization
+
+        selected_devices = form.cleaned_data.get("devices")
+
+        if selected_devices:
+            first_device = (
+                selected_devices
+                .select_related("organization")
+                .first()
+            )
+
+            if first_device and first_device.organization_id:
+                return first_device.organization
+
+        if getattr(user, "organization_id", None):
+            return user.organization
+
+        return None
+
+    def form_valid(self, form):
+        organization = self.get_schedule_organization(form)
+
+        if organization is None:
+            form.add_error(
+                None,
+                "Could not determine the organization for this schedule. "
+                "Please select devices that belong to an organization.",
+            )
+            return self.form_invalid(form)
+
+        form.instance.created_by = self.request.user
+        form.instance.organization = organization
 
         return super().form_valid(form)
 
@@ -1392,6 +1423,47 @@ class DeviceScheduleUpdateView(UpdateView):
         kwargs = super().get_form_kwargs()
         kwargs["user"] = self.request.user
         return kwargs
+
+    def get_schedule_organization(self, form):
+        user = self.request.user
+
+        if not _user_is_device_admin(user):
+            return user.organization
+
+        selected_devices = form.cleaned_data.get("devices")
+
+        if selected_devices:
+            first_device = (
+                selected_devices
+                .select_related("organization")
+                .first()
+            )
+
+            if first_device and first_device.organization_id:
+                return first_device.organization
+
+        if self.object and self.object.organization_id:
+            return self.object.organization
+
+        if getattr(user, "organization_id", None):
+            return user.organization
+
+        return None
+
+    def form_valid(self, form):
+        organization = self.get_schedule_organization(form)
+
+        if organization is None:
+            form.add_error(
+                None,
+                "Could not determine the organization for this schedule. "
+                "Please select devices that belong to an organization.",
+            )
+            return self.form_invalid(form)
+
+        form.instance.organization = organization
+
+        return super().form_valid(form)
 
 
 class DeviceScheduleDeleteView(DeleteView):
