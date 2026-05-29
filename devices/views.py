@@ -12,7 +12,7 @@ from django.http import HttpResponse
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 from datetime import timedelta
-from django.db.models import Sum, Q, OuterRef, Subquery
+from django.db.models import Sum, Q, OuterRef, Subquery, F
 from notifications.utils import notify
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
@@ -445,19 +445,19 @@ def device_list(request):
 
     organizations = accessible_orgs
 
-    # Search
+    # -------- SEARCH --------
     if q:
         devices = devices.filter(deviceid__icontains=q)
 
-    # Status filter
+    # -------- STATUS FILTER --------
     if status == "active":
         devices = devices.filter(active=True)
     elif status == "inactive":
         devices = devices.filter(active=False)
 
-    # -------- SORTING --------
-    # ``last_seen`` comes from the latest DeviceData row, so annotate it here
-    # before pagination. That keeps sorting consistent across all pages.
+    # -------- LAST SEEN ANNOTATION --------
+    # last_seen_for_sort is the latest DeviceData.time for each device.
+    # Devices with no DeviceData get NULL.
     last_seen_subquery = (
         DeviceData.objects
         .filter(deviceid=OuterRef("deviceid"))
@@ -465,8 +465,11 @@ def device_list(request):
         .values("time")[:1]
     )
 
-    devices = devices.annotate(last_seen_for_sort=Subquery(last_seen_subquery))
+    devices = devices.annotate(
+        last_seen_for_sort=Subquery(last_seen_subquery)
+    )
 
+    # -------- SORTING --------
     allowed_sorts = {
         "deviceid": "deviceid",
         "status": "active",
@@ -479,18 +482,46 @@ def device_list(request):
 
     if sort not in allowed_sorts:
         sort = "deviceid"
+
     if direction not in ("asc", "desc"):
         direction = "asc"
 
     order_field = allowed_sorts[sort]
-    order = f"-{order_field}" if direction == "desc" else order_field
-    devices = devices.order_by(order, "deviceid").distinct()
+
+    if sort == "last_seen":
+        # Keep devices that have never transmitted at the end.
+        # Without this, NULL timestamps can appear first when sorting DESC.
+        if direction == "desc":
+            order_by_fields = [
+                F(order_field).desc(nulls_last=True),
+                "deviceid",
+            ]
+        else:
+            order_by_fields = [
+                F(order_field).asc(nulls_last=True),
+                "deviceid",
+            ]
+    else:
+        order = f"-{order_field}" if direction == "desc" else order_field
+        order_by_fields = [
+            order,
+            "deviceid",
+        ]
+
+    devices = devices.order_by(*order_by_fields).distinct()
 
     next_dirs = {}
-    for field in allowed_sorts:
-        next_dirs[field] = "desc" if (field == sort and direction == "asc") else "asc"
 
+    for field in allowed_sorts:
+        next_dirs[field] = (
+            "desc"
+            if field == sort and direction == "asc"
+            else "asc"
+        )
+
+    # -------- PAGINATION SETTINGS --------
     allowed_page_sizes = [10, 25, 50, 100]
+
     try:
         page_size = int(request.GET.get("page_size", 10))
     except (TypeError, ValueError):
@@ -499,7 +530,7 @@ def device_list(request):
     if page_size not in allowed_page_sizes:
         page_size = 10
 
-    # Stats
+    # -------- STATS --------
     total_devices = devices.count()
     active_devices = devices.filter(active=True).distinct().count()
     inactive_devices = devices.filter(active=False).distinct().count()
@@ -541,7 +572,6 @@ def device_list(request):
         return render(request, "partials/devices_table.html", context)
 
     return render(request, "devices/device_list.html", context)
-
 
 # ------------------------------
 # Device Detail / Stats
