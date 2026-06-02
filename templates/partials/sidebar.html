@@ -129,6 +129,20 @@
                 </div>
             </div>
 
+            <!-- Smart Meters -->
+            {% if 'smart_meters' in allowed_apps %}
+            <a href="{% url 'smart_meters:meter_list' %}"
+               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               {% if 'smart_meters' in request.path %}
+                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+               {% else %}
+                    hover:text-success
+               {% endif %}">
+                <i class="fas fa-charging-station w-5"></i>
+                <span class="link-text">Smart Meters</span>
+            </a>
+            {% endif %}
+
             <!-- Customers -->
             {% if 'customers' in allowed_apps %}
             <a href="{% url 'customers:customers_page' %}"

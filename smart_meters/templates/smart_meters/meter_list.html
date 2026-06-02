@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Powerpay Africa | Smart Meters{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content" class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0">
+
+        <div class="flex justify-between items-center mb-6 mt-4">
+            <h1 class="text-2xl font-bold">Smart Meters</h1>
+            <form method="get" class="flex gap-2 items-center">
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Search meter number"
+                       class="input input-bordered w-64">
+                <button type="submit" class="btn btn-success text-white"><i class="fa-solid fa-magnifying-glass"></i>Search</button>
+                {% if search_query %}
+                    <a href="{% url 'smart_meters:meter_list' %}" class="btn btn-error text-white"><i class="fa-solid fa-times"></i> Reset</a>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 gap-4 mb-6">
+            <div class="card bg-base-100 p-4 shadow border-2 border-success">
+                <p class="text-sm mb-2">Total Meters</p>
+                <p class="font-semibold text-success">{{ total_meters }}</p>
+            </div>
+            
+        </div>
+
+        <!-- Table -->
+        <div class="bg-base-100 shadow rounded-lg overflow-x-auto">
+            <table class="table w-full">
+                <thead class="bg-success text-white uppercase text-sm">
+                    <tr class="text-center">
+                        <th>
+                            <a href="?sort=meter_number&dir={% if current_sort == 'meter_number' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                                Meter Number
+                                {% if current_sort == 'meter_number' %}
+                                    {% if current_dir == 'asc' %}&uarr;{% else %}&darr;{% endif %}
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?sort=latest_timestamp&dir={% if current_sort == 'latest_timestamp' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                                Last Reading
+                                {% if current_sort == 'latest_timestamp' %}
+                                    {% if current_dir == 'asc' %}&uarr;{% else %}&darr;{% endif %}
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?sort=total_energy&dir={% if current_sort == 'total_energy' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                                Total Energy (kWh)
+                                {% if current_sort == 'total_energy' %}
+                                    {% if current_dir == 'asc' %}&uarr;{% else %}&darr;{% endif %}
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for meter in page_obj %}
+                    <tr class="text-center">
+                        <td>{{ meter.meter_number }}</td>
+                        <td>{{ meter.latest_timestamp }}</td>
+                        <td>{{ meter.total_energy|floatformat:3 }} kWh</td>
+                        <td>
+                            <a href="{% url 'smart_meters:meter_detail' meter.meter_number %}"
+                               class="btn btn-info text-white"><i class="fa-solid fa-binoculars"></i>View</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4" class="text-center py-6">No meters found.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+
+        <!-- Items per page select -->
+        <div class="mt-2 mb-4 flex justify-end items-center gap-2">
+            <form method="get" class="flex flex-nowrap items-center gap-2">
+                <label class="flex items-center gap-2">
+                    <span class="whitespace-nowrap">Items per page:</span>
+                    <select name="page_size" class="select select-sm select-success" onchange="this.form.submit()">
+                        {% for size in page_size_options %}
+                            <option value="{{ size }}" {% if page_size == size %}selected{% endif %}>{{ size }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <!-- Preserve query parameters -->
+                <input type="hidden" name="q" value="{{ search_query }}">
+                <input type="hidden" name="sort" value="{{ current_sort }}">
+                <input type="hidden" name="dir" value="{{ current_dir }}">
+            </form>
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <div class="mt-4 mb-4 flex justify-between items-center">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-soft btn-warning hover:text-white"><i class="fa fa-backward-step"></i> Previous</a>
+                {% else %}
+                    <span class="btn btn-disabled">Previous</span>
+                {% endif %}
+
+                <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="btn btn-soft btn-success hover:text-white">Next <i class="fa fa-forward-step"></i></a>
+                {% else %}
+                    <span class="btn btn-disabled">Next</span>
+                {% endif %}
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

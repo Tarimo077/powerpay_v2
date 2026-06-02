@@ -68,6 +68,7 @@ class OrganizationAppAccess(models.Model):
         ("sales", "Sales"),
         ("organizations", "Organizations"),
         ("api", "API"),
+        ("smart_meters", "Smart Meters"),
     ]
 
     app_name = models.CharField(max_length=50, choices=APP_CHOICES)

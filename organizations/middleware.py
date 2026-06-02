@@ -11,6 +11,7 @@ class AppAccessMiddleware:
         "/sales": "sales",
         "/organizations": "organizations",
         "/api": "api",
+        "/smart-meters": "smart_meters",
     }
 
     def __init__(self, get_response):
