@@ -39,6 +39,10 @@ from api.serializers import (
 )
 from rest_framework.views import APIView
 import requests
+from rest_framework.views import APIView
+from dateutil import parser as date_parser
+from smart_meters.models import MeterReading
+from api.serializers import MeterReadingSerializer
 
 
 
@@ -254,7 +258,88 @@ API_ENDPOINT_INSTRUCTIONS = [
         "description": "Creates or updates the wallet address for a deviceid. Request body: deviceid and wallet_address.",
         "access": "Only superusers, role=superadmin, and user id=17.",
     },
+    {
+        "method": "GET",
+        "path": "/api/smart-meters/",
+        "name": "Smart meters",
+        "description": (
+            "Returns meter readings filtered by optional meter_number and time range. "
+            "Only returns data if the requesting user belongs to organization with id=1."
+        ),
+        "access": "Authenticated users in organization id=1 only.",
+        "query_params": ["meter_number", "time_start", "time_end"],
+    },
 ]
+
+
+class SmartMetersViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        tags=["Smart Meters"],
+        summary="Retrieve meter readings",
+        description="Returns meter readings filtered by meter_number and time range. Only accessible to users in organization id=1.",
+        parameters=[
+            OpenApiParameter(
+                name="meter_number",
+                description="Filter readings by meter number",
+                required=False,
+                type=str,
+                location=OpenApiParameter.QUERY
+            ),
+            OpenApiParameter(
+                name="time_start",
+                description="Filter readings from this timestamp (ISO8601 format)",
+                required=False,
+                type=str,
+                location=OpenApiParameter.QUERY
+            ),
+            OpenApiParameter(
+                name="time_end",
+                description="Filter readings up to this timestamp (ISO8601 format)",
+                required=False,
+                type=str,
+                location=OpenApiParameter.QUERY
+            ),
+        ],
+        responses=MeterReadingSerializer
+    )
+    def list(self, request):
+        user = request.user
+
+        # Only allow users in org id=1
+        if not hasattr(user, "organization_id") or user.organization_id != 1:
+            return Response(
+                {"detail": "You do not have access to this organization's meter data."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        meter_number = request.query_params.get("meter_number")
+        time_start = request.query_params.get("time_start")
+        time_end = request.query_params.get("time_end")
+
+        qs = MeterReading.objects.using("smart_meters").all()
+
+        if meter_number:
+            qs = qs.filter(meter_number=meter_number)
+
+        if time_start:
+            try:
+                dt_start = date_parser.isoparse(time_start)
+                qs = qs.filter(timestamp__gte=dt_start)
+            except (ValueError, TypeError):
+                return Response({"detail": "Invalid time_start format"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if time_end:
+            try:
+                dt_end = date_parser.isoparse(time_end)
+                qs = qs.filter(timestamp__lte=dt_end)
+            except (ValueError, TypeError):
+                return Response({"detail": "Invalid time_end format"}, status=status.HTTP_400_BAD_REQUEST)
+
+        qs = qs.order_by("-timestamp")
+        serializer = MeterReadingSerializer(qs, many=True)
+        return Response(serializer.data)
 
 
 class APIInstructionView(APIView):

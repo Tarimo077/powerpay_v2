@@ -27,6 +27,7 @@ from api.views import (
     PayGoSettingsViewSet,
     TicketViewSet,
     TicketMessageViewSet,
+    SmartMetersViewSet,
 )
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
@@ -49,6 +50,7 @@ router.register("saas-billing-rules", SaaSBillingRuleViewSet, basename="saas-bil
 router.register("paygo-settings", PayGoSettingsViewSet, basename="paygo-settings")
 router.register("tickets", TicketViewSet, basename="tickets")
 router.register("ticket-messages", TicketMessageViewSet, basename="ticket-messages")
+router.register("smart-meters", SmartMetersViewSet, basename="smart-meters")
 
 app_name = "api"
 

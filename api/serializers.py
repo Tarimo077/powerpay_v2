@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from devices.models import DeviceInfo, DeviceData, DeviceWalletMap, DeviceCommandSchedule, TrackKwh
+from devices.models import DeviceInfo, DeviceWalletMap, DeviceCommandSchedule, TrackKwh
 from customers.models import Customer
 from sales.models import Sale
 from transactions.models import Transaction
@@ -10,6 +10,31 @@ from paygo.models import PayGoSettings
 from support.models import Ticket, TicketMessage
 import pytz
 from django.utils import timezone
+from smart_meters.models import MeterReading
+
+
+class MeterReadingSerializer(serializers.ModelSerializer):
+    timestamp = serializers.SerializerMethodField(help_text="Timestamp in UTC+3 (EAT)")
+
+    class Meta:
+        model = MeterReading
+        fields = [
+            "meter_number",
+            "timestamp",
+            "current_a",
+            "voltage_v",
+            "power_kw",
+            "power_factor",
+            "energy_kwh",
+        ]
+        read_only_fields = fields
+
+    def get_timestamp(self, obj):
+        if obj.timestamp:
+            # Convert UTC timestamp to UTC+3 (EAT)
+            eat = pytz.timezone("Africa/Nairobi")
+            return obj.timestamp.astimezone(eat).isoformat()
+        return None
 
 
 class DeviceInfoSerializer(serializers.ModelSerializer):
