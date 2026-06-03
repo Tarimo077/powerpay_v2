@@ -39,7 +39,7 @@
                             <a href="?sort=meter_number&dir={% if current_sort == 'meter_number' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
                                 Meter Number
                                 {% if current_sort == 'meter_number' %}
-                                    {% if current_dir == 'asc' %}&uarr;{% else %}&darr;{% endif %}
+                                    {% if current_dir == 'asc' %}<i class="fa-solid fa-caret-up"></i>{% else %}<i class="fa-solid fa-caret-down"></i>{% endif %}
                                 {% endif %}
                             </a>
                         </th>
@@ -47,7 +47,7 @@
                             <a href="?sort=latest_timestamp&dir={% if current_sort == 'latest_timestamp' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
                                 Last Reading
                                 {% if current_sort == 'latest_timestamp' %}
-                                    {% if current_dir == 'asc' %}&uarr;{% else %}&darr;{% endif %}
+                                    {% if current_dir == 'asc' %}<i class="fa-solid fa-caret-up"></i>{% else %}<i class="fa-solid fa-caret-down"></i>{% endif %}
                                 {% endif %}
                             </a>
                         </th>
@@ -55,7 +55,7 @@
                             <a href="?sort=total_energy&dir={% if current_sort == 'total_energy' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
                                 Total Energy (kWh)
                                 {% if current_sort == 'total_energy' %}
-                                    {% if current_dir == 'asc' %}&uarr;{% else %}&darr;{% endif %}
+                                    {% if current_dir == 'asc' %}<i class="fa-solid fa-caret-up"></i>{% else %}<i class="fa-solid fa-caret-down"></i>{% endif %}
                                 {% endif %}
                             </a>
                         </th>
