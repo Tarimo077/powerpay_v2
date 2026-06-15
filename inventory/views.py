@@ -2,7 +2,7 @@ from collections import defaultdict
 from datetime import timedelta
 from io import BytesIO
 import os
-from django.db import transaction, router
+from django.db import transaction, IntegrityError, router
 
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
@@ -521,65 +521,73 @@ def bulk_item_create(request):
 
             with transaction.atomic():
                 for row in form.cleaned_rows:
-                    if row["item_type"] == InventoryItem.TYPE_UNIQUE:
-                        item = InventoryItem.objects.create(
-                            name=row["name"],
-                            serial_number=row["serial_number"],
-                            product_type=row["product_type"],
-                            item_type=InventoryItem.TYPE_UNIQUE,
-                            quantity=1,
-                            current_warehouse=warehouse,
-                        )
-
-                        InventoryMovement.objects.create(
-                            item=item,
-                            to_warehouse=warehouse,
-                            quantity_moved=1,
-                            moved_by=request.user,
-                            note="Initial bulk assignment",
-                        )
-
-                        created_count += 1
-                        total_quantity_added += 1
-
-                    else:
-                        quantity_added = row["quantity"]
-
-                        item = (
-                            InventoryItem.objects.select_for_update()
-                            .filter(
-                                serial_number=row["serial_number"],
-                                item_type=InventoryItem.TYPE_SHARED,
-                                current_warehouse=warehouse,
-                                quantity__gt=0,
-                            )
-                            .first()
-                        )
-
-                        if item:
-                            item.quantity += quantity_added
-                            item.save(update_fields=["quantity"])
-                            updated_count += 1
-                        else:
+                    try:
+                        if row["item_type"] == InventoryItem.TYPE_UNIQUE:
                             item = InventoryItem.objects.create(
                                 name=row["name"],
                                 serial_number=row["serial_number"],
                                 product_type=row["product_type"],
-                                item_type=InventoryItem.TYPE_SHARED,
-                                quantity=quantity_added,
+                                item_type=InventoryItem.TYPE_UNIQUE,
+                                quantity=1,
                                 current_warehouse=warehouse,
                             )
+
+                            InventoryMovement.objects.create(
+                                item=item,
+                                to_warehouse=warehouse,
+                                quantity_moved=1,
+                                moved_by=request.user,
+                                note="Initial bulk assignment",
+                            )
+
                             created_count += 1
+                            total_quantity_added += 1
 
-                        InventoryMovement.objects.create(
-                            item=item,
-                            to_warehouse=warehouse,
-                            quantity_moved=quantity_added,
-                            moved_by=request.user,
-                            note="Initial bulk assignment",
+                        else:
+                            quantity_added = row["quantity"]
+
+                            item = (
+                                InventoryItem.objects.select_for_update()
+                                .filter(
+                                    serial_number=row["serial_number"],
+                                    item_type=InventoryItem.TYPE_SHARED,
+                                    current_warehouse=warehouse,
+                                    quantity__gt=0,
+                                )
+                                .first()
+                            )
+
+                            if item:
+                                item.quantity += quantity_added
+                                item.save(update_fields=["quantity"])
+                                updated_count += 1
+                            else:
+                                item = InventoryItem.objects.create(
+                                    name=row["name"],
+                                    serial_number=row["serial_number"],
+                                    product_type=row["product_type"],
+                                    item_type=InventoryItem.TYPE_SHARED,
+                                    quantity=quantity_added,
+                                    current_warehouse=warehouse,
+                                )
+                                created_count += 1
+
+                            InventoryMovement.objects.create(
+                                item=item,
+                                to_warehouse=warehouse,
+                                quantity_moved=quantity_added,
+                                moved_by=request.user,
+                                note="Initial bulk assignment",
+                            )
+
+                            total_quantity_added += quantity_added
+
+                    except IntegrityError:
+                        form.add_error(
+                            "csv_data",
+                            f"Duplicate serial detected: {row.get('serial_number')}"
                         )
-
-                        total_quantity_added += quantity_added
+                        continue
 
             notify(
                 request.user,
@@ -593,6 +601,7 @@ def bulk_item_create(request):
             )
 
             return redirect("inventory:inventory_page")
+
     else:
         sample_entries = "SM-001\nSM-002\nSM-003"
 
