@@ -8,6 +8,7 @@ from organizations.models import Organization
 from django.utils import timezone
 from datetime import timedelta
 from core.org_checker import get_accessible_organizations
+from core.tasks import build_transaction_context
 
 
 @login_required
@@ -149,7 +150,21 @@ def transactions_page(request):
         )
 
     # If normal page, include page_obj for table + cached stats
-    context = cache.get("transaction_dashboard_superadmin" if is_superadmin else f"transaction_dashboard_org_{user.organization.id}") or {}
+    cache_key = (
+        "transaction_dashboard_superadmin"
+        if is_superadmin
+        else f"transaction_dashboard_org_{getattr(user.organization, 'id', None)}"
+    )
+
+    context = cache.get(cache_key)
+
+    if not context:
+        # fallback to live computation
+        organization = None if is_superadmin else user.organization
+        context = build_transaction_context(
+            is_superadmin=is_superadmin,
+            organization=organization
+        )
     context.update({
         "page_obj": page_obj,
         "page_size": page_size,
