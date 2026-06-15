@@ -139,8 +139,8 @@ def create_hardware(request):
             devices,
             unit_price,
             due_date,
-            hardware_tax=hardware_tax,
-            hardware_upfront=hardware_upfront
+            #hardware_tax=hardware_tax,
+            #hardware_upfront=hardware_upfront
         )
 
         return redirect("billing:invoice_list")
@@ -186,7 +186,7 @@ def create_saas(request):
             unit_price,
             request.user,
             due_date=due_date,
-            saas_tax=saas_tax
+            #saas_tax=saas_tax
         )
 
         return redirect("billing:invoice_list")
