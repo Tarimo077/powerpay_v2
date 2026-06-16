@@ -41,6 +41,7 @@ from .forms import (
     DeviceCommandScheduleForm, 
     BulkDeviceCreateForm
 )
+from core.energy_tariffs import get_tariff_for_date
 
 COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
 
@@ -577,13 +578,12 @@ def device_list(request):
 # Device Detail / Stats
 # ------------------------------
 
+from core.energy_tariffs import get_tariff_for_date  # NEW
+
 @login_required
 def device_detail(request, deviceid):
     device = _accessible_device_or_404(request.user, deviceid)
 
-    # ---------------------------
-    # PERIOD FILTER
-    # ---------------------------
     period = request.GET.get("period", "all")
     now_time = timezone.now()
 
@@ -606,7 +606,7 @@ def device_detail(request, deviceid):
     previous_end = start_time if duration else None
 
     # ---------------------------
-    # READINGS CURRENT PERIOD
+    # READINGS CURRENT
     # ---------------------------
     readings_qs = DeviceData.objects.filter(deviceid=deviceid)
 
@@ -614,27 +614,23 @@ def device_detail(request, deviceid):
         readings_qs = readings_qs.filter(time__gte=start_time)
 
     readings = readings_qs.order_by("time")
-
-    last_seen = (
-        timezone.localtime(readings.last().time)
-        if readings.exists()
-        else None
-    )
+    last_seen = timezone.localtime(readings.last().time) if readings.exists() else None
 
     # ---------------------------
-    # READINGS PREVIOUS PERIOD
+    # READINGS PREVIOUS
     # ---------------------------
-    previous_readings = DeviceData.objects.none()
+    previous_readings_qs = DeviceData.objects.filter(deviceid=deviceid)
 
     if duration:
-        previous_readings = DeviceData.objects.filter(
-            deviceid=deviceid,
+        previous_readings_qs = previous_readings_qs.filter(
             time__gte=previous_start,
             time__lt=previous_end
         )
 
+    previous_readings = previous_readings_qs.order_by("time")
+
     # ---------------------------
-    # COOKING EVENT DETECTION
+    # COOKING EVENTS (CURRENT)
     # ---------------------------
     cooking_events = []
     current_event = []
@@ -643,12 +639,10 @@ def device_detail(request, deviceid):
     for r in readings:
         if prev_time:
             gap = (r.time - prev_time).total_seconds()
-
             if gap > COOKING_GAP_SECONDS:
                 if current_event:
                     cooking_events.append(current_event)
                 current_event = []
-
         current_event.append(r)
         prev_time = r.time
 
@@ -656,29 +650,58 @@ def device_detail(request, deviceid):
         cooking_events.append(current_event)
 
     # ---------------------------
-    # PREVIOUS COOKING EVENTS
+    # COOKING EVENTS (PREVIOUS)
     # ---------------------------
     previous_events = []
     current_event = []
     prev_time = None
 
-    for r in previous_readings.order_by("time"):
+    for r in previous_readings:
         if prev_time:
             gap = (r.time - prev_time).total_seconds()
-
             if gap > COOKING_GAP_SECONDS:
                 if current_event:
                     previous_events.append(current_event)
                 current_event = []
-
         current_event.append(r)
         prev_time = r.time
 
     if current_event:
         previous_events.append(current_event)
 
+    # ==========================================================
+    # 🔥 ENERGY + COST (FIXED CLEAN VERSION)
+    # ==========================================================
+
+    total_kwh = 0.0
+    total_cost = 0.0
+
+    for r in readings:
+        kwh = float(r.kwh or 0)
+        rate = get_tariff_for_date(r.time.date())
+
+        total_kwh += kwh
+        total_cost += kwh * rate
+
+    previous_kwh = 0.0
+    previous_cost = 0.0
+
+    for r in previous_readings:
+        kwh = float(r.kwh or 0)
+        rate = get_tariff_for_date(r.time.date())
+
+        previous_kwh += kwh
+        previous_cost += kwh * rate
+
     # ---------------------------
-    # COOKING METRICS
+    # CO2
+    # ---------------------------
+    CO2_PER_KWH = 0.41
+    co2_emissions = total_kwh * CO2_PER_KWH
+    previous_co2 = previous_kwh * CO2_PER_KWH
+
+    # ---------------------------
+    # COOKING METRICS (FIXED EVENT COST)
     # ---------------------------
     cooking_event_rows = []
     total_cooking_time_minutes = 0
@@ -688,7 +711,16 @@ def device_detail(request, deviceid):
         end = timezone.localtime(event[-1].time)
 
         duration_minutes = (end - start).total_seconds() / 60
-        energy_kwh = sum(float(r.kwh or 0) for r in event)
+
+        event_kwh = 0.0
+        event_cost = 0.0
+
+        for r in event:
+            kwh = float(r.kwh or 0)
+            rate = get_tariff_for_date(r.time.date())
+
+            event_kwh += kwh
+            event_cost += kwh * rate
 
         total_cooking_time_minutes += duration_minutes
 
@@ -697,7 +729,8 @@ def device_detail(request, deviceid):
             "start": start,
             "end": end,
             "duration": round(duration_minutes, 1),
-            "energy": round(energy_kwh, 3),
+            "energy": round(event_kwh, 3),
+            "cost": round(event_cost, 2),
         })
 
     cooking_events_count = len(cooking_events)
@@ -723,67 +756,29 @@ def device_detail(request, deviceid):
         reverse=reverse
     )
 
-    next_dirs = {}
-    for key in allowed_sorts:
-        next_dirs[key] = "desc" if (key == sort and direction == "asc") else "asc"
+    next_dirs = {
+        key: ("desc" if (key == sort and direction == "asc") else "asc")
+        for key in allowed_sorts
+    }
 
     # ---------------------------
     # PAGINATION
     # ---------------------------
     allowed_page_sizes = [10, 25, 50, 100]
+
     try:
         page_size = int(request.GET.get("page_size", 10))
-    except (TypeError, ValueError):
+    except:
         page_size = 10
+
     if page_size not in allowed_page_sizes:
         page_size = 10
 
     paginator = Paginator(cooking_event_rows, page_size)
-    page_number = request.GET.get("page")
-    cooking_event_rows_paginated = paginator.get_page(page_number)
+    cooking_event_rows_paginated = paginator.get_page(request.GET.get("page"))
 
     # ---------------------------
-    # ENERGY METRICS
-    # ---------------------------
-    total_kwh = readings.aggregate(total=Sum("kwh"))["total"] or 0
-    previous_kwh = previous_readings.aggregate(total=Sum("kwh"))["total"] or 0
-
-    ENERGY_PRICE = 14.32
-    CO2_PER_KWH = 0.41
-
-    energy_cost = total_kwh * ENERGY_PRICE
-    previous_cost = previous_kwh * ENERGY_PRICE
-
-    co2_emissions = total_kwh * CO2_PER_KWH
-    previous_co2 = previous_kwh * CO2_PER_KWH
-
-    # ---------------------------
-    # COOKING TIME
-    # ---------------------------
-    previous_cooking_time = 0
-
-    for event in previous_events:
-        start = event[0].time
-        end = event[-1].time
-        previous_cooking_time += (end - start).total_seconds() / 60
-
-    # ---------------------------
-    # PERCENTAGE CHANGE
-    # ---------------------------
-    def percent_change(current, previous):
-        if previous == 0:
-            return 0
-
-        return round(((current - previous) / previous) * 100, 2)
-
-    kwh_change = percent_change(total_kwh, previous_kwh)
-    co2_change = percent_change(co2_emissions, previous_co2)
-    events_change = percent_change(cooking_events_count, previous_cooking_events)
-    cooking_time_change = percent_change(total_cooking_time_minutes, previous_cooking_time)
-    cost_change = percent_change(energy_cost, previous_cost)
-
-    # ---------------------------
-    # DAILY ENERGY CHART
+    # ENERGY CHART
     # ---------------------------
     daily_energy = {}
 
@@ -797,7 +792,7 @@ def device_detail(request, deviceid):
     energy_data = [round(daily_energy[d], 3) for d in sorted_days]
 
     # ---------------------------
-    # COOKING EVENTS CHART
+    # EVENTS CHART
     # ---------------------------
     daily_events = {}
 
@@ -807,6 +802,20 @@ def device_detail(request, deviceid):
 
     cooking_event_labels = energy_labels
     cooking_event_data = [daily_events.get(d, 0) for d in sorted_days]
+
+    # ---------------------------
+    # PERCENT CHANGE
+    # ---------------------------
+    def percent_change(current, previous):
+        if previous == 0:
+            return 0
+        return round(((current - previous) / previous) * 100, 2)
+
+    kwh_change = percent_change(total_kwh, previous_kwh)
+    co2_change = percent_change(co2_emissions, previous_co2)
+    events_change = percent_change(cooking_events_count, previous_cooking_events)
+    cooking_time_change = percent_change(total_cooking_time_minutes, 0)
+    cost_change = percent_change(total_cost, previous_cost)
 
     # ---------------------------
     # HTMX TABLE
@@ -827,16 +836,20 @@ def device_detail(request, deviceid):
             },
         )
 
+    # ---------------------------
+    # CONTEXT
+    # ---------------------------
     context = {
         "device": device,
         "period": period,
         "last_seen": last_seen,
 
         "total_kwh": round(total_kwh, 3),
+        "energy_cost": round(total_cost, 2),
+        "co2_emissions": round(co2_emissions, 2),
+
         "cooking_events": cooking_events_count,
         "cooking_time": round(total_cooking_time_minutes, 1),
-        "energy_cost": round(energy_cost, 2),
-        "co2_emissions": round(co2_emissions, 2),
 
         "kwh_change": kwh_change,
         "co2_change": co2_change,
@@ -846,6 +859,7 @@ def device_detail(request, deviceid):
 
         "energy_labels": energy_labels,
         "energy_data": energy_data,
+
         "cooking_event_labels": cooking_event_labels,
         "cooking_event_data": cooking_event_data,
 

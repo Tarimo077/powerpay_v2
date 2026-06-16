@@ -1,0 +1,94 @@
+Period,Tariff_Code,Description,Fixed_Charge_KES,Energy_Charge_KES_kWh,Demand_Charge_KES_kVA
+July 2024 to May 2025,12.23,,,,n/a
+July 2024 to May 2025,16.54,,,,n/a
+July 2024 to May 2025,19.08,,,,n/a
+July 2024 to May 2025,12.23,,,,n/a
+July 2024 to May 2025,16.34,,,,n/a
+July 2024 to May 2025,R,egular: 19.40TOU: 9.70,,,n/a
+July 2024 to May 2025,R,egular: 13.74TOU: 6.87,,,
+July 2024 to May 2025,R,egular: 12.44TOU: 6.22,700,,
+July 2024 to May 2025,R,egular: 11.92TOU: 5.96,370,,
+July 2024 to May 2025,R,egular: 11.68TOU: 5.84,300,,
+July 2024 to May 2025,R,egular: 11.40TOU: 5.70,300,,
+July 2024 to May 2025,R,egular: 10.00TOU: 7.42,200,,
+July 2024 to May 2025,R,egular: 16.00TOU: 8.00,,,n/a
+April 2024 to June 2024,12.22,,,,n/a
+April 2024 to June 2024,16.30,,,,n/a
+April 2024 to June 2024,20.97,,,,n/a
+April 2024 to June 2024,12.22,,,,n/a
+April 2024 to June 2024,16.40,,,,n/a
+April 2024 to June 2024,R,egular: 20.18TOU: 10.09,,,n/a
+April 2024 to June 2024,R,egular: 14.70TOU: 7.35,,,
+April 2024 to June 2024,R,egular: 13.24TOU: 6.62,700,,
+April 2024 to June 2024,R,egular: 12.66TOU: 6.33,370,,
+April 2024 to June 2024,R,egular: 12.40TOU: 6.20,300,,
+April 2024 to June 2024,R,egular: 12.12TOU: 6.06,300,,
+April 2024 to June 2024,R,egular: 10.00TOU: 7.42,200,,
+April 2024 to June 2024,R,egular: 16.00TOU: 8.00,,,n/a
+January 2022 to March 2023,7.70,,,,n/a
+January 2022 to March 2023,12.60,,,,n/a
+January 2022 to March 2023,7.70,,,,n/a
+January 2022 to March 2023,12.40,,,,n/a
+January 2022 to March 2023,P,eak: 8.70Off-peak: 4.35,800,,
+January 2022 to March 2023,P,eak: 8.10Off-peak: 4.05,520,,
+January 2022 to March 2023,P,eak: 8.00Off-peak: 4.00,270,,
+January 2022 to March 2023,P,eak: 7.80Off-peak: 3.90,220,,
+January 2022 to March 2023,P,eak: 7.60Off-peak: 3.80,220,,
+January 2022 to March 2023,R,egular: 16.00TOU: 8.00,,,n/a
+November 2018 to December 2021,10.00,,,,n/a
+November 2018 to December 2021,15.80,,,,n/a
+November 2018 to December 2021,10.00,,,,n/a
+November 2018 to December 2021,15.60,,,,n/a
+November 2018 to December 2021,P,eak: 12.00Off-peak: 6.00,800,,
+November 2018 to December 2021,P,eak: 10.90Off-peak: 5.45,520,,
+November 2018 to December 2021,P,eak: 10.50Off-peak: 5.25,270,,
+November 2018 to December 2021,P,eak: 10.30Off-peak: 5.15,220,,
+November 2018 to December 2021,P,eak: 10.10Off-peak: 5.05,220,,
+November 2018 to December 2021,P,eak: 7.99Off-peak: 3.995,200,,
+August 2018 to October 2018,10kWh or less:12.00Over 10kWh:15.80,,,,n/a
+August 2018 to October 2018,15.60,,,,n/a
+August 2018 to October 2018,P,eak: 12.00Off-peak: 6.00,800,,
+August 2018 to October 2018,P,eak: 10.90Off-peak: 5.45,520,,
+August 2018 to October 2018,P,eak: 10.50Off-peak: 5.25,270,,
+August 2018 to October 2018,P,eak: 10.30Off-peak: 5.15,220,,
+August 2018 to October 2018,P,eak: 10.10Off-peak: 5.05,220,,
+December 2017 to July 2018,150,,,First 50kWh:2.5050 to 1 500kWh:12.75Thereafter:20.57,n/a
+December 2017 to July 2018,150,,13.50,,n/a
+December 2017 to July 2018,2 500,,800,Peak: 9.20Off-peak: 4.60,
+December 2017 to July 2018,4 500,,520,Peak: 8.00Off-peak: 4.00,
+December 2017 to July 2018,5 500,,270,Peak: 7.50Off-peak: 3.75,
+December 2017 to July 2018,6 500,,220,Peak: 7.30Off-peak: 3.65,
+December 2017 to July 2018,17 000,,220,Peak: 7.10Off-peak: 3.55,
+December 2017 to July 2018,150,,13.50,,n/a
+July 2015 to November 2017,150,,,First 50kWh:2.5050 to 1 500kWh:12.75Thereafter:20.57,n/a
+July 2015 to November 2017,150,,13.50,,n/a
+July 2015 to November 2017,2 500,,9.20,800,
+July 2015 to November 2017,4 500,,8.00,520,
+July 2015 to November 2017,5 500,,7.50,270,
+July 2015 to November 2017,6 500,,7.30,220,
+July 2015 to November 2017,17 000,,7.10,220,
+July 2015 to November 2017,150,,13.50,,n/a
+July 2014 to June 2015,150,,,First 50kWh:2.5050 to 1 500kWh:13.68Thereafter:21.57,n/a
+July 2014 to June 2015,150,,14.00,,n/a
+July 2014 to June 2015,2 000,,9.45,800,
+July 2014 to June 2015,4 500,,8.25,520,
+July 2014 to June 2015,5 500,,7.75,270,
+July 2014 to June 2015,6 500,,7.55,220,
+July 2014 to June 2015,17 000,,7.35,220,
+July 2014 to June 2015,150,,13.75,,n/a
+December 2013 to June 2014,120,,,First 50kWh:2.5050 to 1 500kWh:11.62Thereafter:19.57,n/a
+December 2013 to June 2014,150,,12.00,,n/a
+December 2013 to June 2014,2 000,,8.70,800,
+December 2013 to June 2014,4 500,,7.50,520,
+December 2013 to June 2014,5 500,,7.00,270,
+December 2013 to June 2014,6 500,,6.80,220,
+December 2013 to June 2014,17 000,,6.60,220,
+December 2013 to June 2014,120,,13.00,,n/a
+Prior to December 2013,120,,,First 50kWh:2.0050 to 1 500kWh:8.10Thereafter:18.57,n/a
+Prior to December 2013,120,,8.96,,n/a
+Prior to December 2013,800,,5.75,600,
+Prior to December 2013,2 500,,4.73,400,
+Prior to December 2013,2 900,,4.49,200,
+Prior to December 2013,4 200,,4.25,170,
+Prior to December 2013,11 000,,4.10,170,
+Prior to December 2013,120,,4.85,,n/a

@@ -100,7 +100,7 @@
                                 <td>{{ e.end|date:"j M Y h:i:s A" }}</td>
                                 <td>{{ e.duration }}</td>
                                 <td>{{ e.energy }}</td>
-                                <td>{{ e.energy|multiply:14.32|floatformat:1 }}</td>
+                                <td>{{ e.cost|floatformat:1 }}</td>
                             </tr>
                             {% empty %}
                             <tr>
