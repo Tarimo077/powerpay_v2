@@ -38,6 +38,8 @@ def meter_list(request):
         total_energy=Sum("energy_kwh")
     )
 
+    qs = qs.filter(meter_number__isnull=False).exclude(meter_number="")
+
     # Convert timestamps to UTC+3
     for meter in qs:
         if meter["latest_timestamp"]:
@@ -57,6 +59,7 @@ def meter_list(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
+    
     context = {
         "page_obj": page_obj,
         "search_query": q,
