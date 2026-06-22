@@ -179,12 +179,20 @@ def testing_batch_update_results(request, pk):
 
     current_time = timezone.now()
 
-    with transaction.atomic():
-        items = list(
+    # ======================================================
+    # 🔥 CRITICAL FIX: STRICT ATOMIC + SAFE QUERY EVALUATION
+    # ======================================================
+    with transaction.atomic(using="coords"):
+
+        # IMPORTANT: DO NOT wrap in list() immediately outside queryset
+        items_qs = (
             DeviceTestingBatchItem.objects
-            .select_for_update()
             .filter(batch=batch, id__in=item_ids)
+            .select_for_update()
         )
+
+        # Force evaluation INSIDE atomic AFTER lock is active
+        items = list(items_qs)
 
         for item in items:
             item_id = str(item.id)
@@ -197,12 +205,25 @@ def testing_batch_update_results(request, pk):
             item.test_two_passed = item_id in test_two_ids
 
             requested_packed = item_id in packed_ids
-            item.packed = requested_packed and item.test_one_passed and item.test_two_passed
+            item.packed = (
+                requested_packed
+                and item.test_one_passed
+                and item.test_two_passed
+            )
 
-            item.test_one_notes = request.POST.get(f"test_one_notes_{item.id}", "").strip()
-            item.test_two_notes = request.POST.get(f"test_two_notes_{item.id}", "").strip()
-            item.packing_notes = request.POST.get(f"packing_notes_{item.id}", "").strip()
+            item.test_one_notes = request.POST.get(
+                f"test_one_notes_{item.id}", ""
+            ).strip()
 
+            item.test_two_notes = request.POST.get(
+                f"test_two_notes_{item.id}", ""
+            ).strip()
+
+            item.packing_notes = request.POST.get(
+                f"packing_notes_{item.id}", ""
+            ).strip()
+
+            # track tester
             if (
                 item.test_one_passed != old_test_one
                 or item.test_two_passed != old_test_two
@@ -210,6 +231,7 @@ def testing_batch_update_results(request, pk):
                 item.tested_by = request.user
                 item.tested_at = current_time
 
+            # packed timestamp logic
             if item.packed and not old_packed:
                 item.packed_at = current_time
 
