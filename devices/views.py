@@ -64,25 +64,32 @@ def trigger_sim_balance(request):
 
 @csrf_exempt
 def sim_balance_callback(request):
-    """
-    External API calls this endpoint with results
-    """
-
-    if request.method == "POST":
-        data = json.loads(request.body)
+    try:
+        data = json.loads(request.body.decode("utf-8"))
 
         msisdn = data.get("msisdn")
         balances = data.get("balances", {})
 
-        cache.set(f"sim_balance_{msisdn}", {
-            "airtime": balances.get("AIRTIME", 0),
-            "data": balances.get("DATA", 0),
-            "sms": balances.get("SMS", 0),
-        }, timeout=300)
+        if not msisdn:
+            return JsonResponse({"error": "missing msisdn"}, status=400)
+
+        cache.set(
+            f"sim_balance_{msisdn}",
+            {
+                "airtime": balances.get("AIRTIME", 0),
+                "data": balances.get("DATA", 0),
+                "sms": balances.get("SMS", 0),
+            },
+            timeout=300
+        )
+
+        print("CALLBACK SUCCESS:", msisdn, balances)
 
         return JsonResponse({"status": "ok"})
 
-    return JsonResponse({"error": "invalid"}, status=400)
+    except Exception as e:
+        print("CALLBACK ERROR:", str(e))
+        return JsonResponse({"error": "server error"}, status=500)
 
 
 def sim_balance_result(request):
