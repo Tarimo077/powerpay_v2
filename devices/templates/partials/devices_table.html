@@ -232,14 +232,14 @@
                         {% if is_admin %}
                         <th class="px-4 py-3 text-center text-white">
                             <a
-                                hx-get="{% url 'devices:device_list' %}?sort=msidn&dir={{ next_dirs.msidn }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}&page_size={{ page_size }}"
+                                hx-get="{% url 'devices:device_list' %}?sort=msisdn&dir={{ next_dirs.msisdn }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}&page_size={{ page_size }}"
                                 hx-target="#devices-table"
                                 hx-push-url="true"
                                 hx-indicator="#htmx-loading"
                                 class="flex items-center justify-center gap-1 cursor-pointer"
                             >
-                                MSIDN
-                                {% if current_sort == "msidn" %}
+                                MSISDN
+                                {% if current_sort == "msisdn" %}
                                     {% if current_dir == "asc" %}
                                         <i class="fa-solid fa-sort-up"></i>
                                     {% else %}
