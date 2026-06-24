@@ -69,4 +69,67 @@
 
     </div>
 </div>
+
+<div id="simModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 w-96">
+
+        <h2 class="text-lg font-bold mb-3">SIM Balance</h2>
+
+        <div id="simContent" class="text-sm">
+            Loading...
+        </div>
+
+        <button
+            onclick="document.getElementById('simModal').classList.add('hidden')"
+            class="btn btn-sm btn-error mt-4"
+        >
+            Close
+        </button>
+
+    </div>
+</div>
+
+<script>
+function checkSimBalance(msisdn) {
+    if (!msisdn) {
+        alert("No MSISDN available");
+        return;
+    }
+
+    // show modal
+    document.getElementById("simModal").classList.remove("hidden");
+    document.getElementById("simContent").innerHTML = "Requesting...";
+
+    // 1. trigger backend request
+    fetch(`/sim/check/?msisdn=${msisdn}`);
+
+    // 2. poll for result
+    let tries = 0;
+
+    const interval = setInterval(async () => {
+        tries++;
+
+        const res = await fetch(`/sim/result/?msisdn=${msisdn}`);
+        const data = await res.json();
+
+        if (data.found) {
+            clearInterval(interval);
+
+            document.getElementById("simContent").innerHTML = `
+                <b>MSISDN:</b> ${msisdn}<br><br>
+                Airtime: ${data.airtime}<br>
+                Data: ${data.data}<br>
+                SMS: ${data.sms}
+            `;
+        }
+
+        if (tries > 10) {
+            clearInterval(interval);
+            document.getElementById("simContent").innerHTML =
+                "Timeout waiting for response";
+        }
+
+    }, 2000);
+}
+</script>
 {% endblock %}

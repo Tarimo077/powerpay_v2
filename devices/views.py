@@ -8,7 +8,7 @@ from .services.energy import (
 from django.core.paginator import Paginator
 import requests
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 from datetime import timedelta
@@ -42,9 +42,61 @@ from .forms import (
     BulkDeviceCreateForm
 )
 from core.energy_tariffs import get_tariff_for_date
+from core.tasks import request_sim_balance
+import json
+from django.views.decorators.csrf import csrf_exempt
+from django.core.cache import cache
 
 
 COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
+
+
+def trigger_sim_balance(request):
+    msisdn = request.GET.get("msisdn")
+
+    if not msisdn:
+        return JsonResponse({"error": "missing msisdn"}, status=400)
+
+    request_sim_balance.delay(msisdn)
+
+    return JsonResponse({"status": "processing"})
+
+
+@csrf_exempt
+def sim_balance_callback(request):
+    """
+    External API calls this endpoint with results
+    """
+
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+        msisdn = data.get("msisdn")
+        balances = data.get("balances", {})
+
+        cache.set(f"sim_balance_{msisdn}", {
+            "airtime": balances.get("AIRTIME", 0),
+            "data": balances.get("DATA", 0),
+            "sms": balances.get("SMS", 0),
+        }, timeout=300)
+
+        return JsonResponse({"status": "ok"})
+
+    return JsonResponse({"error": "invalid"}, status=400)
+
+
+def sim_balance_result(request):
+    msisdn = request.GET.get("msisdn")
+
+    data = cache.get(f"sim_balance_{msisdn}")
+
+    if data:
+        return JsonResponse({
+            "found": True,
+            **data
+        })
+
+    return JsonResponse({"found": False})
 
 def is_superadmin(user):
     return user.is_superuser or getattr(user, "role", None) == "superadmin"

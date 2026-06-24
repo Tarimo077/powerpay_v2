@@ -27,4 +27,7 @@ urlpatterns = [
     path("edit/<str:deviceid>/", views.device_edit, name="device_edit"),
     path("delete/<str:deviceid>/", views.device_delete, name="device_delete"),
     path("live/<str:deviceid>/", views.device_live_view, name="device_live"),
+    path("sim/check/", views.trigger_sim_balance, name="sim_check"),
+    path("sim/callback/", views.sim_balance_callback, name="sim_callback"),
+    path("sim/result/", views.sim_balance_result, name="sim_result"),
 ]

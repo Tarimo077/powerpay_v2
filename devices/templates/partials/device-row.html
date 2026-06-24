@@ -130,6 +130,13 @@
                 class="btn btn-sm btn-error text-white">
                 <i class="fa-solid fa-trash"></i> Delete
             </button>
+
+            <button
+                class="btn btn-sm btn-warning text-white"
+                onclick="checkSimBalance('{{ msisdn }}')"
+            >
+                <i class="fa-solid fa-sim-card"></i>SIM Balance
+            </button>
             {% endif %}
         </div>
     </td>
