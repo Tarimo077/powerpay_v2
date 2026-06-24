@@ -101,7 +101,7 @@ function checkSimBalance(msisdn) {
     document.getElementById("simContent").innerHTML = "Requesting...";
 
     // 1. trigger backend request
-    fetch(`/sim/check/?msisdn=${msisdn}`);
+    fetch(`/devices/sim/check/?msisdn=${msisdn}`);
 
     // 2. poll for result
     let tries = 0;
@@ -109,7 +109,7 @@ function checkSimBalance(msisdn) {
     const interval = setInterval(async () => {
         tries++;
 
-        const res = await fetch(`/sim/result/?msisdn=${msisdn}`);
+        const res = await fetch(`/devices/sim/result/?msisdn=${msisdn}`);
         const data = await res.json();
 
         if (data.found) {
