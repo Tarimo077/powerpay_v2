@@ -6,6 +6,9 @@ app_name = "devices"
 urlpatterns = [
     # Device list and details
     path("", views.device_list, name="device_list"),
+    path("sim/check/", views.trigger_sim_balance, name="sim_check"),
+    path("sim/callback/", views.sim_balance_callback, name="sim_callback"),
+    path("sim/result/", views.sim_balance_result, name="sim_result"),
     path("testing-batches/", views.testing_batch_list, name="testing_batch_list"),
     path("testing-batches/create/", views.testing_batch_create, name="testing_batch_create"),
     path("testing-batches/<int:pk>/", views.testing_batch_detail, name="testing_batch_detail"),
@@ -27,7 +30,4 @@ urlpatterns = [
     path("edit/<str:deviceid>/", views.device_edit, name="device_edit"),
     path("delete/<str:deviceid>/", views.device_delete, name="device_delete"),
     path("live/<str:deviceid>/", views.device_live_view, name="device_live"),
-    path("sim/check/", views.trigger_sim_balance, name="sim_check"),
-    path("sim/callback/", views.sim_balance_callback, name="sim_callback"),
-    path("sim/result/", views.sim_balance_result, name="sim_result"),
 ]
