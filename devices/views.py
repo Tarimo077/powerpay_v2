@@ -12,7 +12,8 @@ from django.http import HttpResponse
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 from datetime import timedelta
-from django.db.models import Q, OuterRef, Subquery, F
+from django.db.models import Q, OuterRef, Subquery, F, Value
+from django.db.models.functions import Coalesce
 from notifications.utils import notify
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
@@ -512,9 +513,31 @@ def device_list(request):
 
     order_field = allowed_sorts[sort]
 
-    if sort == "last_seen":
-        # Keep devices that have never transmitted at the end.
-        # Without this, NULL timestamps can appear first when sorting DESC.
+    order_by_fields = []
+
+    # -----------------------------
+    # MSISDN SORT (IMPORTANT FIX)
+    # -----------------------------
+    if sort == "msisdn":
+
+        # NULL-safe sorting: push empty values last
+        msisdn_field = Coalesce("msisdn", Value(""))
+
+        if direction == "desc":
+            order_by_fields = [
+                msisdn_field.desc(),
+                "deviceid",
+            ]
+        else:
+            order_by_fields = [
+                msisdn_field.asc(),
+                "deviceid",
+            ]
+
+    # -----------------------------
+    # LAST SEEN SORT (your logic kept)
+    # -----------------------------
+    elif sort == "last_seen":
         if direction == "desc":
             order_by_fields = [
                 F(order_field).desc(nulls_last=True),
@@ -525,6 +548,10 @@ def device_list(request):
                 F(order_field).asc(nulls_last=True),
                 "deviceid",
             ]
+
+    # -----------------------------
+    # DEFAULT SORTS
+    # -----------------------------
     else:
         order = f"-{order_field}" if direction == "desc" else order_field
         order_by_fields = [
@@ -534,14 +561,15 @@ def device_list(request):
 
     devices = devices.order_by(*order_by_fields).distinct()
 
-    next_dirs = {}
-
-    for field in allowed_sorts:
-        next_dirs[field] = (
+    # -------- NEXT DIRECTION MAP --------
+    next_dirs = {
+        field: (
             "desc"
             if field == sort and direction == "asc"
             else "asc"
         )
+        for field in allowed_sorts
+    }
 
     # -------- PAGINATION SETTINGS --------
     allowed_page_sizes = [10, 25, 50, 100]
