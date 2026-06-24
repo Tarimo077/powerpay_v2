@@ -67,7 +67,7 @@ def sim_balance_callback(request):
     try:
         data = json.loads(request.body.decode("utf-8"))
 
-        msisdn = data.get("msisdn")
+        msisdn = normalize_msisdn(data.get("msisdn"))
         balances = data.get("balances", {})
 
         if not msisdn:
@@ -95,6 +95,11 @@ def sim_balance_callback(request):
 def sim_balance_result(request):
     msisdn = request.GET.get("msisdn")
 
+    msisdn = msisdn.strip().replace(" ", "") if msisdn else None
+
+    if msisdn and not msisdn.startswith("+"):
+        msisdn = "+" + msisdn.replace(" ", "")
+
     data = cache.get(f"sim_balance_{msisdn}")
 
     if data:
@@ -104,6 +109,18 @@ def sim_balance_result(request):
         })
 
     return JsonResponse({"found": False})
+
+def normalize_msisdn(msisdn):
+    if not msisdn:
+        return None
+
+    msisdn = msisdn.strip().replace(" ", "")
+
+    # ensure consistent format
+    if msisdn.startswith("254"):
+        msisdn = "+" + msisdn
+
+    return msisdn
 
 def is_superadmin(user):
     return user.is_superuser or getattr(user, "role", None) == "superadmin"

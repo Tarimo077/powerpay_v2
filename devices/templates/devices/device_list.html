@@ -108,8 +108,8 @@ function checkSimBalance(msisdn) {
 
     const interval = setInterval(async () => {
         tries++;
-
-        const res = await fetch(`/devices/sim/result/?msisdn=${msisdn}`);
+        const normalized = msisdn.startsWith('+') ? msisdn : '+' + msisdn;
+        const res = await fetch(`/devices/sim/result/?msisdn=${encodeURIComponent(normalized)}`);
         const data = await res.json();
 
         if (data.found) {
