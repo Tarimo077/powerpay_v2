@@ -131,12 +131,14 @@
                 <i class="fa-solid fa-trash"></i> Delete
             </button>
 
+            {% if msisdn %}
             <button
                 class="btn btn-sm btn-warning text-white"
                 onclick="checkSimBalance('{{ msisdn }}')"
             >
                 <i class="fa-solid fa-sim-card"></i>SIM Balance
             </button>
+            {% endif %}
             {% endif %}
         </div>
     </td>

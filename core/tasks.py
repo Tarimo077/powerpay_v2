@@ -35,7 +35,7 @@ def request_sim_balance(msisdn):
 
     params = {
         "msisdn": msisdn,
-        "callback_url": settings.SIM_BALANCE_CALLBACK_URL
+        #"callback_url": settings.SIM_BALANCE_CALLBACK_URL
     }
 
     requests.get(url, params=params, headers=headers, timeout=20)
