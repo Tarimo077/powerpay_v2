@@ -53,6 +53,12 @@
         {% endif %}
     </td>
 
+    {% if is_admin %}
+    <td class="text-center align-middle">
+        {{ msisdn|default:"-" }}
+    </td>
+    {% endif %}
+
     {% if request.accessible_orgs|length > 1 %}
     <!-- Main / Legacy Organization -->
     <td class="text-center align-middle">

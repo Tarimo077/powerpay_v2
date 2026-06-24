@@ -25,34 +25,59 @@
         </div>
 
         <div class="bg-base-100 shadow rounded-lg p-6 max-w-4xl">
+
             <form method="post">
                 {% csrf_token %}
 
                 <div class="grid grid-cols-1 gap-4">
+
+                    <!-- DEVICE ID -->
                     <div>
                         <label class="label">Device ID</label>
                         {{ form.deviceid }}
                     </div>
 
+                    <!-- MSISDN (NEW FIELD) -->
+                    <div>
+                        <label class="label">MSISDN (SIM Number)</label>
+                        {{ form.msisdn }}
 
+                        {% if form.msisdn.help_text %}
+                            <p class="text-xs text-gray-500 mt-1">
+                                {{ form.msisdn.help_text }}
+                            </p>
+                        {% endif %}
+
+                        {% for error in form.msisdn.errors %}
+                            <p class="text-error text-sm">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <!-- ORGANIZATIONS -->
                     {% if form.organizations %}
                     <div>
                         <label class="label">Organizations</label>
                         {{ form.organizations }}
+
                         {% if form.organizations.help_text %}
-                            <p class="text-xs text-gray-500 mt-1">{{ form.organizations.help_text }}</p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                {{ form.organizations.help_text }}
+                            </p>
                         {% endif %}
+
                         {% for error in form.organizations.errors %}
                             <p class="text-error text-sm">{{ error }}</p>
                         {% endfor %}
                     </div>
                     {% endif %}
 
+                    <!-- ACTIVE -->
                     <div>
                         <label class="label">Active</label>
                         {{ form.active }}
                     </div>
 
+                    <!-- INVENTORY TOGGLE -->
                     <div class="mt-4">
                         <label class="flex items-center gap-2">
                             {{ form.add_to_inventory }}
@@ -60,7 +85,9 @@
                         </label>
                     </div>
 
+                    <!-- INVENTORY SECTION -->
                     <div id="inventory-section" class="mt-4 space-y-4 hidden">
+
                         <div>
                             <label>Name</label>
                             {{ form.inventory_name }}
@@ -75,19 +102,27 @@
                             <label>Warehouse</label>
                             {{ form.warehouse }}
                         </div>
+
                     </div>
+
                 </div>
 
+                <!-- ACTIONS -->
                 <div class="flex justify-end gap-2 mt-6">
+
                     <a href="{% url 'devices:device_list' %}"
                        class="btn btn-error text-white">
-                        <i class="fa-solid fa-ban"></i>Cancel
+                        <i class="fa-solid fa-ban"></i> Cancel
                     </a>
+
                     <button class="btn btn-success text-white">
-                        <i class="fa-solid fa-floppy-disk"></i>Save Device
+                        <i class="fa-solid fa-floppy-disk"></i> Save Device
                     </button>
+
                 </div>
+
             </form>
+
         </div>
     </div>
 </div>
@@ -103,11 +138,11 @@
             } else {
                 section.classList.add("hidden");
             }
-            }
+        }
 
-            checkbox.addEventListener("change", toggleSection);
-            toggleSection();
-        });
+        checkbox.addEventListener("change", toggleSection);
+        toggleSection();
+    });
 </script>
 
 {% endblock %}

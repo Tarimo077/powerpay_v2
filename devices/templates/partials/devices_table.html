@@ -229,6 +229,27 @@
                             </a>
                         </th>
 
+                        {% if is_admin %}
+                        <th class="px-4 py-3 text-center text-white">
+                            <a
+                                hx-get="{% url 'devices:device_list' %}?sort=msidn&dir={{ next_dirs.msidn }}&q={{ search_query }}&status={{ status_filter }}&org={{ org_filter }}&page_size={{ page_size }}"
+                                hx-target="#devices-table"
+                                hx-push-url="true"
+                                hx-indicator="#htmx-loading"
+                                class="flex items-center justify-center gap-1 cursor-pointer"
+                            >
+                                MSIDN
+                                {% if current_sort == "msidn" %}
+                                    {% if current_dir == "asc" %}
+                                        <i class="fa-solid fa-sort-up"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-sort-down"></i>
+                                    {% endif %}
+                                {% endif %}
+                            </a>
+                        </th>
+                        {% endif %}
+
                         {% if request.accessible_orgs|length > 1 %}
                         <th class="px-4 py-3 text-center text-white">
                             <a
@@ -262,7 +283,7 @@
 
                 <tbody>
                     {% for stat in device_stats %}
-                        {% include "partials/device-row.html" with device=stat.device deviceid=stat.device.deviceid active=stat.device.active last_seen=stat.last_seen is_admin=is_admin is_superuser=is_superuser can_manage_devices=can_manage_devices organizations=stat.device.organizations.all organization=stat.device.organization %}
+                        {% include "partials/device-row.html" with device=stat.device deviceid=stat.device.deviceid active=stat.device.active last_seen=stat.last_seen is_admin=is_admin is_superuser=is_superuser can_manage_devices=can_manage_devices organizations=stat.device.organizations.all organization=stat.device.organization msisdn=stat.device.msisdn %}
                     {% empty %}
                         <tr>
                             <td colspan="{% if request.accessible_orgs|length > 1 %}7{% else %}5{% endif %}"

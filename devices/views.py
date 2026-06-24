@@ -12,7 +12,7 @@ from django.http import HttpResponse
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 from datetime import timedelta
-from django.db.models import Sum, Q, OuterRef, Subquery, F
+from django.db.models import Q, OuterRef, Subquery, F
 from notifications.utils import notify
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
@@ -31,8 +31,7 @@ from .models import (
     DeviceCommandSchedule,
     TrackKwh,
     DeviceTestingBatch,
-    DeviceTestingBatchItem,
-    DeviceBatchDispatch,
+    DeviceTestingBatchItem
 )
 from .forms import (
     DeviceTestingBatchForm,
@@ -42,6 +41,7 @@ from .forms import (
     BulkDeviceCreateForm
 )
 from core.energy_tariffs import get_tariff_for_date
+
 
 COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
 
@@ -496,6 +496,7 @@ def device_list(request):
     allowed_sorts = {
         "deviceid": "deviceid",
         "status": "active",
+        "msisdn": "msisdn",
         "last_seen": "last_seen_for_sort",
         "main_org": "organization__name",
     }
@@ -563,6 +564,7 @@ def device_list(request):
             "device": d,
             "last_seen": d.last_seen_for_sort,
             "organizations": d.organizations.all(),
+            "msisdn": d.msisdn if d.msisdn else "-",
         }
         for d in devices
     ]
@@ -599,8 +601,6 @@ def device_list(request):
 # ------------------------------
 # Device Detail / Stats
 # ------------------------------
-
-from core.energy_tariffs import get_tariff_for_date  # NEW
 
 @login_required
 def device_detail(request, deviceid):
@@ -968,6 +968,7 @@ def change_device_status(request):
                 "device": device,
                 "deviceid": device.deviceid,
                 "active": device.active,
+                "msidn": device.msidn,
                 "last_seen": last_energy_timestamp(device),
                 "kwh_today": kwh_today,
                 "user": request.user,

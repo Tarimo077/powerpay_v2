@@ -131,9 +131,22 @@ class DeviceForm(forms.ModelForm):
         })
     )
 
+    # ======================================================
+    # ✅ NEW FIELD: MSISDN
+    # ======================================================
+    msisdn = forms.CharField(
+        required=False,
+        max_length=13,
+        widget=forms.TextInput(attrs={
+            "class": "input input-bordered w-full",
+            "placeholder": "+254XXXXXXXXX"
+        }),
+        help_text="Must start with +254 and be 13 characters long"
+    )
+
     class Meta:
         model = DeviceInfo
-        fields = ["deviceid", "active", "organizations"]
+        fields = ["deviceid", "active", "organizations", "msisdn"]
 
         widgets = {
             "deviceid": forms.TextInput(attrs={
@@ -160,8 +173,6 @@ class DeviceForm(forms.ModelForm):
             if selected_orgs.exists():
                 self.fields["organizations"].initial = selected_orgs
             elif self.instance.organization_id:
-                # Legacy fallback for rows that have not yet been backfilled into
-                # the M2M join table.
                 self.fields["organizations"].initial = [self.instance.organization_id]
 
     def clean_organizations(self):
@@ -169,6 +180,28 @@ class DeviceForm(forms.ModelForm):
         if not organizations:
             raise forms.ValidationError("Select at least one organization.")
         return organizations
+
+    # ======================================================
+    # ✅ MSISDN VALIDATION (IMPORTANT)
+    # ======================================================
+    def clean_msisdn(self):
+        msisdn = self.cleaned_data.get("msisdn")
+
+        if not msisdn:
+            return msisdn  # allow blank/null
+
+        msisdn = msisdn.strip()
+
+        if len(msisdn) != 13:
+            raise forms.ValidationError("MSISDN must be exactly 13 characters.")
+
+        if not msisdn.startswith("+254"):
+            raise forms.ValidationError("MSISDN must start with +254.")
+
+        if not msisdn[4:].isdigit():
+            raise forms.ValidationError("MSISDN must contain only digits after +254.")
+
+        return msisdn
 
     def clean(self):
         cleaned_data = super().clean()
@@ -188,11 +221,12 @@ class DeviceForm(forms.ModelForm):
         organizations = self.cleaned_data.get("organizations")
         device = super().save(commit=False)
 
-        # Keep the legacy devactivity.organization_id column populated with the
-        # first selected organization so old code and NOT NULL DB constraints do
-        # not break. The real multi-org membership is stored in `organizations`.
+        # legacy compatibility
         if organizations:
             device.organization = organizations[0]
+
+        # assign msisdn explicitly
+        device.msisdn = self.cleaned_data.get("msisdn")
 
         if commit:
             device.save()

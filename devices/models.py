@@ -1,7 +1,7 @@
 from django.db import models
 from organizations.models import Organization
-from django.utils import timezone
 from accounts.models import User
+from django.core.validators import RegexValidator
 
 # ----------------------
 # Device Energy Data (appliatrixdata)
@@ -42,6 +42,20 @@ class DeviceInfo(models.Model):
         db_table="devactivity_organizations",
         related_name="devices",
         blank=True,
+    )
+
+    msisdn = models.CharField(
+    max_length=13,
+    null=True,
+    blank=True,
+    unique=True,
+    db_index=True,
+    validators=[
+        RegexValidator(
+            regex=r'^\+254[0-9]{9}$',
+            message="MSISDN must start with +254 and be 13 characters long (e.g. +254123456789).",
+        )
+    ]
     )
 
     class Meta:
