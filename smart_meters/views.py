@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as dt_timezone
 
 from django.utils import timezone
 from zoneinfo import ZoneInfo
@@ -9,28 +9,28 @@ from django.db.models import Max, Sum
 from .models import MeterReading
 
 SMART_DB = "smart_meters"
-LOCAL_TZ = ZoneInfo("Africa/Nairobi")  # UTC+3 (correct + readable)
+LOCAL_TZ = ZoneInfo("Africa/Nairobi")  # UTC+3
 ALLOWED_PAGE_SIZES = [10, 25, 50, 100]
 MAX_CHART_POINTS = 500
 
 
 # -----------------------------
-# SAFE DATETIME PARSER (FIXED)
+# SAFE DATETIME PARSER
 # -----------------------------
 def parse_datetime(dt_str):
     """
-    HTML datetime-local input (naive local time)
-    → convert to UTC for DB filtering
+    Convert datetime-local (naive user input in EAT)
+    → UTC for database filtering
     """
     if dt_str and dt_str not in ["None", ""]:
         try:
             dt = datetime.fromisoformat(dt_str)
 
-            # Treat input as LOCAL (EAT / UTC+3)
+            # treat input as LOCAL TIME (EAT)
             dt = dt.replace(tzinfo=LOCAL_TZ)
 
-            # Convert to UTC for DB filtering
-            return dt.astimezone(timezone.utc)
+            # convert to UTC for DB query
+            return dt.astimezone(dt_timezone.utc)
 
         except ValueError:
             return None
@@ -62,11 +62,16 @@ def meter_list(request):
     qs = qs.filter(meter_number__isnull=False).exclude(meter_number="")
 
     # -----------------------------
-    # FIXED DISPLAY TIMEZONE
+    # FIX: DISPLAY TIMEZONE
     # -----------------------------
     for meter in qs:
         if meter["latest_timestamp"]:
-            meter["latest_timestamp"] = timezone.localtime(meter["latest_timestamp"])
+            ts = meter["latest_timestamp"]
+
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=dt_timezone.utc)
+
+            meter["latest_timestamp"] = ts.astimezone(LOCAL_TZ)
 
     allowed_sorts = ["meter_number", "latest_timestamp", "total_energy"]
 
@@ -84,7 +89,7 @@ def meter_list(request):
     paginator = Paginator(qs, page_size)
     page_obj = paginator.get_page(request.GET.get("page"))
 
-    context = {
+    return render(request, "smart_meters/meter_list.html", {
         "page_obj": page_obj,
         "search_query": q,
         "current_sort": sort,
@@ -92,9 +97,7 @@ def meter_list(request):
         "page_size": page_size,
         "page_size_options": ALLOWED_PAGE_SIZES,
         "total_meters": len(qs),
-    }
-
-    return render(request, "smart_meters/meter_list.html", context)
+    })
 
 
 # -----------------------------
@@ -111,7 +114,7 @@ def meter_detail(request, meter_number):
     start_date = parse_datetime(start_date_raw) if start_date_raw else None
     end_date = parse_datetime(end_date_raw) if end_date_raw else None
 
-    # DEFAULT: last 24 hours (UTC-safe)
+    # DEFAULT: last 24 hours
     if not start_date and not end_date:
         end_date = timezone.now()
         start_date = end_date - timedelta(hours=24)
@@ -130,7 +133,7 @@ def meter_detail(request, meter_number):
         page_size = 10
 
     # -----------------------------
-    # QUERYSET
+    # QUERYSET (DB = UTC)
     # -----------------------------
     qs = MeterReading.objects.using(SMART_DB).filter(
         meter_number=meter_number
@@ -150,8 +153,13 @@ def meter_detail(request, meter_number):
     readings_sorted = []
 
     for r in qs:
-        # FIX: convert UTC → UTC+3 safely
-        r.timestamp_local = timezone.localtime(r.timestamp, LOCAL_TZ)
+        ts = r.timestamp
+
+        # ensure UTC-aware
+        if ts.tzinfo is None:
+            ts = ts.replace(tzinfo=dt_timezone.utc)
+
+        r.timestamp_local = ts.astimezone(LOCAL_TZ)
         readings_sorted.append(r)
 
     # -----------------------------
@@ -168,7 +176,7 @@ def meter_detail(request, meter_number):
     power_data = [round(r.power_kw * 1000, 3) for r in chart_sample]
 
     # -----------------------------
-    # PAGINATION TABLE
+    # TABLE PAGINATION
     # -----------------------------
     paginator = Paginator(list(reversed(readings_sorted)), page_size)
     page_obj = paginator.get_page(request.GET.get("page"))
@@ -183,12 +191,12 @@ def meter_detail(request, meter_number):
     last_power = last_reading.power_kw if last_reading else 0
 
     # -----------------------------
-    # CONTEXT (FIXED DISPLAY TIMEZONE)
+    # DISPLAY RANGE (EAT)
     # -----------------------------
-    start_local = timezone.localtime(start_date, LOCAL_TZ) if start_date else None
-    end_local = timezone.localtime(end_date, LOCAL_TZ) if end_date else None
+    start_local = start_date.astimezone(LOCAL_TZ) if start_date else None
+    end_local = end_date.astimezone(LOCAL_TZ) if end_date else None
 
-    context = {
+    return render(request, "smart_meters/meter_detail.html", {
         "meter_number": meter_number,
         "readings": page_obj,
         "page_obj": page_obj,
@@ -202,12 +210,10 @@ def meter_detail(request, meter_number):
         "power_labels": power_labels,
         "power_data": power_data,
 
-        # IMPORTANT: now consistent with UI timezone
+        # UI FORMAT (EAT)
         "start_date": start_local.strftime("%Y-%m-%dT%H:%M") if start_local else "",
         "end_date": end_local.strftime("%Y-%m-%dT%H:%M") if end_local else "",
 
         "page_size": page_size,
         "page_size_options": ALLOWED_PAGE_SIZES,
-    }
-
-    return render(request, "smart_meters/meter_detail.html", context)
+    })
