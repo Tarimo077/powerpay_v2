@@ -89,7 +89,7 @@
                 <tbody>
                     {% for r in readings %}
                     <tr class="text-center">
-                        <td>{{ r.timestamp_local }}</td>
+                        <td>{{ r.timestamp_local|date:"d M Y h:i:s A" }}</td>
                         <td>{{ r.current_a }}</td>
                         <td>{{ r.voltage_v }}</td>
                         <td>{{ r.power_kw|multiply:1000|floatformat:3 }}</td>

@@ -82,7 +82,7 @@ def sim_balance_callback(request):
                 "data": balances.get("DATA", 0),
                 "sms": balances.get("SMS", 0),
             },
-            timeout=300
+            timeout=10800  # 3 hours
         )
 
         print("CALLBACK SUCCESS:", msisdn, balances)

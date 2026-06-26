@@ -70,8 +70,8 @@
     </div>
 </div>
 
-<div id="simModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-    <div class="bg-white rounded-lg p-6 w-96">
+<div id="simModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center transition-all duration-200 backdrop-blur-sm bg-black/20">
+    <div class="bg-base-100 rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-base-200 animate-in fade-in zoom-in duration-200">
 
         <h2 class="text-lg font-bold mb-3">SIM Balance</h2>
 
@@ -81,7 +81,7 @@
 
         <button
             onclick="document.getElementById('simModal').classList.add('hidden')"
-            class="btn btn-sm btn-error mt-4"
+            class="btn btn-sm btn-error mt-4 text-white flex justify-end"
         >
             Close
         </button>
@@ -126,7 +126,7 @@ function checkSimBalance(msisdn) {
         if (tries > 10) {
             clearInterval(interval);
             document.getElementById("simContent").innerHTML =
-                "Timeout waiting for response";
+                "The request has been made. Kindly check back in a few minutes for the result.";
         }
 
     }, 2000);
