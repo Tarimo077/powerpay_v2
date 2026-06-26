@@ -1099,7 +1099,7 @@ def change_device_status(request):
                 "device": device,
                 "deviceid": device.deviceid,
                 "active": device.active,
-                "msidn": device.msidn,
+                "msisdn": device.msisdn,
                 "last_seen": last_energy_timestamp(device),
                 "kwh_today": kwh_today,
                 "user": request.user,
@@ -1168,7 +1168,7 @@ def change_device_status_partial(request):
             "partials/device_status_partial.html",
             {
                 "device": device,
-                "last_seen": last_energy_timestamp(device)
+                "last_seen": last_energy_timestamp(device),
             }
         )
 
