@@ -1303,7 +1303,8 @@ def device_bulk_create(request):
     form = BulkDeviceCreateForm(request.POST or None, user=request.user)
 
     if request.method == "POST" and form.is_valid():
-        deviceids = form.cleaned_data["deviceids"]
+
+        device_pairs = form.cleaned_data["deviceids"]  # <-- NOW TUPLES (deviceid, msisdn)
         organizations = form.cleaned_data["organizations"]
         primary_organization = organizations.first()
         active = form.cleaned_data["active"]
@@ -1312,8 +1313,11 @@ def device_bulk_create(request):
             messages.error(request, "Select at least one organization.")
             return redirect("devices:device_bulk_create")
 
+        # extract only deviceids for duplicate check
+        deviceid_list = [d[0] for d in device_pairs]
+
         existing_ids = set(
-            DeviceInfo.objects.filter(deviceid__in=deviceids)
+            DeviceInfo.objects.filter(deviceid__in=deviceid_list)
             .values_list("deviceid", flat=True)
         )
 
@@ -1321,21 +1325,42 @@ def device_bulk_create(request):
         skipped = []
 
         with transaction.atomic():
-            for deviceid in deviceids:
+
+            for deviceid, msisdn in device_pairs:
+
+                # -----------------------------
+                # SKIP DUPLICATES
+                # -----------------------------
                 if deviceid in existing_ids:
                     skipped.append(deviceid)
                     continue
 
+                # -----------------------------
+                # OPTIONAL MSISDN VALIDATION
+                # -----------------------------
+                if msisdn:
+                    msisdn = msisdn.strip()
+
+                    if not msisdn.startswith("+254") or len(msisdn) != 13:
+                        skipped.append(f"{deviceid} (invalid msisdn)")
+                        continue
+
+                # -----------------------------
+                # CREATE DEVICE
+                # -----------------------------
                 device = DeviceInfo.objects.create(
                     deviceid=deviceid,
                     active=active,
                     organization=primary_organization,
+                    msidn=msisdn if msisdn else None,
                 )
 
                 device.organizations.set(organizations)
                 created_count += 1
 
-                # --- ADD INVENTORY ITEM IF SELECTED ---
+                # -----------------------------
+                # INVENTORY (UNCHANGED)
+                # -----------------------------
                 if form.cleaned_data.get("add_to_inventory"):
                     InventoryItem.objects.get_or_create(
                         serial_number=device.deviceid,
@@ -1346,13 +1371,20 @@ def device_bulk_create(request):
                         }
                     )
 
+        # -----------------------------
+        # SUCCESS MESSAGES
+        # -----------------------------
         if created_count:
-            messages.success(request, f"{created_count} device(s) added successfully.")
+            messages.success(
+                request,
+                f"{created_count} device(s) added successfully."
+            )
 
         if skipped:
             messages.warning(
                 request,
-                f"Skipped {len(skipped)} duplicate device(s): {', '.join(skipped[:10])}"
+                f"Skipped {len(skipped)} device(s): "
+                f"{', '.join(skipped[:10])}"
                 + ("..." if len(skipped) > 10 else "")
             )
 

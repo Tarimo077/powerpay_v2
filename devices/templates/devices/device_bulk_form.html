@@ -20,10 +20,24 @@
 
         <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
-                <p class="text-sm">
-                    Paste multiple device IDs below. You can put each device on a new line or separate them with commas.
-                    Duplicate device IDs will be skipped safely.
+
+                <p class="text-sm mb-3 label font-bold">
+                    Enter each device on a new line with its MSISDN separated by a comma.
                 </p>
+
+                <!-- FORMAT GUIDE -->
+                <div class="alert alert-success text-md mb-4 text-white">
+                    <div>
+                        <strong class="font-bold text-lg">Format:</strong><br><br>
+                        DEVICE001,+254712345678<br>
+                        DEVICE002,+254798765432<br>
+                        DEVICE003,
+                        <br><br>
+                        <span class="italic flex justify-end">
+                            *MSISDN is optional but must start with +254 and be 13 characters.
+                        </span>
+                    </div>
+                </div>
 
                 <form method="post" class="space-y-5">
                     {% csrf_token %}
@@ -34,13 +48,19 @@
                         </div>
                     {% endif %}
 
-                    <!-- Device IDs -->
+                    <!-- DEVICE + MSISDN INPUT -->
                     <div class="form-control">
-                        <label class="label font-semibold" for="{{ form.deviceids.id_for_label }}">{{ form.deviceids.label }}</label>
-                        {{ form.deviceids }}
-                        {% if form.deviceids.help_text %}
-                            <label class="label text-xs">{{ form.deviceids.help_text }}</label>
-                        {% endif %}
+                        <label class="label font-semibold">
+                            Devices (DeviceID, MSISDN)
+                        </label>
+
+                        <textarea
+                            name="deviceids"
+                            class="textarea textarea-bordered w-full min-h-52"
+                            placeholder="NEOPRS000001,+254712345678
+NEOPRS000002,+254798765432"
+                        >{{ form.deviceids.value|default_if_none:'' }}</textarea>
+
                         {% for error in form.deviceids.errors %}
                             <p class="text-error text-sm">{{ error }}</p>
                         {% endfor %}
@@ -48,11 +68,15 @@
 
                     <!-- Organizations -->
                     <div class="form-control">
-                        <label class="label font-semibold" for="{{ form.organizations.id_for_label }}">Organizations</label>
+                        <label class="label font-semibold" for="{{ form.organizations.id_for_label }}">
+                            Organizations
+                        </label>
                         {{ form.organizations }}
+
                         {% if form.organizations.help_text %}
-                            <label class="label text-xs">{{ form.organizations.help_text }}</label>
+                            <label class="text-xs">{{ form.organizations.help_text }}</label>
                         {% endif %}
+
                         {% for error in form.organizations.errors %}
                             <p class="text-error text-sm">{{ error }}</p>
                         {% endfor %}
@@ -63,55 +87,44 @@
                         {{ form.active }}
                         <span>{{ form.active.label }}</span>
                     </label>
-                    {% for error in form.active.errors %}
-                        <p class="text-error text-sm">{{ error }}</p>
-                    {% endfor %}
 
-                    <!-- Add to Inventory Checkbox -->
-                    <div class="form-control">
-                        <label class="flex items-center gap-3">
-                            {{ form.add_to_inventory }}
-                            <span>{{ form.add_to_inventory.label }}</span>
-                        </label>
-                        {% for error in form.add_to_inventory.errors %}
-                            <p class="text-error text-sm">{{ error }}</p>
-                        {% endfor %}
-                    </div>
+                    <!-- Inventory -->
+                    <label class="flex items-center gap-3">
+                        {{ form.add_to_inventory }}
+                        <span>{{ form.add_to_inventory.label }}</span>
+                    </label>
 
-                    <!-- Inventory Fields (hidden initially) -->
+                    <!-- Inventory Fields -->
                     <div id="inventory-fields" class="space-y-4 hidden">
+
                         <div class="form-control">
-                            <label class="label font-semibold" for="{{ form.inventory_name.id_for_label }}">{{ form.inventory_name.label }}</label>
+                            <label class="label font-semibold">{{ form.inventory_name.label }}</label>
                             {{ form.inventory_name }}
-                            {% for error in form.inventory_name.errors %}
-                                <p class="text-error text-sm">{{ error }}</p>
-                            {% endfor %}
                         </div>
 
                         <div class="form-control">
-                            <label class="label font-semibold" for="{{ form.product_type.id_for_label }}">{{ form.product_type.label }}</label>
+                            <label class="label font-semibold">{{ form.product_type.label }}</label>
                             {{ form.product_type }}
-                            {% for error in form.product_type.errors %}
-                                <p class="text-error text-sm">{{ error }}</p>
-                            {% endfor %}
                         </div>
 
                         <div class="form-control">
-                            <label class="label font-semibold" for="{{ form.warehouse.id_for_label }}">{{ form.warehouse.label }}</label>
+                            <label class="label font-semibold">{{ form.warehouse.label }}</label>
                             {{ form.warehouse }}
-                            {% for error in form.warehouse.errors %}
-                                <p class="text-error text-sm">{{ error }}</p>
-                            {% endfor %}
                         </div>
+
                     </div>
 
-                    <!-- Submit / Cancel -->
-                    <div class="flex flex-wrap gap-2 pt-2">
+                    <!-- Submit -->
+                    <div class="flex gap-2 pt-2">
                         <button type="submit" class="btn btn-success text-white">
                             <i class="fa-solid fa-layer-group"></i> Add Devices
                         </button>
-                        <a href="{% url 'devices:device_list' %}" class="btn btn-error text-white">Cancel</a>
+
+                        <a href="{% url 'devices:device_list' %}" class="btn btn-error text-white">
+                            Cancel
+                        </a>
                     </div>
+
                 </form>
             </div>
         </div>
@@ -127,10 +140,7 @@ document.addEventListener("DOMContentLoaded", function() {
         inventoryFields.classList.toggle("hidden", !addInventoryCheckbox.checked);
     }
 
-    // initial state
     toggleInventoryFields();
-
-    // on change
     addInventoryCheckbox.addEventListener("change", toggleInventoryFields);
 });
 </script>

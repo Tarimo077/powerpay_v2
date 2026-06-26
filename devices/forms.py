@@ -126,7 +126,7 @@ class DeviceForm(forms.ModelForm):
         label="Organizations",
         help_text="Select one or more organizations that can access this device.",
         widget=forms.SelectMultiple(attrs={
-            "class": "select select-bordered w-full min-h-32",
+            "class": "block select select-bordered w-full min-h-32",
             "size": "6",
         })
     )
@@ -320,10 +320,11 @@ class DeviceCommandScheduleForm(forms.ModelForm):
 class BulkDeviceCreateForm(forms.Form):
     deviceids = forms.CharField(
         label="Device IDs",
-        help_text="Enter one device ID per line, or separate device IDs with commas.",
+        help_text="Enter deviceid, msisdn (one per line or comma separated).",
         widget=forms.Textarea(attrs={
-            "class": "textarea textarea-bordered w-full min-h-44",
-            "placeholder": "NEOPRS000001\nNEOPRS000002\nNEOPRS000003"
+            "class": "textarea textarea-bordered w-full",
+            "placeholder": "NEOPRS000001,+254712345678\nNEOPRS000002,+254798765432",
+            "rows": 6,
         })
     )
 
@@ -331,7 +332,9 @@ class BulkDeviceCreateForm(forms.Form):
         required=False,
         initial=True,
         label="Create as active",
-        widget=forms.CheckboxInput(attrs={"class": "checkbox checkbox-success text-white"})
+        widget=forms.CheckboxInput(attrs={
+            "class": "checkbox checkbox-success text-white"
+        })
     )
 
     organizations = forms.ModelMultipleChoiceField(
@@ -339,71 +342,132 @@ class BulkDeviceCreateForm(forms.Form):
         label="Organizations",
         help_text="Select one or more organizations for the new devices.",
         widget=forms.SelectMultiple(attrs={
-            "class": "select select-bordered w-full min-h-32",
+            "class": "block select select-bordered w-full min-h-32",
             "size": "6",
         })
     )
 
-    # Inventory options
     add_to_inventory = forms.BooleanField(
         required=False,
         initial=False,
         label="Add devices to inventory",
-        widget=forms.CheckboxInput(attrs={"class": "checkbox checkbox-success text-white"})
+        widget=forms.CheckboxInput(attrs={
+            "class": "checkbox checkbox-success text-white"
+        })
     )
 
     inventory_name = forms.CharField(
         required=False,
         label="Inventory Name (applied to all devices)",
-        widget=forms.TextInput(attrs={"class": "input input-bordered w-full"})
+        widget=forms.TextInput(attrs={
+            "class": "input input-bordered w-full"
+        })
     )
 
     product_type = forms.CharField(
         required=False,
         label="Product Type (applied to all devices)",
-        widget=forms.TextInput(attrs={"class": "input input-bordered w-full"})
+        widget=forms.TextInput(attrs={
+            "class": "input input-bordered w-full"
+        })
     )
 
     warehouse = forms.ModelChoiceField(
         queryset=Warehouse.objects.all(),
         required=False,
         label="Warehouse (applied to all devices)",
-        widget=forms.Select(attrs={"class": "select select-bordered w-full"})
+        widget=forms.Select(attrs={
+            "class": "select select-bordered w-full"
+        })
     )
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+
         if user and (user.is_superuser or getattr(user, "role", None) == "superadmin"):
             self.fields["organizations"].queryset = Organization.objects.all()
+
         elif user and getattr(user, "organization", None):
-            self.fields["organizations"].queryset = Organization.objects.filter(pk=user.organization.pk)
+            self.fields["organizations"].queryset = Organization.objects.filter(
+                pk=user.organization.pk
+            )
             self.fields["organizations"].initial = [user.organization]
+
         else:
             self.fields["organizations"].queryset = Organization.objects.none()
 
+    # -----------------------------
+    # PARSE DEVICE + MSISDN
+    # -----------------------------
     def clean_deviceids(self):
-        raw_deviceids = self.cleaned_data["deviceids"]
-        normalized = []
+        raw = self.cleaned_data["deviceids"]
+
+        devices = []
         seen = set()
-        for token in raw_deviceids.replace(",", "\n").splitlines():
-            deviceid = token.strip()
+
+        for line in raw.replace(",", "\n").splitlines():
+            line = line.strip()
+
+            if not line:
+                continue
+
+            parts = [p.strip() for p in line.split(",")]
+
+            deviceid = parts[0]
+
             if not deviceid:
                 continue
-            if deviceid not in seen:
-                normalized.append(deviceid)
-                seen.add(deviceid)
-        if not normalized:
-            raise forms.ValidationError("Enter at least one device ID.")
-        return normalized
 
+            if deviceid in seen:
+                continue
+
+            seen.add(deviceid)
+
+            msisdn = None
+
+            if len(parts) > 1:
+                msisdn = parts[1]
+
+                # -----------------------------
+                # VALIDATE MSISDN
+                # -----------------------------
+                if msisdn:
+                    if not msisdn.startswith("+254"):
+                        raise forms.ValidationError(
+                            f"{deviceid}: MSISDN must start with +254"
+                        )
+
+                    if len(msisdn) != 13:
+                        raise forms.ValidationError(
+                            f"{deviceid}: MSISDN must be exactly 13 characters"
+                        )
+
+                    if not msisdn[1:].isdigit():
+                        raise forms.ValidationError(
+                            f"{deviceid}: MSISDN must contain only numbers after +"
+                        )
+
+            devices.append((deviceid, msisdn))
+
+        if not devices:
+            raise forms.ValidationError("Enter at least one device.")
+
+        return devices
+
+    # -----------------------------
+    # INVENTORY VALIDATION
+    # -----------------------------
     def clean(self):
         cleaned_data = super().clean()
-        add_to_inventory = cleaned_data.get("add_to_inventory")
-        if add_to_inventory:
+
+        if cleaned_data.get("add_to_inventory"):
             if not cleaned_data.get("inventory_name"):
                 self.add_error("inventory_name", "Inventory name is required")
+
             if not cleaned_data.get("product_type"):
                 self.add_error("product_type", "Product type is required")
+
             if not cleaned_data.get("warehouse"):
                 self.add_error("warehouse", "Warehouse is required")
+
         return cleaned_data
