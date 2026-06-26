@@ -14,18 +14,26 @@
         <!-- Filter -->
         <div class="flex flex-col mb-6 mt-4">
             <h2 class="text-2xl font-bold">Meter {{ meter_number }} Data</h2>
+
             <form method="get" class="flex gap-6 justify-end mt-6">
                 <label class="flex flex-row items-center">
                     <span class="mr-1">Start:</span>
                     <input type="datetime-local" name="start_date" value="{{ start_date }}" class="input input-bordered">
                 </label>
+
                 <label class="flex flex-row items-center">
                     <span class="mr-1">End:</span>
                     <input type="datetime-local" name="end_date" value="{{ end_date }}" class="input input-bordered">
                 </label>
-                <button type="submit" class="btn btn-success text-white"> <i class="fa-solid fa-filter"></i> Filter</button>
+
+                <button type="submit" class="btn btn-success text-white">
+                    <i class="fa-solid fa-filter"></i> Filter
+                </button>
+
                 {% if start_date or end_date %}
-                    <a href="{% url 'smart_meters:meter_detail' meter_number %}" class="btn btn-ghost text-white"> <i class="fa fa-times"></i> Reset</a>
+                    <a href="{% url 'smart_meters:meter_detail' meter_number %}" class="btn btn-ghost text-white">
+                        <i class="fa fa-times"></i> Reset
+                    </a>
                 {% endif %}
             </form>
         </div>
@@ -36,10 +44,12 @@
                 <p class="text-sm mb-2">Total Readings</p>
                 <p class="font-semibold text-success">{{ total_readings|intcomma }}</p>
             </div>
+
             <div class="card bg-base-100 p-4 shadow border-2 border-success">
                 <p class="text-sm mb-2">Last Energy kWh</p>
                 <p class="font-semibold text-success">{{ last_kwh|multiply:1000|floatformat:3 }} Watt-hours</p>
             </div>
+
             <div class="card bg-base-100 p-4 shadow border-2 border-success">
                 <p class="text-sm mb-2">Last Power kW</p>
                 <p class="font-semibold text-success">{{ last_power|multiply:1000|floatformat:3 }} Watts</p>
@@ -51,9 +61,6 @@
             <div id="energyCard" class="card bg-base-100 shadow p-4 flex flex-col border border-success">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="text-lg font-semibold mb-2">Energy (Watt-hours) Over Time</h3>
-                    <button data-ignore-download onclick="downloadCard('energyCard', 'energy-card-meters.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
-                        <i class="fas fa-download mr-2"></i> Download
-                    </button>
                 </div>
                 <div class="flex-1">
                     <canvas id="energyChart" class="w-full h-full"></canvas>
@@ -63,9 +70,6 @@
             <div id="powerCard" class="card bg-base-100 shadow p-4 flex flex-col border border-success">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="text-lg font-semibold mb-2">Power (Watts) Over Time</h3>
-                    <button data-ignore-download onclick="downloadCard('powerCard', 'power-card-meters.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
-                        <i class="fas fa-download mr-2"></i> Download
-                    </button>
                 </div>
                 <div class="flex-1">
                     <canvas id="powerChart" class="w-full h-full"></canvas>
@@ -86,6 +90,7 @@
                         <th>Energy Watt-hours</th>
                     </tr>
                 </thead>
+
                 <tbody>
                     {% for r in readings %}
                     <tr class="text-center">
@@ -97,52 +102,76 @@
                         <td>{{ r.energy_kwh|multiply:1000|floatformat:3 }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="6" class="text-center py-6">No readings for this period.</td></tr>
+                    <tr>
+                        <td colspan="6" class="text-center py-6">
+                            No readings for this period.
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
 
-        <!-- Pagination and Items per page -->
-        <div class="mt-2 mb-4 flex justify-end items-center gap-2">
-            <form method="get" class="flex flex-nowrap items-center gap-2">
-                <span class="whitespace-nowrap">Items per page:</span>
+        <!-- Pagination + Page Size -->
+        <div class="mt-4 mb-4 flex justify-end items-center">
+
+            <!-- PAGE SIZE -->
+            <form method="get" class="flex items-center gap-2">
+                <span>Items per page:</span>
+
                 <select name="page_size" class="select select-sm select-success" onchange="this.form.submit()">
                     {% for size in page_size_options %}
-                        <option value="{{ size }}" {% if page_size == size %}selected{% endif %}>{{ size }}</option>
+                        <option value="{{ size }}" {% if page_size == size %}selected{% endif %}>
+                            {{ size }}
+                        </option>
                     {% endfor %}
                 </select>
+
+                <!-- preserve filters -->
                 <input type="hidden" name="start_date" value="{{ start_date }}">
                 <input type="hidden" name="end_date" value="{{ end_date }}">
+                <input type="hidden" name="page" value="1">
             </form>
+
         </div>
 
+        <!-- PAGINATION -->
         {% if page_obj.has_other_pages %}
-            <div class="mt-4 mb-4 flex justify-between items-center">
-                {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-soft btn-warning hover:text-white"><i class="fa fa-backward-step"></i> Previous</a>
-                {% else %}
-                    <span class="btn btn-disabled">Previous</span>
-                {% endif %}
+        <div class="mt-4 mb-4 flex justify-between items-center">
 
-                <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&start_date={{ start_date }}&end_date={{ end_date }}&page_size={{ page_size }}"
+                   class="btn btn-soft btn-warning hover:text-white">
+                    <i class="fa fa-backward-step"></i> Previous
+                </a>
+            {% else %}
+                <span class="btn btn-disabled">Previous</span>
+            {% endif %}
 
-                {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}" class="btn btn-soft btn-success hover:text-white">Next <i class="fa fa-forward-step"></i></a>
-                {% else %}
-                    <span class="btn btn-disabled">Next</span>
-                {% endif %}
-            </div>
+            <span>
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&start_date={{ start_date }}&end_date={{ end_date }}&page_size={{ page_size }}"
+                   class="btn btn-soft btn-success hover:text-white">
+                    Next <i class="fa fa-forward-step"></i>
+                </a>
+            {% else %}
+                <span class="btn btn-disabled">Next</span>
+            {% endif %}
+
+        </div>
         {% endif %}
 
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
 <script>
 function plotChart(chartElId, labels, data, labelText, color, tooltipUnit='') {
     const ctx = document.getElementById(chartElId);
     if (!ctx) return;
+
     new Chart(ctx, {
         type: 'line',
         data: {
@@ -162,16 +191,35 @@ function plotChart(chartElId, labels, data, labelText, color, tooltipUnit='') {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                x: { type: 'time', time: { unit: 'hour', tooltipFormat: 'MMM d, yyyy HH:mm' }, title: { display: true, text: 'Date & Time' } },
-                y: { title: { display: true, text: tooltipUnit }, beginAtZero: true }
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'hour',
+                        tooltipFormat: 'MMM d, yyyy HH:mm'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Date & Time'
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: tooltipUnit
+                    }
+                }
             },
-            plugins: { legend: { display: true, position: 'bottom' }, tooltip: { mode: 'index', intersect: false } }
+            plugins: {
+                legend: { display: true, position: 'bottom' },
+                tooltip: { mode: 'index', intersect: false }
+            }
         }
     });
 }
 
-plotChart('energyChart', {{ energy_labels|safe }}, {{ energy_data|safe }}, 'Energy (Wh)', '#22c55e', 'Energy (Wh)');
-plotChart('powerChart', {{ power_labels|safe }}, {{ power_data|safe }}, 'Power (W)', '#ff9412', 'Power (W)');
+plotChart('energyChart', {{ energy_labels|safe }}, {{ energy_data|safe }}, 'Energy (Wh)', '#22c55e', 'Wh');
+plotChart('powerChart', {{ power_labels|safe }}, {{ power_data|safe }}, 'Power (W)', '#ff9412', 'W');
 </script>
 
 {% endblock %}
