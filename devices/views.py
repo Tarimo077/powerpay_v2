@@ -42,10 +42,10 @@ from .forms import (
     BulkDeviceCreateForm
 )
 from core.energy_tariffs import get_tariff_for_date
-from core.tasks import request_sim_balance
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
+from django.conf import settings
 
 
 COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
@@ -57,7 +57,9 @@ def trigger_sim_balance(request):
     if not msisdn:
         return JsonResponse({"error": "missing msisdn"}, status=400)
 
-    request_sim_balance.delay(msisdn)
+    res = request_sim_balance(msisdn)
+
+    print("SIM REQUEST RESULT:", res)
 
     return JsonResponse({"status": "processing"})
 
@@ -109,6 +111,31 @@ def sim_balance_result(request):
         })
 
     return JsonResponse({"found": False})
+
+
+def request_sim_balance(msisdn):
+    url = settings.SIM_BALANCE_API_URL
+
+    headers = {
+        "x-api-key": settings.SIM_BALANCE_API_KEY
+    }
+
+    params = {
+        "msisdn": msisdn,
+    }
+
+    try:
+        response = requests.get(url, params=params, headers=headers, timeout=20)
+
+        # 🔥 ADD THIS DEBUG (VERY IMPORTANT)
+        print("SIM REQUEST STATUS:", response.status_code)
+        print("SIM REQUEST RESPONSE:", response.text)
+
+        return response.json()
+
+    except Exception as e:
+        print("SIM REQUEST ERROR:", str(e))
+        raise
 
 def normalize_msisdn(msisdn):
     if not msisdn:

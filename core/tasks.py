@@ -10,40 +10,12 @@ from transactions.models import Transaction
 from devices.models import DeviceData
 from django.contrib.auth import get_user_model
 from core.org_checker import get_accessible_organizations
-import requests
-from django.conf import settings
 
 
 
 CACHE_TIMEOUT = 60 * 10  # 10 minutes
 CO2_PER_KWH = 0.139972  # kg CO2 per kWh (adjust if needed) ~0.4999(grid emmission factor) x 0.28 (efficiency deficit of cookers)
 COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
-
-
-@shared_task
-def request_sim_balance(msisdn):
-    url = settings.SIM_BALANCE_API_URL
-
-    headers = {
-        "x-api-key": settings.SIM_BALANCE_API_KEY
-    }
-
-    params = {
-        "msisdn": msisdn,
-    }
-
-    try:
-        response = requests.get(url, params=params, headers=headers, timeout=20)
-
-        # 🔥 ADD THIS DEBUG (VERY IMPORTANT)
-        print("SIM REQUEST STATUS:", response.status_code)
-        print("SIM REQUEST RESPONSE:", response.text)
-
-        return response.json()
-
-    except Exception as e:
-        print("SIM REQUEST ERROR:", str(e))
-        raise
 
 def percent_change(current, previous):
     if previous == 0:
