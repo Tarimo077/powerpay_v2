@@ -170,10 +170,30 @@ def meter_detail(request, meter_number):
     chart_sample = readings_sorted[::step]
 
     energy_labels = [r.timestamp_local.isoformat() for r in chart_sample]
-    energy_data = [round(r.energy_kwh * 1000, 3) for r in chart_sample]
+    #energy_data = [round(r.energy_kwh * 1000, 3) for r in chart_sample]
 
     power_labels = energy_labels
-    power_data = [round(r.power_kw * 1000, 3) for r in chart_sample]
+    #power_data = [round(r.power_kw * 1000, 3) for r in chart_sample]
+
+    # -----------------------------
+    # CHART DATA (FIXED FORMAT)
+    # -----------------------------
+
+    energy_data = [
+        {
+            "x": r.timestamp_local.isoformat(),
+            "y": float(r.energy_kwh or 0) * 1000
+        }
+        for r in chart_sample
+    ]
+
+    power_data = [
+        {
+            "x": r.timestamp_local.isoformat(),
+            "y": float(r.power_kw or 0) * 1000
+        }
+        for r in chart_sample
+    ]
 
     # -----------------------------
     # TABLE PAGINATION
