@@ -16,14 +16,14 @@
         <div class="flex flex-col mb-6 mt-4">
             <h2 class="text-2xl font-bold">Meter {{ meter_number }} Data</h2>
 
-            <form method="get" class="flex gap-6 justify-end mt-6">
+            <form method="get" class="flex gap-4 justify-end mt-6">
                 <label class="flex flex-row items-center">
-                    <span class="mr-1">Start:</span>
+                    <span class="mr-1">Start Time:</span>
                     <input type="datetime-local" name="start_date" value="{{ start_date }}" class="input input-bordered">
                 </label>
 
                 <label class="flex flex-row items-center">
-                    <span class="mr-1">End:</span>
+                    <span class="mr-1">End  Time:</span>
                     <input type="datetime-local" name="end_date" value="{{ end_date }}" class="input input-bordered">
                 </label>
 
@@ -32,7 +32,7 @@
                 </button>
 
                 {% if start_date or end_date %}
-                    <a href="{% url 'smart_meters:meter_detail' meter_number %}" class="btn btn-ghost text-white">
+                    <a href="{% url 'smart_meters:meter_detail' meter_number %}" class="btn btn-error text-white">
                         <i class="fa fa-times"></i> Reset
                     </a>
                 {% endif %}
@@ -101,11 +101,11 @@
                 <tbody>
                     {% for r in readings %}
                     <tr class="text-center">
-                        <td>{{ r.timestamp_local }}</td>
-                        <td>{{ r.current_a }}</td>
-                        <td>{{ r.voltage_v }}</td>
+                        <td>{{ r.timestamp_local|date:"d M Y h:i:s A" }}</td>
+                        <td>{{ r.current_a|floatformat:2 }}</td>
+                        <td>{{ r.voltage_v|floatformat:1 }}</td>
                         <td>{{ r.power_kw|multiply:1000|floatformat:3 }}</td>
-                        <td>{{ r.power_factor }}</td>
+                        <td>{{ r.power_factor|floatformat:2 }}</td>
                         <td>{{ r.energy_kwh|multiply:1000|floatformat:3 }}</td>
                     </tr>
                     {% empty %}
@@ -116,7 +116,7 @@
         </div>
 
         <!-- Pagination and Items per page -->
-        <div class="mt-2 mb-4 flex justify-end items-center gap-2">
+        <div class="mt-4 mb-4 flex justify-end items-center gap-2">
 
             <form method="get" class="flex flex-nowrap items-center gap-2">
                 <span class="whitespace-nowrap">Items per page:</span>
