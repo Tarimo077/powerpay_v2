@@ -100,10 +100,7 @@ function checkSimBalance(msisdn) {
     document.getElementById("simModal").classList.remove("hidden");
     document.getElementById("simContent").innerHTML = "Requesting...";
 
-    // 1. trigger backend request
-    fetch(`/devices/sim/check/?msisdn=${msisdn}`);
-
-    // 2. poll for result
+    
     let tries = 0;
 
     const interval = setInterval(async () => {
@@ -125,11 +122,12 @@ function checkSimBalance(msisdn) {
 
         if (tries > 10) {
             clearInterval(interval);
+            fetch(`/devices/sim/check/?msisdn=${msisdn}`);
             document.getElementById("simContent").innerHTML =
                 "The request has been made. Kindly check back in a few minutes for the result.";
         }
 
-    }, 2000);
+    }, 1000);
 }
 </script>
 {% endblock %}
