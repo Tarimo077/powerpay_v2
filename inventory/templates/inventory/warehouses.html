@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 {% block title %}
   Powerpay Africa | Warehouse List
 {% endblock %}
@@ -34,7 +35,7 @@
   <div class="card bg-base-100 shadow border-2 border-success">
     <div class="card-body flex flex-col justify-center">
       <div class="flex"><p class="text-sm uppercase">Total Inventory Items</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-boxes-stacked text-2xl text-green-500"></i></div></div>
-          <p class="text-2xl font-bold text-green-700">{{ total_inventory }}</p>
+          <p class="text-2xl font-bold text-green-700">{{ total_inventory|intcomma }}</p>
       </div>
   </div>
 </div>
@@ -67,6 +68,7 @@
 <thead class="bg-success text-white">
 <tr>
   <th>Name</th>
+  <th>Organization</th>
   <th>Location</th>
   <th>Items</th>
 </tr>
@@ -75,8 +77,9 @@
 {% for w in warehouses %}
 <tr>
   <td>{{ w.name }}</td>
+  <td>{{ w.organization.name }}</td>
   <td>{{ w.location }}</td>
-  <td>{{ w.total_items }}</td>
+  <td>{{ w.total_items|intcomma }}</td>
 </tr>
 {% empty %}
 <tr><td colspan="3" class="text-center">No warehouses</td></tr>

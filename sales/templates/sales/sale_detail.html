@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% load humanize %}
+
 {% block title %}
   Powerpay Africa | {{ sale.product_serial_number }} Sale Details
 {% endblock %}
+
 {% block content %}
 
 {% include "partials/navbar.html" %}
@@ -13,11 +15,10 @@
     {% include "partials/sidebar.html" %}
 
     <!-- Main Content -->
-    <div id="page-content"
-     class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
-            lg:ml-64 ml-0 space-y-6">
+    <div id="page-content" class="px-4 py-2 w-full transition-all duration-300 lg:ml-64 ml-0 space-y-6">
 
-        <div class="flex flex-wrap justify-between items-center gap-2">
+        <!-- Header + Actions -->
+        <div class="flex flex-wrap justify-between items-center gap-2 mt-2">
             <h1 class="text-2xl font-bold">Sale: {{ sale.product_serial_number }}</h1>
             <div class="flex flex-wrap gap-2">
                 <a href="{% url 'sales:sale_receipt_pdf' sale.id %}" target="_blank" class="btn btn-warning text-white">
@@ -29,58 +30,115 @@
             </div>
         </div>
 
+        <!-- Send Receipt Form -->
         <div class="bg-base-100 shadow rounded-lg p-4">
-            <form method="post" action="{% url 'sales:sale_receipt_email' sale.id %}" class="flex flex-col md:flex-row gap-2 md:items-end">
+            <form method="post" action="{% url 'sales:sale_receipt_email' sale.id %}" class="w-full">
                 {% csrf_token %}
-                <div class="flex-1">
-                    <label class="label font-semibold">Send receipt to email</label>
-                    <input
-                        type="email"
-                        name="email"
-                        value="{% if sale.customer and sale.customer.email %}{{ sale.customer.email }}{% elif sale.organization.email %}{{ sale.organization.email }}{% endif %}"
-                        placeholder="customer@example.com"
-                        class="input input-success w-full"
-                    >
-                    <p class="text-xs opacity-70 mt-1">Receipt amount: KES {{ receipt_amount|floatformat:2|intcomma }}</p>
+                <div class="flex flex-col">
+                    <label class="label font-semibold pb-1">Send receipt to email</label>
+                    
+                    <div class="flex flex-col md:flex-row gap-2 items-stretch md:items-center w-full">
+                        <div class="flex-1">
+                            <input
+                                type="email"
+                                name="email"
+                                value="{% if sale.customer and sale.customer.email %}{{ sale.customer.email }}{% elif sale.organization.email %}{{ sale.organization.email }}{% endif %}"
+                                placeholder="customer@example.com"
+                                class="input input-success w-full h-12"
+                            >
+                        </div>
+                        <button type="submit" class="btn btn-success text-white h-12 px-6">
+                            <i class="fa-solid fa-paper-plane mr-1"></i> Send Receipt
+                        </button>
+                    </div>
+                    
+                    <p class="text-xs opacity-80 mt-2">Receipt amount: KES {{ receipt_amount|floatformat:2|intcomma }}</p>
                 </div>
-                <button type="submit" class="btn btn-success text-white">
-                    <i class="fa-solid fa-paper-plane"></i> Send Receipt
-                </button>
             </form>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-success">
-                <div class="stat-title">Product Name</div>
-                <div class="stat-value text-success">{{ sale.product_name }}</div>
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <div class="card bg-base-100 shadow border-2 border-success">
+                <div class="card-body flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="text-sm uppercase">Product Name</p>
+                        <div class="flex p-2 items-center justify-center rounded-full bg-base-100">
+                            <i class="fa-solid fa-box text-2xl text-success"></i>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-bold text-success">{{ sale.product_name }}</p>
+                </div>
             </div>
-            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-info">
-                <div class="stat-title">Product Model</div>
-                <div class="stat-value text-info">{{ sale.product_model }}</div>
+
+            <div class="card bg-base-100 shadow border-2 border-success">
+                <div class="card-body flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="text-sm uppercase">Product Model</p>
+                        <div class="flex p-2 items-center justify-center rounded-full bg-base-100">
+                            <i class="fa-solid fa-cogs text-2xl text-success"></i>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-bold text-success">{{ sale.product_model }}</p>
+                </div>
             </div>
-            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-warning">
-                <div class="stat-title">Purchase Mode</div>
-                <div class="stat-value text-warning">{% if sale.purchase_mode == 'C' %}Cash {% elif sale.purchase_mode == 'P' %}Pay-Go {% else %} Deposit Account {% endif %}</div>
+
+            <div class="card bg-base-100 shadow border-2 border-success">
+                <div class="card-body flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="text-sm uppercase">Purchase Mode</p>
+                        <div class="flex p-2 items-center justify-center rounded-full bg-base-100">
+                            <i class="fa-solid fa-money-bill text-2xl text-success"></i>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-bold text-success">
+                        {% if sale.purchase_mode == 'C' %}Cash
+                        {% elif sale.purchase_mode == 'P' %}Pay-Go
+                        {% else %}Deposit Account
+                        {% endif %}
+                    </p>
+                </div>
             </div>
-            <div class="stat bg-base-100 shadow rounded-lg border-l-4 border-secondary">
-                <div class="stat-title">Sales Rep</div>
-                <div class="stat-value text-secondary">{{ sale.sales_rep }}</div>
+
+            <div class="card bg-base-100 shadow border-2 border-success">
+                <div class="card-body flex flex-col justify-center">
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="text-sm uppercase">Sales Rep</p>
+                        <div class="flex p-2 items-center justify-center rounded-full bg-base-100">
+                            <i class="fa-solid fa-user-tie text-2xl text-success"></i>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-bold text-success">{{ sale.sales_rep }}</p>
+                </div>
             </div>
+
         </div>
 
+        <!-- Sale Information -->
         <div class="bg-base-100 shadow rounded-lg p-6">
             <h3 class="font-semibold mb-4">Sale Information</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
                     <span class="text-gray-500">Customer</span>
-                    <div class="font-medium">{% if sale.customer %}{{ sale.customer.name }} <a href="{% url 'customers:customer_detail' sale.customer_id %}"class="btn btn-primary text-white" title="{{ sale.customer.name|truncatewords:1|slice:"-2" }}'s data">View <i class="fa-solid fa-binoculars"></i></a>{% else %}-{% endif %}</div>
+                    <div class="font-medium">
+                        {% if sale.customer %}
+                            {{ sale.customer.name }}
+                            <a href="{% url 'customers:customer_detail' sale.customer_id %}" class="btn btn-sm btn-info text-white ml-2" title="View {{ sale.customer.name }}'s customer details">
+                                View <i class="fa-solid fa-binoculars"></i>
+                            </a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
                 </div>
                 <div>
                     <span class="text-gray-500">Product Type</span>
                     <div class="font-medium">
-                        {% if sale.product_type == 'EPC' %}Electric Pressure cooker 
-                        {% elif sale.product_type == 'IC' %}Induction Cooker 
-                        {% else %}Other {% endif %}
+                        {% if sale.product_type == 'EPC' %}Electric Pressure Cooker
+                        {% elif sale.product_type == 'IC' %}Induction Cooker
+                        {% else %}Other
+                        {% endif %}
                     </div>
                 </div>
                 <div>
@@ -90,8 +148,12 @@
                 <div>
                     <span class="text-gray-500">Metered</span>
                     <div class="font-medium">
-                        {% if sale.metered %}Yes <a href="{% url 'devices:device_detail' sale.product_serial_number %}"class="btn btn-primary text-white" title="{{ sale.customer.name|truncatewords:1|slice:"-2" }}'s device data">View <i class="fa-solid fa-binoculars"></i></a>
-                        {% else %}No {% endif %}
+                        {% if sale.metered %}
+                            Yes
+                            <a href="{% url 'devices:device_detail' sale.product_serial_number %}" class="btn btn-sm btn-info text-white ml-2" title="View device data for {{ sale.product_serial_number }}">
+                                View <i class="fa-solid fa-binoculars"></i>
+                            </a>
+                        {% else %}No{% endif %}
                     </div>
                 </div>
                 <div>
@@ -100,11 +162,12 @@
                 </div>
                 <div>
                     <span class="text-gray-500">Payment Plan</span>
-                    <div class="flex">
-                        {% if sale.payment_plan == "Plan_1" %}<p class="font-medium mr-1">{{ sale.payment_plan }}</p><p class="text-xs mt-1">(Deposit: Ksh. 4,500; Weekly Payment: Ksh. 190; Total Weeks: 40)</p>
-                        {% elif sale.payment_plan == "Plan_2" %}<p class="font-medium mr-1">{{ sale.payment_plan }}</p><p class="text-xs mt-1">(Deposit: Ksh. 2,500; Weekly Payment: Ksh. 250; Total Weeks: 48)</p>
-                        {% elif sale.payment_plan == "Wholesale" %}<p class="font-medium mr-1">{{ sale.payment_plan }}</p><p class="text-xs mt-1">(Wholesale Ksh. 10,600)</p>
-                        {% else %}<p class="font-medium mr-1">{{ sale.payment_plan }}</p><p class="text-xs mt-1">(Retail Ksh. 12,100)</p>{% endif %}
+                    <div class="font-medium">
+                        {% if sale.payment_plan == "Plan_1" %}{{ sale.payment_plan }} <span class="text-xs">(Deposit: Ksh. 4,500; Weekly Payment: Ksh. 190; Total Weeks: 40)</span>
+                        {% elif sale.payment_plan == "Plan_2" %}{{ sale.payment_plan }} <span class="text-xs">(Deposit: Ksh. 2,500; Weekly Payment: Ksh. 250; Total Weeks: 48)</span>
+                        {% elif sale.payment_plan == "Wholesale" %}{{ sale.payment_plan }} <span class="text-xs">(Wholesale Ksh. 10,600)</span>
+                        {% else %}{{ sale.payment_plan }} <span class="text-xs">(Retail Ksh. 12,100)</span>
+                        {% endif %}
                     </div>
                 </div>
                 <div>
@@ -120,4 +183,5 @@
 
     </div>
 </div>
+
 {% endblock %}
