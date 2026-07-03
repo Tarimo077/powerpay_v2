@@ -8,6 +8,13 @@ __pycache__/
 
 #Settings
 powerpay_v2/settings.py
+media
+static/css
+
+# Django migrations
+**/migrations/*.py
+**/migrations/*.pyc
+!**/migrations/__init__.py
 
 # Distribution / packaging
 .Python
