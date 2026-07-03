@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from devices.models import (
     DeviceInfo,
     DeviceData,
@@ -8,10 +8,6 @@ from devices.models import (
     DeviceBatchDispatch,
 )
 from organizations.models import Organization
-from devices.services.energy import (
-    kwh_today_for_devices,
-    kwh_this_month_for_devices,
-)
 from django.db.models import Sum, Q
 from datetime import datetime, timedelta
 from transactions.models import Transaction  
@@ -34,7 +30,12 @@ from notifications.utils import notify
 from django.core.cache import cache
 from .tasks import cache_dashboard_for_user, cache_dashboard_superadmin, build_dashboard_context
 from core.org_checker import get_accessible_organizations
-
+from easyaudit.models import CRUDEvent, RequestEvent, LoginEvent
+from django.utils import timezone
+from datetime import datetime
+from django.core.paginator import Paginator
+from django.db.models import Count
+from django.contrib import messages
 
 DEVICE_TEST_EXPORT_MODELS = {
     "testing_batches",
@@ -1036,3 +1037,113 @@ def import_center(request):
 def storyboard(request):
     return render(request, "core/storyboard.html")
 
+
+
+
+@login_required
+def audit_logs(request):
+    """
+    Dashboard for auditing CRUD, login, and request events.
+    Supports filtering, pagination, color-coded display, and charts.
+    """
+
+    if not _user_is_superadmin(request.user):
+        messages.error(request, "You do not have permission to access audit logs.")
+        return redirect("core:index")
+
+    # -----------------------------
+    # FILTERS
+    # -----------------------------
+    event_type_filter = request.GET.get("event_type", "all")
+    login_type_filter = request.GET.get("login_type", "all")
+    start_date_raw = request.GET.get("start_date")
+    end_date_raw = request.GET.get("end_date")
+    page_size = int(request.GET.get("page_size", 25))
+    page_number = request.GET.get("page", 1)
+
+    # -----------------------------
+    # PARSE DATES
+    # -----------------------------
+    def parse_audit_datetime(dt_str):
+        try:
+            return datetime.fromisoformat(dt_str) if dt_str else None
+        except ValueError:
+            return None
+
+    start_date = parse_audit_datetime(start_date_raw)
+    end_date = parse_audit_datetime(end_date_raw)
+
+    if not start_date and not end_date:
+        end_date = timezone.now()
+        start_date = end_date - timedelta(days=7)
+    elif start_date and not end_date:
+        end_date = timezone.now()
+    elif end_date and not start_date:
+        start_date = end_date - timedelta(days=7)
+
+    # -----------------------------
+    # QUERYSETS
+    # -----------------------------
+    crud_events = CRUDEvent.objects.select_related('user', 'content_type').order_by('-datetime')
+    if event_type_filter != "all":
+        crud_events = crud_events.filter(event_type=int(event_type_filter))
+    crud_events = crud_events.filter(datetime__gte=start_date, datetime__lte=end_date)
+
+    login_events = LoginEvent.objects.select_related('user').order_by('-datetime')
+    if login_type_filter != "all":
+        login_events = login_events.filter(login_type=int(login_type_filter))
+    login_events = login_events.filter(datetime__gte=start_date, datetime__lte=end_date)
+
+    request_events = RequestEvent.objects.select_related('user').order_by('-datetime')
+    request_events = request_events.filter(datetime__gte=start_date, datetime__lte=end_date)
+
+    # -----------------------------
+    # MOST ACTIVE USERS (top 10)
+    # -----------------------------
+    most_active_users_qs = (
+        crud_events.values('user__email')
+        .annotate(event_count=Count('id'))
+        .order_by('-event_count')[:10]
+    )
+    most_active_users_labels = [u['user__email'] or 'Anonymous' for u in most_active_users_qs]
+    most_active_users_data = [u['event_count'] for u in most_active_users_qs]
+
+    # -----------------------------
+    # MOST VISITED PAGES (top 10)
+    # -----------------------------
+    most_visited_pages_qs = (
+        request_events.values('url')
+        .annotate(visits=Count('id'))
+        .order_by('-visits')[:10]
+    )
+    most_visited_pages_labels = [p['url'] for p in most_visited_pages_qs]
+    most_visited_pages_data = [p['visits'] for p in most_visited_pages_qs]
+
+    # -----------------------------
+    # PAGINATION
+    # -----------------------------
+    paginator = Paginator(crud_events, page_size)
+    crud_page = paginator.get_page(page_number)
+
+    PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
+
+    context = {
+        "crud_events": crud_page,
+        "login_events": login_events[:page_size],
+        "request_events": request_events[:page_size],
+        "event_type_filter": event_type_filter,
+        "login_type_filter": login_type_filter,
+        "start_date": start_date.strftime("%Y-%m-%dT%H:%M"),
+        "end_date": end_date.strftime("%Y-%m-%dT%H:%M"),
+        "page_size": page_size,
+        "page_number": page_number,
+        "total_pages": paginator.num_pages,
+        "page_size_options": PAGE_SIZE_OPTIONS,
+        # chart data
+        "most_active_users_labels": most_active_users_labels,
+        "most_active_users_data": most_active_users_data,
+        "most_visited_pages_labels": most_visited_pages_labels,
+        "most_visited_pages_data": most_visited_pages_data,
+    }
+
+    return render(request, "core/audit_logs.html", context)

@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Powerpay Africa | Audit Logs{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content" class="px-4 py-2 w-full lg:ml-64 ml-0 space-y-6">
+
+        <h2 class="text-2xl font-bold mb-6">Audit Logs</h2>
+
+        <!-- Filters -->
+        <form method="get" class="flex flex-wrap gap-4 mb-6 items-end">
+            <div>
+                <label class="label">Start Date</label>
+                <input type="datetime-local" name="start_date" value="{{ start_date }}" class="input input-bordered">
+            </div>
+            <div>
+                <label class="label">End Date</label>
+                <input type="datetime-local" name="end_date" value="{{ end_date }}" class="input input-bordered">
+            </div>
+            <div>
+                <label class="label">CRUD Event Type</label>
+                <select name="event_type" class="select select-bordered">
+                    <option value="all" {% if event_type_filter == "all" %}selected{% endif %}>All</option>
+                    <option value="1" {% if event_type_filter == "1" %}selected{% endif %}>Create</option>
+                    <option value="2" {% if event_type_filter == "2" %}selected{% endif %}>Update</option>
+                    <option value="3" {% if event_type_filter == "3" %}selected{% endif %}>Delete</option>
+                </select>
+            </div>
+            <div>
+                <label class="label">Login Type</label>
+                <select name="login_type" class="select select-bordered">
+                    <option value="all" {% if login_type_filter == "all" %}selected{% endif %}>All</option>
+                    <option value="0" {% if login_type_filter == "0" %}selected{% endif %}>Login</option>
+                    <option value="1" {% if login_type_filter == "1" %}selected{% endif %}>Logout</option>
+                    <option value="2" {% if login_type_filter == "2" %}selected{% endif %}>Failed</option>
+                </select>
+            </div>
+            <div>
+                <label class="label">Page Size</label>
+                <select name="page_size" class="select select-bordered">
+                    {% for size in page_size_options %}
+                        <option value="{{ size }}" {% if page_size|stringformat:"s" == size|stringformat:"s" %}selected{% endif %}>{{ size }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-success text-white mt-6">Apply Filters</button>
+            </div>
+        </form>
+
+        <!-- Analytics Charts -->
+        <h3 class="text-xl font-semibold mb-4">Analytics</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+
+            <!-- Most Active Users -->
+            <div id="activeUsersCard" class="card bg-base-100 shadow p-4 flex flex-col border border-success outline-none">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg font-semibold uppercase">Most Active Users</h3>
+                    <button data-ignore-download onclick="downloadCard('activeUsersCard', 'most-active-users.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
+                        <i class="fas fa-download mr-2"></i> Download
+                    </button>
+                </div>
+                <div class="flex-1">
+                    <canvas id="activeUsersChart" class="w-full h-full"></canvas>
+                </div>
+            </div>
+
+            <!-- Most Visited Pages -->
+            <div id="visitedPagesCard" class="card bg-base-100 shadow p-4 flex flex-col border border-success outline-none">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg font-semibold uppercase">Most Visited Pages</h3>
+                    <button data-ignore-download onclick="downloadCard('visitedPagesCard', 'most-visited-pages.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
+                        <i class="fas fa-download mr-2"></i> Download
+                    </button>
+                </div>
+                <div class="flex-1">
+                    <canvas id="visitedPagesChart" class="w-full h-full"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- CRUD Events -->
+        <h3 class="text-xl font-semibold mb-4">CRUD Events</h3>
+        <div class="grid grid-cols-1 gap-4 mb-6">
+            {% for event in crud_events %}
+            <div class="card shadow p-4 {% if event.event_type == 1 %}border-l-4 border-success{% elif event.event_type == 2 %}border-l-4 border-warning{% elif event.event_type == 3 %}border-l-4 border-error{% else %}border-l-4 border-info{% endif %}">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm font-semibold">{{ event.content_type.model|capfirst }} #{{ event.object_id }}</p>
+                        <p class="text-xs text-gray-500">{{ event.datetime|naturaltime }} by {{ event.user }}</p>
+                        {% if event.changed_fields %}
+                            <p class="text-xs">Changed fields: {{ event.changed_fields }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="text-right">
+                        <span class="text-sm {% if event.event_type == 1 %}text-success{% elif event.event_type == 2 %}text-warning{% elif event.event_type == 3 %}text-error{% endif %}">
+                            {{ event.get_event_type_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p>No CRUD events for the selected filters.</p>
+            {% endfor %}
+        </div>
+
+        <!-- CRUD Pagination -->
+        {% if crud_events.has_other_pages %}
+        <div class="flex justify-between items-center mt-4">
+            {% if crud_events.has_previous %}
+                <a href="?page={{ crud_events.previous_page_number }}&start_date={{ start_date }}&end_date={{ end_date }}&event_type={{ event_type_filter }}&login_type={{ login_type_filter }}&page_size={{ page_size }}" class="btn btn-soft btn-warning">Previous</a>
+            {% else %}
+                <span class="btn btn-disabled">Previous</span>
+            {% endif %}
+
+            <span>Page {{ crud_events.number }} of {{ crud_events.paginator.num_pages }}</span>
+
+            {% if crud_events.has_next %}
+                <a href="?page={{ crud_events.next_page_number }}&start_date={{ start_date }}&end_date={{ end_date }}&event_type={{ event_type_filter }}&login_type={{ login_type_filter }}&page_size={{ page_size }}" class="btn btn-soft btn-success">Next</a>
+            {% else %}
+                <span class="btn btn-disabled">Next</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Login Events -->
+        <h3 class="text-xl font-semibold mt-6">Login Events</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {% for event in login_events %}
+            <div class="card shadow p-4 border-l-4 {% if event.login_type == 0 %}border-success{% elif event.login_type == 1 %}border-warning{% elif event.login_type == 2 %}border-error{% endif %}">
+                <p class="text-sm font-semibold">{{ event.username }}</p>
+                <p class="text-xs text-gray-500">{{ event.datetime|naturaltime }} from {{ event.remote_ip }}</p>
+                <span class="text-sm {% if event.login_type == 0 %}text-success{% elif event.login_type == 1 %}text-warning{% elif event.login_type == 2 %}text-error{% endif %}">{{ event.get_login_type_display }}</span>
+            </div>
+            {% empty %}
+            <p>No login events for the selected filters.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Request Events -->
+        <h3 class="text-xl font-semibold mt-6">Request Events</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {% for event in request_events %}
+            <div class="card shadow p-4 border-l-4 border-info">
+                <p class="text-sm font-semibold">{{ event.method }} {{ event.url }}</p>
+                <p class="text-xs text-gray-500">{{ event.datetime|naturaltime }} by {{ event.user }}</p>
+                <p class="text-xs">Query: {{ event.query_string|truncatechars:50 }}</p>
+            </div>
+            {% empty %}
+            <p>No request events for the selected filters.</p>
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+
+<!-- ========================= -->
+<!-- CHARTS JS -->
+<!-- ========================= -->
+<script>
+Chart.defaults.font.family = "'Saira', sans-serif";
+Chart.defaults.font.size = 12;
+
+// Utility function to generate a color for each index
+function generateColor(index, saturation=70, lightness=50) {
+    return `hsl(${(index * 137) % 360}, ${saturation}%, ${lightness}%)`;
+}
+
+// Most Active Users Chart
+const activeUsersEl = document.getElementById('activeUsersChart');
+if (activeUsersEl) {
+    const activeUserColors = [];
+    for (let i = 0; i < {{ most_active_users_labels|length }}; i++) {
+        activeUserColors.push(generateColor(i));
+    }
+
+    new Chart(activeUsersEl, {
+        type: 'bar',
+        data: {
+            labels: {{ most_active_users_labels|safe }},
+            datasets: [{
+                label: 'Events',
+                data: {{ most_active_users_data|safe }},
+                backgroundColor: activeUserColors
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false, position: 'bottom' } },
+            scales: {
+                y: { 
+                    grid: { display: false },
+                    beginAtZero: true
+                },
+                x: { 
+                    grid: { display: false },
+                    ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 }
+                }
+            }
+        }
+    });
+}
+
+// Most Visited Pages Chart
+const visitedPagesEl = document.getElementById('visitedPagesChart');
+if (visitedPagesEl) {
+    const visitedPagesColors = [];
+    for (let i = 0; i < {{ most_visited_pages_labels|length }}; i++) {
+        visitedPagesColors.push(generateColor(i, 80, 50));
+    }
+
+    new Chart(visitedPagesEl, {
+        type: 'bar',
+        data: {
+            labels: {{ most_visited_pages_labels|safe }},
+            datasets: [{
+                label: 'Visits',
+                data: {{ most_visited_pages_data|safe }},
+                backgroundColor: visitedPagesColors
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false, position: 'bottom' } },
+            scales: {
+                y: { 
+                    grid: { display: false },
+                    beginAtZero: true
+                },
+                x: { 
+                    grid: { display: false },
+                    ticks: { autoSkip: false, maxRotation: 90, minRotation: 0 }
+                }
+            }
+        }
+    });
+}
+</script>
+
+{% endblock %}
