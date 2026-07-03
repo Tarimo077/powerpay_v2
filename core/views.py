@@ -1101,9 +1101,9 @@ def audit_logs(request):
     # MOST ACTIVE USERS (top 10)
     # -----------------------------
     most_active_users_qs = (
-        crud_events.values('user__email')
+        request_events.values('user__email')
         .annotate(event_count=Count('id'))
-        .order_by('-event_count')[:10]
+        .order_by('-event_count')
     )
     most_active_users_labels = [u['user__email'] or 'Anonymous' for u in most_active_users_qs]
     most_active_users_data = [u['event_count'] for u in most_active_users_qs]
@@ -1114,7 +1114,7 @@ def audit_logs(request):
     most_visited_pages_qs = (
         request_events.values('url')
         .annotate(visits=Count('id'))
-        .order_by('-visits')[:10]
+        .order_by('-visits')
     )
     most_visited_pages_labels = [p['url'] for p in most_visited_pages_qs]
     most_visited_pages_data = [p['visits'] for p in most_visited_pages_qs]
