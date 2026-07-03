@@ -188,7 +188,7 @@ class DeviceForm(forms.ModelForm):
         msisdn = self.cleaned_data.get("msisdn")
 
         if not msisdn:
-            return msisdn  # allow blank/null
+            return None  # allow blank/null
 
         msisdn = msisdn.strip()
 
