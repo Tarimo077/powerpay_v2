@@ -59,6 +59,7 @@ class CoordsRouter:
         "django_celery_beat",
         "paygo",
         "billing",
+        "easyaudit",
     }
 
     # Apps that already exist in Postgres (We use them, but don't migrate them)
