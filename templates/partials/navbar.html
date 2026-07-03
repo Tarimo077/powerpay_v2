@@ -161,6 +161,7 @@
                             </a>
                         </li>
 
+                        {% if request.user.role == 'superadmin' %}
                         <li>
                             <a href="{% url 'core:audit_logs' %}"
                             class="rounded-xl hover:bg-base-200">
@@ -168,6 +169,7 @@
                                 Audit Logs
                             </a>
                         </li>
+                        {% endif %}
 
                         <li>
                             <!-- App Storyboard -->
