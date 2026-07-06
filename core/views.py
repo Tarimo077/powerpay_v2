@@ -1058,7 +1058,7 @@ def audit_logs(request):
     login_type_filter = request.GET.get("login_type", "all")
     start_date_raw = request.GET.get("start_date")
     end_date_raw = request.GET.get("end_date")
-    page_size = int(request.GET.get("page_size", 25))
+    page_size = int(request.GET.get("page_size", 10))
     page_number = request.GET.get("page", 1)
 
     # -----------------------------
@@ -1101,12 +1101,16 @@ def audit_logs(request):
     # MOST ACTIVE USERS (top 10)
     # -----------------------------
     most_active_users_qs = (
-        request_events.values('user__email')
-        .annotate(event_count=Count('id'))
-        .order_by('-event_count')
-    )
-    most_active_users_labels = [u['user__email'] or 'Anonymous' for u in most_active_users_qs]
-    most_active_users_data = [u['event_count'] for u in most_active_users_qs]
+        request_events
+        .exclude(user__email__isnull=True)
+        .exclude(user__email="")
+        .values("user__email")
+        .annotate(event_count=Count("id"))
+        .order_by("-event_count")
+    )[:10]
+
+    most_active_users_labels = [u["user__email"] for u in most_active_users_qs]
+    most_active_users_data = [u["event_count"] for u in most_active_users_qs]
 
     # -----------------------------
     # MOST VISITED PAGES (top 10)
@@ -1115,7 +1119,7 @@ def audit_logs(request):
         request_events.values('url')
         .annotate(visits=Count('id'))
         .order_by('-visits')
-    )
+    )[:10]
     most_visited_pages_labels = [p['url'] for p in most_visited_pages_qs]
     most_visited_pages_data = [p['visits'] for p in most_visited_pages_qs]
 
