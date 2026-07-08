@@ -36,12 +36,15 @@ from datetime import datetime
 from django.core.paginator import Paginator
 from django.db.models import Count
 from django.contrib import messages
+from zoneinfo import ZoneInfo
 
 DEVICE_TEST_EXPORT_MODELS = {
     "testing_batches",
     "testing_batch_items",
     "testing_batch_dispatches",
 }
+
+LOCAL_TZ = ZoneInfo("Africa/Nairobi")
 
 
 def _user_is_superadmin(user):
@@ -1066,18 +1069,24 @@ def audit_logs(request):
     # -----------------------------
     def parse_audit_datetime(dt_str):
         try:
-            return datetime.fromisoformat(dt_str) if dt_str else None
+            if not dt_str:
+                return None
+            dt = datetime.fromisoformat(dt_str)
+            # Treat input as local UTC+3
+            dt = dt.replace(tzinfo=LOCAL_TZ)
+            return dt
         except ValueError:
             return None
 
     start_date = parse_audit_datetime(start_date_raw)
     end_date = parse_audit_datetime(end_date_raw)
 
+    # Set defaults if not provided
     if not start_date and not end_date:
-        end_date = timezone.now()
+        end_date = timezone.localtime(timezone.now(), LOCAL_TZ)
         start_date = end_date - timedelta(days=7)
     elif start_date and not end_date:
-        end_date = timezone.now()
+        end_date = timezone.localtime(timezone.now(), LOCAL_TZ)
     elif end_date and not start_date:
         start_date = end_date - timedelta(days=7)
 

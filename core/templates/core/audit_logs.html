@@ -184,7 +184,19 @@ if (activeUsersEl) {
         },
         options: {
             responsive: true,
-            plugins: { legend: { display: false, position: 'bottom' } },
+            plugins: { 
+                legend: { display: false, position: 'bottom' },
+                datalabels: {
+                    color: '#fff',
+                    formatter: (value, ctx) => {
+                        const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+                        const percent = sum > 0 ? ((value/sum)*100).toFixed(1) : 0;
+                        return `${value} (${percent}%)`;
+                    },
+                    font: { weight: 'bold', size: 12 }
+                } 
+                    
+        },
             scales: {
                 y: { 
                     grid: { display: false },
@@ -195,7 +207,8 @@ if (activeUsersEl) {
                     ticks: { autoSkip: false, maxRotation: 60, minRotation: 45, display: false }
                 }
             }
-        }
+        },
+        plugins: [ChartDataLabels]
     });
 }
 
@@ -219,7 +232,18 @@ if (visitedPagesEl) {
         },
         options: {
             responsive: true,
-            plugins: { legend: { display: false, position: 'bottom' } },
+            plugins: { 
+                legend: { display: false, position: 'bottom' },
+                datalabels: {
+                    color: '#fff',
+                    formatter: (value, ctx) => {
+                        const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+                        const percent = sum > 0 ? ((value/sum)*100).toFixed(1) : 0;
+                        return `${value} (${percent}%)`;
+                    },
+                    font: { weight: 'bold', size: 12 }
+                }
+            },
             scales: {
                 y: { 
                     grid: { display: false },
@@ -231,7 +255,8 @@ if (visitedPagesEl) {
                     ticks: { autoSkip: false, maxRotation: 60, minRotation: 45, display: false }
                 }
             }
-        }
+        },
+        plugins: [ChartDataLabels]
     });
 }
 </script>
