@@ -41,12 +41,13 @@
         <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
 
-            <div class="card bg-base-100 shadow border-2 border-success">
-                <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase">Total Devices</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-plug text-2xl text-success"></i></div></div>
-                        <p class="text-2xl font-bold text-success">{{ total_devices|intcomma }} </p>
+
+                <div class="card bg-base-100 shadow border-2 border-success">
+                    <div class="card-body flex flex-col justify-center">
+                        <div class="flex"><p class="text-sm uppercase">Total Devices</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-plug text-2xl text-success"></i></div></div>
+                            <p class="text-2xl font-bold text-success">{{ total_devices|intcomma }} </p>
+                    </div>
                 </div>
-            </div>
 
             <div class="card bg-base-100 shadow border-2 border-success">
                 <div class="card-body flex flex-col justify-center">
@@ -70,21 +71,32 @@
     </div>
 </div>
 
-<div id="simModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center transition-all duration-200 backdrop-blur-sm bg-black/20">
-    <div class="bg-base-100 rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-base-200 animate-in fade-in zoom-in duration-200">
+<div id="simModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm bg-black/20 transition-all duration-200">
 
-        <h2 class="text-lg font-bold mb-3">SIM Balance</h2>
+    <!-- This aura div remains exactly as you provided -->
+    <div class="aura aura-xl text-orange-600 bg-green-600 rounded-2xl w-full max-w-sm animate-in fade-in zoom-in duration-2000">
 
-        <div id="simContent" class="text-sm">
-            Loading...
+        <!-- Added 'text-base-content' to the main content container to establish a natural base text color -->
+        <div class="bg-base-100 p-6 rounded-2xl w-full text-base-content">
+
+            <h2 class="text-lg font-bold mb-3">SIM Balance</h2>
+
+            <div id="simContent" class="text-sm">
+                <!-- Swapped to a softer, natural opacity-based text color for the 'Loading...' status -->
+                <div class="p-4 rounded-lg bg-base-200/60 shadow-inner text-base-content/70">
+                    Loading...
+                </div>
+            </div>
+
+            <div class="flex justify-end w-full">
+                <button
+                    onclick="document.getElementById('simModal').classList.add('hidden')"
+                    class="btn btn-sm btn-error mt-4 text-white"
+                >
+                    Close
+                </button>
+            </div>
         </div>
-
-        <button
-            onclick="document.getElementById('simModal').classList.add('hidden')"
-            class="btn btn-sm btn-error mt-4 text-white flex justify-end"
-        >
-            Close
-        </button>
 
     </div>
 </div>
