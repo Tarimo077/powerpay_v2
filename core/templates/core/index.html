@@ -215,7 +215,7 @@
             <!-- Meal Type Chart -->
             <div id="mealTypeCard" class="card bg-base-100 shadow p-4 flex flex-col border border-success outline-none mb-6">
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold uppercase">Meals Cooked (Breakfast/Lunch/Supper)</h3>
+                    <h3 class="text-lg font-semibold uppercase">Type of Meals ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</h3>
                     <button data-ignore-download onclick="downloadCard('mealTypeCard','meal-type.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
                         <i class="fas fa-download mr-2"></i> Download
                     </button>
@@ -228,7 +228,7 @@
             <!-- Cooking Time Distribution Chart -->
             <div id="cookingTimeCard" class="card bg-base-100 shadow p-4 flex flex-col border border-success outline-none mb-6">
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold uppercase">Cooking Events Time-Distribution</h3>
+                    <h3 class="text-lg font-semibold uppercase">Cooking Events Time-Distribution ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</h3>
                     <button data-ignore-download onclick="downloadCard('cookingTimeCard','cooking-time.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
                         <i class="fas fa-download mr-2"></i> Download
                     </button>
