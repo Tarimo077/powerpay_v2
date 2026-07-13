@@ -207,6 +207,31 @@
                 </div>
             </div>
 
+            <div id="loadProfileCard" class="card bg-base-100 shadow p-4 flex flex-col border border-success outline-none">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg font-semibold uppercase">Cooking Load Profile (Hourly)</h3>
+                    <button data-ignore-download onclick="downloadCard('loadProfileCard','load-profile.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
+                        <i class="fas fa-download mr-2"></i> Download
+                    </button>
+                </div>
+                <div class="flex-1">
+                    <canvas id="loadProfileChart" class="w-full h-full"></canvas>
+                </div>
+            </div>
+
+            <!-- Meals Cooked Breakdown -->
+            <div id="mealsCard" class="card bg-base-100 shadow p-4 flex flex-col border border-success outline-none">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg font-semibold uppercase">Meals Cooked Breakdown</h3>
+                    <button data-ignore-download onclick="downloadCard('mealsCard','meals-breakdown.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
+                        <i class="fas fa-download mr-2"></i> Download
+                    </button>
+                </div>
+                <div class="flex-1">
+                    <canvas id="mealsChart" class="w-full h-full"></canvas>
+                </div>
+            </div>
+
         </div>
 
         <div class="relative"> 
@@ -282,6 +307,10 @@
 Chart.defaults.font.family = "'Saira', sans-serif";
 Chart.defaults.font.size = 12;
 
+function generateColor(index, saturation=70, lightness=50) {
+    return `hsl(${(index * 137) % 360}, ${saturation}%, ${lightness}%)`;
+}
+
 new Chart(document.getElementById('energyChart'), {
     type: 'line',
     data: {
@@ -308,8 +337,8 @@ new Chart(document.getElementById('energyChart'), {
             tooltip: { mode: 'index', intersect: false, usePointStyle: true }
         },
         scales: {
-            y: { title: { display: true, text: 'Energy' }, beginAtZero: true },
-            x: { title: { display: true, text: 'Day' } }
+            y: { title: { display: true, text: 'Energy' }, beginAtZero: true, grid:{display:false} },
+            x: { title: { display: true, text: 'Day' }, grid:{display:false} }
         }
     }
 });
@@ -340,11 +369,63 @@ new Chart(document.getElementById('eventsChart'), {
             tooltip: { mode: 'index', intersect: false, usePointStyle: true }
         },
         scales: {
-            y: { title: { display: true, text: 'Cooking Events' }, beginAtZero: true },
-            x: { title: { display: true, text: 'Day' } }
+            y: { title: { display: true, text: 'Cooking Events' }, beginAtZero: true, grid:{display:false} },
+            x: { title: { display: true, text: 'Day' }, grid:{display:false} }
         }
     }
 });
+
+const loadProfileEl = document.getElementById('loadProfileChart');
+if (loadProfileEl) {
+    const cookingColors=[];
+    for (let i=0;i<24;i++) cookingColors.push(generateColor(i, 60, 55));
+    new Chart(loadProfileEl.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: {{ cooking_event_hours_labels|safe }},
+            datasets: [{
+                label: 'Cooking Events',
+                data: {{ cooking_event_hours_data|safe }},
+                backgroundColor: cookingColors
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { title: { display: true, text: 'Hour of Day' }, grid:{display:false} },
+                y: { title: { display: true, text: 'Events' }, beginAtZero: true, grid:{display:false} }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+// Meals Cooked Breakdown Chart
+const mealsEl = document.getElementById('mealsChart');
+if (mealsEl) {
+    const mealColors = ['#f97316','#22c55e','#3b82f6']; // Breakfast, Lunch, Supper
+    new Chart(mealsEl.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: {{ meal_labels|safe }},
+            datasets: [{
+                label: 'Meals Cooked',
+                data: {{ meal_data|safe }},
+                backgroundColor: mealColors
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { title: { display: true, text: 'Meal' }, grid:{display:false} },
+                y: { title: { display: true, text: 'Count' }, beginAtZero: true, grid:{display:false} }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
 </script>
 <script>
 let tariffCache = null;

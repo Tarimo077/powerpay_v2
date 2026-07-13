@@ -948,10 +948,21 @@ def device_detail(request, deviceid):
     # EVENTS CHART
     # ---------------------------
     daily_events = {}
+    cooking_event_hours = [0]*24
+    meal_counts = {"Breakfast":0,"Lunch":0,"Supper":0}
 
     for event in cooking_events:
         day = timezone.localtime(event[0].time).date()
         daily_events[day] = daily_events.get(day, 0) + 1
+        start_hr = timezone.localtime(event[0].time).hour
+        cooking_event_hours[start_hr] += 1  # only increment start hour
+        # Meal categorization based on start hour
+        if 5 <= start_hr < 11:
+            meal_counts["Breakfast"] += 1
+        elif 11 <= start_hr < 17:
+            meal_counts["Lunch"] += 1
+        else:
+            meal_counts["Supper"] += 1
 
     cooking_event_labels = energy_labels
     cooking_event_data = [daily_events.get(d, 0) for d in sorted_days]
@@ -1024,6 +1035,12 @@ def device_detail(request, deviceid):
         "current_dir": direction,
         "next_dirs": next_dirs,
     }
+
+    # Add to context
+    context["cooking_event_hours_labels"] = [f"{h}:00" for h in range(24)]
+    context["cooking_event_hours_data"] = cooking_event_hours
+    context["meal_labels"] = list(meal_counts.keys())
+    context["meal_data"] = list(meal_counts.values())
 
     return render(request, "devices/device_detail.html", context)
 

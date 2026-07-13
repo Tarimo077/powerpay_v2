@@ -211,6 +211,33 @@
                 </div>
             </div>
 
+
+            <!-- Meal Type Chart -->
+            <div id="mealTypeCard" class="card bg-base-100 shadow p-4 flex flex-col border border-success outline-none mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg font-semibold uppercase">Meals Cooked (Breakfast/Lunch/Supper)</h3>
+                    <button data-ignore-download onclick="downloadCard('mealTypeCard','meal-type.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
+                        <i class="fas fa-download mr-2"></i> Download
+                    </button>
+                </div>
+                <div class="flex-1">
+                    <canvas id="mealTypeChart" class="w-full h-full"></canvas>
+                </div>
+            </div>
+
+            <!-- Cooking Time Distribution Chart -->
+            <div id="cookingTimeCard" class="card bg-base-100 shadow p-4 flex flex-col border border-success outline-none mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg font-semibold uppercase">Cooking Events Time-Distribution</h3>
+                    <button data-ignore-download onclick="downloadCard('cookingTimeCard','cooking-time.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
+                        <i class="fas fa-download mr-2"></i> Download
+                    </button>
+                </div>
+                <div class="flex-1">
+                    <canvas id="cookingTimeChart" class="w-full h-full"></canvas>
+                </div>
+            </div>
+
             {% if is_superadmin %}
             <div id="moneyOrg" class="card bg-base-100 shadow p-4 flex flex-col border border-success outline-none">
                 <div class="flex justify-between items-center mb-2">
@@ -245,6 +272,57 @@
 <script>
 Chart.defaults.font.family = "'Saira', sans-serif";
 Chart.defaults.font.size = 12;
+
+// Utility function to generate colors
+function generateColor(index, saturation=70, lightness=50) {
+    return `hsl(${(index * 137) % 360}, ${saturation}%, ${lightness}%)`;
+}
+
+
+// Meal Type Chart
+const mealTypeEl = document.getElementById('mealTypeChart');
+if(mealTypeEl){
+    const mealColors=['#f97316','#22c55e','#3b82f6'];
+    new Chart(mealTypeEl,{
+        type:'bar',
+        data:{
+            labels:['Breakfast','Lunch','Supper'],
+            datasets:[{label:'Cooking Events', data:{{ meal_data|safe }}, backgroundColor:mealColors}]
+        },
+        options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            scales:{
+                y:{beginAtZero:true, grid:{display:false}},
+                x:{grid:{display:false}}
+            },
+            plugins:{legend:{display:false}}
+        }
+    });
+}
+
+// Cooking Time Distribution Chart
+const cookingTimeEl = document.getElementById('cookingTimeChart');
+if(cookingTimeEl){
+    const cookingColors=[];
+    for (let i=0;i<24;i++) cookingColors.push(generateColor(i, 60, 55));
+    new Chart(cookingTimeEl,{
+        type:'bar',
+        data:{
+            labels:{{cooking_event_hours_labels|safe}},
+            datasets:[{label:'Cooking Events', data:{{ cooking_event_hours_data|safe }}, backgroundColor:cookingColors}]
+        },
+        options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            scales:{
+                y:{beginAtZero:true, grid:{display:false}},
+                x:{grid:{display:false}}
+            },
+            plugins:{legend:{display:false}}
+        }
+    });
+}
 
 
 // -------- Device Status Pie Chart --------
