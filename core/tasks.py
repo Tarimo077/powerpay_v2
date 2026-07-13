@@ -187,6 +187,7 @@ def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=
 
     cooking_events_count = 0
     prev_cooking_events_count = 0
+    prev_cooking_time_minutes = 0
     total_cooking_time_minutes = 0
     cooking_event_hours = [0]*24
     meal_counts = {"Breakfast":0,"Lunch":0,"Supper":0}
