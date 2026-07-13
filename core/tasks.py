@@ -216,6 +216,22 @@ def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=
             else:
                 meal_counts["Supper"] += 1
 
+    if prev_start:
+        for device_id in device_ids:
+            prev_readings = DeviceData.objects.filter(
+                deviceid=device_id,
+                time__date__range=(prev_start, prev_end)
+            ).order_by("time")
+
+            prev_events = detect_cooking_events(prev_readings)
+
+            prev_cooking_events_count += len(prev_events)
+
+            prev_cooking_time_minutes += sum(
+                (timezone.localtime(e[-1].time) - timezone.localtime(e[0].time)).total_seconds() / 60
+                for e in prev_events
+            )
+
     # -------- CONTEXT --------
     context = {
         "is_superadmin": is_superadmin,
@@ -240,8 +256,8 @@ def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=
 
         "cooking_events_count": cooking_events_count,
         "total_cooking_time_minutes": round(total_cooking_time_minutes,1),
-        "cooking_events_change": percent_change(cooking_events_count,0),
-        "cooking_time_change": percent_change(total_cooking_time_minutes,0),
+        "cooking_events_change": percent_change(cooking_events_count, prev_cooking_events_count),
+        "cooking_time_change": percent_change(total_cooking_time_minutes, prev_cooking_time_minutes),
 
         # Load profile & meals
         "cooking_event_hours_labels": [f"{h}:00" for h in range(24)],
