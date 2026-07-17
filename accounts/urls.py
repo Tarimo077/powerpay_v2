@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import login_view, verify_otp, resend_otp, CustomPasswordResetView, invite_user, accept_invite, profile_view, terms_of_service, accept_terms
+from .views import login_view, verify_otp, resend_otp, CustomPasswordResetView, invite_user, accept_invite, profile_view, terms_of_service, accept_terms, user_list, user_edit
 from django.contrib.auth import views as auth_views
 from .forms import StyledPasswordResetForm, StyledSetPasswordForm
 from rest_framework_simplejwt.views import (
@@ -14,6 +14,8 @@ urlpatterns = [
     path("profile/", profile_view, name="profile"),
     path("terms-of-service/", terms_of_service, name="terms"),
     path("accept-terms/", accept_terms, name="accept-terms"),
+    path("users/", user_list, name="user_list"),
+    path("users/edit/<int:user_id>/", user_edit, name="user_edit"),
     path("logout/", auth_views.LogoutView.as_view(next_page="/accounts/login"), name="logout"),
     path("verify-otp/", verify_otp, name="verify_otp"),
     path("resend-otp/", resend_otp, name="resend_otp"),

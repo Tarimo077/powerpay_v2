@@ -169,6 +169,14 @@
                                 Audit Logs
                             </a>
                         </li>
+
+                        <li>
+                            <a href="{% url 'accounts:user_list' %}"
+                            class="rounded-xl hover:bg-base-200">
+                                <i class="fa-solid fa-users"></i>
+                                Users
+                            </a>
+                        </li>
                         {% endif %}
 
                         <li>
@@ -176,7 +184,7 @@
                             <a href="{% url 'core:storyboard' %}"
                             class="rounded-xl hover:bg-base-200">
                                 <i class="fa-solid fa-route"></i>
-                                <span class="link-text">App Storyboard</span>
+                                App Storyboard
                             </a>
                         </li>
 

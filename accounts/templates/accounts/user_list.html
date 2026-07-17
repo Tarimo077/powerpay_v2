@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Powerpay Africa | Users{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content"
+         class="px-4 py-4 w-full overflow-x-auto transition-all duration-300
+                lg:ml-64 ml-0 space-y-6">
+
+        <h1 class="text-2xl font-bold mb-6">Users</h1>
+
+        <!-- FILTERS -->
+        <form method="get" class="flex flex-wrap gap-4 mb-4 items-end">
+
+            <!-- Organization Filter -->
+            <div>
+                <label class="label font-semibold">Organization</label>
+                <select name="organization" class="select select-bordered w-full" onchange="this.form.submit()">
+                    <option value="">All Organizations</option>
+                    {% for org in organizations %}
+                        <option value="{{ org.id }}" {% if request.GET.organization|default_if_none:"" == org.id|stringformat:"s" %}selected{% endif %}>
+                            {{ org.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Role Filter -->
+            <div>
+                <label class="label font-semibold">Role</label>
+                <select name="role" class="select select-bordered w-full" onchange="this.form.submit()">
+                    <option value="">All Roles</option>
+                    <option value="superadmin" {% if request.GET.role == "superadmin" %}selected{% endif %}>Super Admin</option>
+                    <option value="admin" {% if request.GET.role == "admin" %}selected{% endif %}>Admin</option>
+                    <option value="staff" {% if request.GET.role == "staff" %}selected{% endif %}>Staff</option>
+                    <option value="support" {% if request.GET.role == "support" %}selected{% endif %}>Support</option>
+                </select>
+            </div>
+
+        </form>
+
+        <!-- USERS TABLE -->
+        <div class="overflow-x-auto bg-base-100 shadow rounded-lg">
+            <table class="table">
+                <thead class="bg-success text-success-content text-sm uppercase tracking-wide">
+                    <tr>
+                        <th class="px-4 py-3 text-center text-white rounded-tl-lg">Email</th>
+                        <th class="px-4 py-3 text-center text-white">Organization</th>
+                        <th class="px-4 py-3 text-center text-white">Role</th>
+                        <th class="px-4 py-3 text-center text-white">Active</th>
+                        <th class="px-4 py-3 text-center text-white">Staff</th>
+                        <th class="px-4 py-3 text-center text-white">Terms Accepted</th>
+                        <th class="px-4 py-3 text-right text-white rounded-tr-lg">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td class="text-center align-middle">{{ user.email }}</td>
+                        <td class="text-center align-middle">{{ user.organization.name }}</td>
+                        <td class="text-center align-middle">{{ user.get_role_display }}</td>
+                        <td class="text-center align-middle">{% if user.is_active %}<span class="badge badge-success text-white">Yes</span>{% else %}<span class="badge badge-error text-white">No</span>{% endif %}</td>
+                        <td class="text-center align-middle">{% if user.is_staff %}<span class="badge badge-info text-white">Yes</span>{% else %}<span class="badge badge-error text-white">No</span>{% endif %}</td>
+                        <td class="text-center align-middle">{% if user.terms_accepted %}<span class="badge badge-warning text-white">Yes</span>{% else %}<span class="badge badge-error text-white">No</span>{% endif %}</td>
+                        <td class="text-center align-middle">
+                            <a href="{% url 'accounts:user_edit' user.id %}" class="btn btn-sm btn-info text-white">
+                                <i class="fa-solid fa-user-pen"></i> Edit
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-4 text-gray-500">
+                            No users found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <form method="get" class="flex justify-end items-center gap-2">
+            <!-- Preserve other filters -->
+            <input type="hidden" name="organization" value="{{ selected_org|default_if_none:'' }}">
+            <input type="hidden" name="role" value="{{ selected_role|default_if_none:'' }}">
+
+            <label class="label font-semibold mr-2">Items per page:</label>
+            <select name="page_size" class="select select-success w-16" onchange="this.form.submit()">
+                {% for size in page_size_options %}
+                    <option value="{{ size }}" {% if page_size == size %}selected{% endif %}>
+                        {{ size }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+
+        <!-- PAGINATION -->
+        {% if users.has_other_pages %}
+        <div class="flex justify-between items-center mt-4">
+            {% if users.has_previous %}
+                <a href="?page={{ users.previous_page_number }}&organization={{ request.GET.organization }}&role={{ request.GET.role }}" class="btn btn-soft btn-warning hover:text-white"><i class="fa fa-backward-step"></i> Previous</a>
+            {% else %}
+                <span class="btn btn-disabled">Previous</span>
+            {% endif %}
+
+            <span>Page {{ users.number }} of {{ users.paginator.num_pages }}</span>
+
+            {% if users.has_next %}
+                <a href="?page={{ users.next_page_number }}&organization={{ request.GET.organization }}&role={{ request.GET.role }}" class="btn btn-soft btn-success hover:text-white">Next <i class="fa fa-forward-step"></i></a>
+            {% else %}
+                <span class="btn btn-disabled">Next</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

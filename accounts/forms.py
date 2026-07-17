@@ -144,3 +144,22 @@ class InviteUserForm(forms.ModelForm):
                 ("admin", "Admin"),
                 ("staff", "Staff"),
             ]
+
+
+class UserEditForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = [
+            "email", "first_name", "last_name",
+            "organization", "role", "is_active", "is_staff", "terms_accepted"
+        ]
+        widgets = {
+            "email": forms.EmailInput(attrs={"class": "input input-bordered w-full"}),
+            "first_name": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
+            "last_name": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
+            "organization": forms.Select(attrs={"class": "select select-bordered w-full"}),
+            "role": forms.Select(attrs={"class": "select select-bordered w-full"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "checkbox checkbox-success"}),
+            "is_staff": forms.CheckboxInput(attrs={"class": "checkbox checkbox-info"}),
+            "terms_accepted": forms.CheckboxInput(attrs={"class": "checkbox checkbox-warning"}),
+        }

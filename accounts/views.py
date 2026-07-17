@@ -13,10 +13,12 @@ from django.urls import reverse_lazy
 import datetime
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from .forms import UserProfileForm
+from .forms import UserProfileForm, UserEditForm
 from notifications.utils import notify
 from django.http import JsonResponse
 from django.utils import timezone
+from django.core.paginator import Paginator
+from organizations.models import Organization
 
 
 MAX_ATTEMPTS = 5
@@ -259,3 +261,71 @@ def accept_terms(request):
 
 def terms_of_service(request):
     return render(request, "core/terms_of_service.html")
+
+
+
+def superadmin_required(view_func):
+    def _wrapped_view(request, *args, **kwargs):
+        if not (request.user.is_superuser or getattr(request.user, "role", "") == "superadmin"):
+            messages.error(request, "You do not have permission to access this page.")
+            return redirect("core:index")
+        return view_func(request, *args, **kwargs)
+    return login_required(_wrapped_view)
+
+
+@superadmin_required
+def user_list(request):
+    # -------- QUERYSET --------
+    qs = User.objects.select_related("organization").order_by("first_name", "last_name")
+
+    # -------- FILTERS --------
+    org_filter = request.GET.get("organization")
+    role_filter = request.GET.get("role")
+
+    if org_filter:
+        qs = qs.filter(organization_id=org_filter)
+    if role_filter:
+        qs = qs.filter(role=role_filter)
+
+    # -------- PAGINATION --------
+    page_size_options = [10, 25, 50, 100]
+    try:
+        page_size = int(request.GET.get("page_size", 10))
+    except ValueError:
+        page_size = 10
+    if page_size not in page_size_options:
+        page_size = 10
+
+    paginator = Paginator(qs, page_size)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    # -------- CONTEXT --------
+    context = {
+        "users": page_obj,
+        "organizations": Organization.objects.all(),
+        "selected_org": org_filter,
+        "selected_role": role_filter,
+        "page_size": page_size,
+        "page_size_options": page_size_options,
+    }
+
+    return render(request, "accounts/user_list.html", context)
+
+@superadmin_required
+def user_edit(request, user_id):
+    user_obj = get_object_or_404(User, pk=user_id)
+    if request.method == "POST":
+        form = UserEditForm(request.POST, instance=user_obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"{user_obj.email} updated successfully.")
+            return redirect("accounts:user_list")
+    else:
+        form = UserEditForm(instance=user_obj)
+
+    context = {
+        "form": form,
+        "user_obj": user_obj
+    }
+    return render(request, "accounts/user_edit.html", context)
