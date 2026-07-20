@@ -20,7 +20,7 @@
             <!-- Organization Filter -->
             <div>
                 <label class="label font-semibold">Organization</label>
-                <select name="organization" class="select select-bordered w-full" onchange="this.form.submit()">
+                <select name="organization" class="select select-success w-full" onchange="this.form.submit()">
                     <option value="">All Organizations</option>
                     {% for org in organizations %}
                         <option value="{{ org.id }}" {% if request.GET.organization|default_if_none:"" == org.id|stringformat:"s" %}selected{% endif %}>
@@ -33,7 +33,7 @@
             <!-- Role Filter -->
             <div>
                 <label class="label font-semibold">Role</label>
-                <select name="role" class="select select-bordered w-full" onchange="this.form.submit()">
+                <select name="role" class="select select-success w-full" onchange="this.form.submit()">
                     <option value="">All Roles</option>
                     <option value="superadmin" {% if request.GET.role == "superadmin" %}selected{% endif %}>Super Admin</option>
                     <option value="admin" {% if request.GET.role == "admin" %}selected{% endif %}>Admin</option>
@@ -55,7 +55,7 @@
                         <th class="px-4 py-3 text-center text-white">Active</th>
                         <th class="px-4 py-3 text-center text-white">Staff</th>
                         <th class="px-4 py-3 text-center text-white">Terms Accepted</th>
-                        <th class="px-4 py-3 text-right text-white rounded-tr-lg">Actions</th>
+                        <th class="px-4 py-3 text-center text-white rounded-tr-lg">Actions</th>
                     </tr>
                 </thead>
                 <tbody>

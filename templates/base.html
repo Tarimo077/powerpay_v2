@@ -27,14 +27,114 @@
 
 <body class="min-h-screen bg-base-300">
 
-    <!-- Toast Container appended directly to body -->
-    <div id="toast-container" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] flex flex-col items-center space-y-2 pointer-events-none"></div>
+    <!-- Toast Container 
+    <div id="toast-container"
+        class="toast toast-top toast-center z-[9999] fixed pointer-events-none">
+    </div> -->
  
     <main class="w-full">
         {% block content %}
         
         {% endblock %}
     </main>
+
+    <dialog
+        id="messageModal"
+        class="fixed inset-0 z-[9999] m-0 h-full w-full max-w-none bg-transparent p-0 backdrop:bg-slate-950/50 backdrop:backdrop-blur-md"
+    >
+
+        <div class="flex min-h-full items-start justify-center px-4 pt-6 sm:justify-end sm:px-6 lg:px-8">
+
+            <div
+                id="modalBox"
+                class="relative w-full max-w-md overflow-hidden rounded-[2rem]
+                border border-white/60 bg-white/90 shadow-[0_24px_80px_rgba(15,23,42,0.22)]
+                backdrop-blur-2xl transition-all duration-300 ease-out
+                opacity-0 translate-y-[-18px] scale-95"
+            >
+
+                <div id="modalAccent"
+                    class="absolute inset-x-0 top-0 h-1.5 bg-emerald-500">
+                </div>
+
+
+                <button
+                    onclick="closeModal()"
+                    class="absolute right-4 top-4 z-10 inline-flex h-9 w-9
+                    items-center justify-center rounded-full bg-slate-100
+                    text-slate-500 shadow-sm transition hover:bg-slate-200"
+                >
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+
+
+                <div class="p-6 pr-14">
+
+                    <div class="flex items-start gap-4">
+
+
+                        <div
+                            id="modalIconWrapper"
+                            class="flex h-14 w-14 shrink-0 items-center
+                            justify-center rounded-2xl bg-emerald-100
+                            text-emerald-700 shadow-inner"
+                        >
+
+                            <i id="modalIcon"
+                            class="fa-solid fa-circle-info text-2xl">
+                            </i>
+
+                        </div>
+
+
+                        <div class="min-w-0 flex-1">
+
+                            <p id="modalLabel"
+                            class="text-xs font-black uppercase tracking-[0.22em]
+                            text-emerald-600">
+                                Notification
+                            </p>
+
+
+                            <h3 id="modalTitle"
+                                class="mt-1 text-2xl font-black leading-tight text-slate-950">
+                                Message
+                            </h3>
+
+
+                            <p id="modalMessage"
+                            class="mt-2 text-sm font-medium leading-6 text-slate-600">
+                                Message content
+                            </p>
+
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+
+                <div class="px-6 pb-5">
+
+                    <div class="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+
+                        <div id="modalProgress"
+                            class="h-full w-full rounded-full bg-emerald-500">
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+    </dialog>
 
 
 <style>
@@ -59,7 +159,7 @@
 }
 
 /* Keep all DaisyUI badges from overflowing long organization/customer/status text. */
-.badge {
+/*.badge {
     max-width: 12rem;
     min-width: 0;
     overflow: hidden;
@@ -75,43 +175,220 @@
 .badge.badge-sm,
 .badge.badge-xs {
     max-width: 8rem;
-}
+}*/
 </style>
 
 <script>
-function createToast(type, text, duration = 4000) {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
 
-    const toast = document.createElement('div');
-    toast.className = `
-        shadow-lg px-4 py-3 rounded-lg max-w-sm w-full flex items-center justify-between
-        pointer-events-auto
-        ${type === 'success' ? 'bg-green-500 text-white' :
-          type === 'error' ? 'bg-red-500 text-white' :
-          type === 'warning' ? 'bg-yellow-400 text-black' :
-          'bg-blue-500 text-white'}
-    `;
-    toast.innerHTML = `
-        <span>${text}</span>
-        <button class="ml-4 font-bold">&times;</button>
-    `;
+let modalTimer = null;
+let progressTimer = null;
 
-    // Close button
-    toast.querySelector('button').addEventListener('click', () => toast.remove());
 
-    container.appendChild(toast);
+function closeModal(){
 
-    // Auto-remove after duration
-    setTimeout(() => toast.remove(), duration);
+    const modal = document.getElementById("messageModal");
+    const modalBox = document.getElementById("modalBox");
+
+    if(!modal || !modal.open)
+        return;
+
+
+    clearTimeout(modalTimer);
+    clearTimeout(progressTimer);
+
+
+    modalBox.classList.add(
+        "opacity-0",
+        "translate-y-[-18px]",
+        "scale-95"
+    );
+
+
+    modalBox.classList.remove(
+        "opacity-100",
+        "translate-y-0",
+        "scale-100"
+    );
+
+
+    setTimeout(()=>{
+
+        if(modal.open)
+            modal.close();
+
+    },260);
+
 }
 
-// Render Django messages
+
+
+function showModernMessage(type,title,message){
+
+
+const modal=document.getElementById("messageModal");
+const modalBox=document.getElementById("modalBox");
+
+const modalTitle=document.getElementById("modalTitle");
+const modalMessage=document.getElementById("modalMessage");
+const modalLabel=document.getElementById("modalLabel");
+
+const modalAccent=document.getElementById("modalAccent");
+const iconWrapper=document.getElementById("modalIconWrapper");
+const icon=document.getElementById("modalIcon");
+
+const progress=document.getElementById("modalProgress");
+
+
+
+const styles={
+
+
+success:{
+label:"Success",
+accent:"bg-emerald-500",
+labelText:"text-emerald-600",
+iconBox:"bg-emerald-100 text-emerald-700",
+progress:"bg-emerald-500",
+icon:"fa-solid fa-circle-check text-2xl"
+},
+
+
+error:{
+label:"Error",
+accent:"bg-red-500",
+labelText:"text-red-600",
+iconBox:"bg-red-100 text-red-700",
+progress:"bg-red-500",
+icon:"fa-solid fa-circle-exclamation text-2xl"
+},
+
+
+warning:{
+label:"Warning",
+accent:"bg-amber-500",
+labelText:"text-amber-600",
+iconBox:"bg-amber-100 text-amber-700",
+progress:"bg-amber-500",
+icon:"fa-solid fa-triangle-exclamation text-2xl"
+},
+
+
+info:{
+label:"Info",
+accent:"bg-blue-500",
+labelText:"text-blue-600",
+iconBox:"bg-blue-100 text-blue-700",
+progress:"bg-blue-500",
+icon:"fa-solid fa-circle-info text-2xl"
+}
+
+
+};
+
+
+
+const selected=styles[type] || styles.info;
+
+
+modalTitle.textContent=title || selected.label;
+modalMessage.textContent=message;
+modalLabel.textContent=selected.label;
+
+
+modalAccent.className=
+`absolute inset-x-0 top-0 h-1.5 ${selected.accent}`;
+
+
+modalLabel.className=
+`text-xs font-black uppercase tracking-[0.22em] ${selected.labelText}`;
+
+
+iconWrapper.className=
+`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-inner ${selected.iconBox}`;
+
+
+icon.className=selected.icon;
+
+
+progress.className=
+`h-full w-full rounded-full ${selected.progress}`;
+
+
+
+progress.style.transition="none";
+progress.style.width="100%";
+
+
+if(!modal.open)
+    modal.showModal();
+
+
+
+requestAnimationFrame(()=>{
+
+
+modalBox.classList.remove(
+"opacity-0",
+"translate-y-[-18px]",
+"scale-95"
+);
+
+
+modalBox.classList.add(
+"opacity-100",
+"translate-y-0",
+"scale-100"
+);
+
+
+
+progressTimer=setTimeout(()=>{
+
+progress.style.transition="width 3400ms linear";
+progress.style.width="0%";
+
+},80);
+
+
+
+});
+
+
+
+modalTimer=setTimeout(closeModal,3500);
+
+
+
+}
+
+
+
+document.getElementById("messageModal")
+.addEventListener("click",function(e){
+
+if(e.target===this){
+    closeModal();
+}
+
+});
+
+
+
 {% if messages %}
-    {% for msg in messages %}
-        createToast("{{ msg.tags }}", "{{ msg|escapejs }}");
-    {% endfor %}
+
+{% for message in messages %}
+
+showModernMessage(
+"{{ message.level_tag|default:'info'|escapejs }}",
+"{{ message.tags|capfirst|default:'Message'|escapejs }}",
+"{{ message|escapejs }}"
+);
+
+{% endfor %}
+
 {% endif %}
+
+
 </script>
 
 <script>
