@@ -38,15 +38,20 @@
 
                         <label class="label">Customer</label>
 
-                        <input type="text"
+                        <input
+                            type="text"
                             id="customer-search"
                             class="input input-bordered w-full"
                             placeholder="Search customer..."
-                            autocomplete="off">
+                            autocomplete="off"
+                            value="{% if form.instance.customer %}{{ form.instance.customer.name }}{% endif %}">
 
-                        <input type="hidden" name="customer" id="customer-id">
+                        <input
+                            type="hidden"
+                            name="customer"
+                            id="customer-id"
+                            value="{% if form.instance.customer %}{{ form.instance.customer.id }}{% endif %}">
 
-                        <!-- DROPDOWN -->
                         <ul id="customer-results"
                             class="absolute z-50 bg-base-100 shadow rounded w-full mt-1 hidden max-h-60 overflow-auto">
                         </ul>
@@ -57,13 +62,18 @@
 
                         <label class="label">Referred By</label>
 
-                        <input type="text"
+                        <input
+                            type="text"
                             id="referred-search"
                             class="input input-bordered w-full"
-                            placeholder="Search referrer..."
-                            autocomplete="off">
+                            autocomplete="off"
+                            value="{% if form.instance.referred_by %}{{ form.instance.referred_by.name }}{% endif %}">
 
-                        <input type="hidden" name="referred_by" id="referred-id">
+                        <input
+                            type="hidden"
+                            name="referred_by"
+                            id="referred-id"
+                            value="{% if form.instance.referred_by %}{{ form.instance.referred_by.id }}{% endif %}">
 
                         <ul id="referred-results"
                             class="absolute z-50 bg-base-100 shadow rounded w-full mt-1 hidden max-h-60 overflow-auto">
