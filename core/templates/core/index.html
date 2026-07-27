@@ -228,10 +228,10 @@
                         <p class="text-xs text-base-content/50 mt-0.5">Active vs Inactive devices</p>
                     </div>
                     <button data-ignore-download onclick="downloadCard('deviceStatus', 'device-status.png')" class="btn btn-ghost btn-xs text-base-content/40 hover:text-emerald-600">
-                        <i class="fas fa-download text-xs"></i>
+                        <i class="fas fa-download text-xs" title="Click to Download"></i>
                     </button>
                 </div>
-                <div class="h-56">
+                <div class="">
                     <canvas id="deviceStatusChart"></canvas>
                 </div>
             </div>
@@ -244,10 +244,10 @@
                         <p class="text-xs text-base-content/50 mt-0.5">kWh over selected period</p>
                     </div>
                     <button data-ignore-download onclick="downloadCard('energy7d', 'energy-7d.png')" class="btn btn-ghost btn-xs text-base-content/40 hover:text-emerald-600">
-                        <i class="fas fa-download text-xs"></i>
+                        <i class="fas fa-download text-xs" title="Click to Download"></i>
                     </button>
                 </div>
-                <div class="h-56">
+                <div class="">
                     <canvas id="kwhLineChart"></canvas>
                 </div>
             </div>
@@ -260,10 +260,10 @@
                         <p class="text-xs text-base-content/50 mt-0.5">Breakfast, Lunch, Supper distribution</p>
                     </div>
                     <button data-ignore-download onclick="downloadCard('mealTypeCard','meal-type.png')" class="btn btn-ghost btn-xs text-base-content/40 hover:text-emerald-600">
-                        <i class="fas fa-download text-xs"></i>
+                        <i class="fas fa-download text-xs" title="Click to Download"></i>
                     </button>
                 </div>
-                <div class="h-56">
+                <div class="">
                     <canvas id="mealTypeChart"></canvas>
                 </div>
             </div>
@@ -276,10 +276,10 @@
                         <p class="text-xs text-base-content/50 mt-0.5">Events by hour of day</p>
                     </div>
                     <button data-ignore-download onclick="downloadCard('cookingTimeCard','cooking-time.png')" class="btn btn-ghost btn-xs text-base-content/40 hover:text-emerald-600">
-                        <i class="fas fa-download text-xs"></i>
+                        <i class="fas fa-download text-xs" title="Click to Download"></i>
                     </button>
                 </div>
-                <div class="h-56">
+                <div class="">
                     <canvas id="cookingTimeChart"></canvas>
                 </div>
             </div>
@@ -293,10 +293,10 @@
                         <p class="text-xs text-base-content/50 mt-0.5">Income distribution per org</p>
                     </div>
                     <button data-ignore-download onclick="downloadCard('moneyOrg', 'money-org.png')" class="btn btn-ghost btn-xs text-base-content/40 hover:text-emerald-600">
-                        <i class="fas fa-download text-xs"></i>
+                        <i class="fas fa-download text-xs" title="Click to Download"></i>
                     </button>
                 </div>
-                <div class="h-56">
+                <div class="">
                     <canvas id="moneyByOrgChart"></canvas>
                 </div>
             </div>
@@ -309,10 +309,10 @@
                         <p class="text-xs text-base-content/50 mt-0.5">Income over time</p>
                     </div>
                     <button data-ignore-download onclick="downloadCard('money-7d', 'money-7d.png')" class="btn btn-ghost btn-xs text-base-content/40 hover:text-emerald-600">
-                        <i class="fas fa-download text-xs"></i>
+                        <i class="fas fa-download text-xs" title="Click to Download"></i>
                     </button>
                 </div>
-                <div class="h-56">
+                <div class="">
                     <canvas id="moneyLineChart"></canvas>
                 </div>
             </div>
@@ -392,7 +392,7 @@ if(moneyLineEl){
     new Chart(moneyLineEl.getContext('2d'),{
         type:'line',
         data:{labels:{{money_line_labels|safe}}, datasets:datasets},
-        options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:true, position:'top', labels:{boxWidth:8, usePointStyle:true, pointStyle:'circle', font:{size:10}}}}, scales:{x:{grid:{display:false}}, y:{grid:{color:'#f1f5f9'},beginAtZero:true}}}
+        options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false, position:'top', labels:{boxWidth:8, usePointStyle:true, pointStyle:'circle', font:{size:10}}}}, scales:{x:{grid:{display:false}}, y:{grid:{color:'#f1f5f9'},beginAtZero:true}}}
     });
 }
 {% endif %}
