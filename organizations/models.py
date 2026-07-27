@@ -25,7 +25,6 @@ class Organization(models.Model):
         return self.name
     
     class Meta:
-        managed = False  # read-only
         db_table = "organization"
 
 
@@ -44,7 +43,6 @@ class OrganizationAccess(models.Model):
     )
 
     class Meta:
-        managed = False
         db_table = "organization_access"
         unique_together = ("source_org", "target_org")
 
@@ -75,7 +73,6 @@ class OrganizationAppAccess(models.Model):
 
     class Meta:
         db_table = "organization_app_access"
-        managed = False
         unique_together = ("organization", "app_name")
 
     def __str__(self):

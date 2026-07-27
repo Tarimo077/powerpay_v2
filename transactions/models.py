@@ -18,8 +18,7 @@ class Transaction(models.Model):
     )
 
     class Meta:
-        managed = False  # Django will not manage migrations for this table
-        db_table = "transactions"  # exact name in PostgreSQL
+        db_table = "transactions"
 
     def __str__(self):
         return f"{self.txn_id} - {self.name} - {self.amount}"

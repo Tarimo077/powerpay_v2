@@ -15,7 +15,6 @@ class DeviceData(models.Model):
     txtime = models.CharField(max_length=20, blank=True)
 
     class Meta:
-        managed = False  # read-only
         db_table = "appliatrixdata"
 
 
@@ -59,7 +58,6 @@ class DeviceInfo(models.Model):
     )
 
     class Meta:
-        managed = False
         db_table = "devactivity"
 
     def __str__(self):
@@ -115,7 +113,6 @@ class TrackKwh(models.Model):
 
     class Meta:
         db_table = "trackkwh"
-        managed = False  # VERY IMPORTANT → prevents Django from creating/deleting table
 
     def __str__(self):
         return f"{self.deviceid} - {self.lastkwh}"
@@ -136,7 +133,6 @@ class DeviceWalletMap(models.Model):
 
     class Meta:
         db_table = "device_wallet_map"
-        managed = False
 
     def __str__(self):
         return f"{self.device.deviceid} → {self.wallet_address}"

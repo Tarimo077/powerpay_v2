@@ -8,14 +8,13 @@ class OTPRequiredMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # Skip if user is not logged in
         if request.user.is_authenticated:
             otp_verified = request.session.get("otp_verified", False)
 
-            # Paths to ignore (login, OTP page, logout, password reset)
             allowed_paths = [
                 "/accounts/login/",
-                "/accounts/otp/",
+                "/accounts/verify-otp/",
+                "/accounts/resend-otp/",
                 "/accounts/logout/",
                 "/accounts/password-reset/",
                 "/accounts/password-reset/done/",
@@ -26,10 +25,10 @@ class OTPRequiredMiddleware:
 
             if not otp_verified and request.path not in allowed_paths:
                 return redirect("verify_otp")
-            
+
             if otp_verified and not request.user.terms_accepted:
                 if request.path not in allowed_paths:
-                    return redirect("accounts:accept-terms")
+                    return redirect("accept-terms")
 
         response = self.get_response(request)
         return response

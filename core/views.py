@@ -32,11 +32,10 @@ from .tasks import cache_dashboard_for_user, cache_dashboard_superadmin, build_d
 from core.org_checker import get_accessible_organizations
 from easyaudit.models import CRUDEvent, RequestEvent, LoginEvent
 from django.utils import timezone
-from datetime import datetime
+from zoneinfo import ZoneInfo
 from django.core.paginator import Paginator
 from django.db.models import Count
 from django.contrib import messages
-from zoneinfo import ZoneInfo
 
 DEVICE_TEST_EXPORT_MODELS = {
     "testing_batches",

@@ -45,7 +45,6 @@ class Customer(models.Model):
 
     class Meta:
         db_table = "customer"
-        managed = False  # IMPORTANT since we already altered the DB
 
     def __str__(self):
         return self.name

@@ -1,0 +1,610 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load dict_extras %}
+
+{% block title %}
+Powerpay Africa | Customer Analytics
+{% endblock %}
+
+{% block content %}
+
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen overflow-hidden bg-base-200">
+
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content"
+     class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
+            lg:ml-64 ml-0 space-y-6">
+
+        <!-- ===================================================== -->
+        <!-- HEADER -->
+        <!-- ===================================================== -->
+
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+            <div>
+                <h1 class="text-3xl font-bold">
+                    Combined Analytics
+                </h1>
+
+                <p class="text-sm opacity-70">
+                    Customer • Sales • Device • Transactions Dashboard
+                </p>
+            </div>
+
+            <form method="get">
+
+                <div class="join">
+
+                    <select
+                        name="organization"
+                        class="select select-bordered join-item">
+
+                        <option value="">
+                            All Organizations
+                        </option>
+
+                        {% for org in organizations %}
+
+                        <option
+                            value="{{ org.id }}"
+                            {% if selected_organization.id == org.id %}
+                            selected
+                            {% endif %}
+                        >
+                            {{ org.name }}
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                    <button class="btn btn-success join-item text-white">
+
+                        <i class="fa fa-filter"></i>
+
+                        Filter
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+        <!-- ===================================================== -->
+        <!-- KPI CARDS -->
+        <!-- ===================================================== -->
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
+            <div class="card bg-base-100 shadow border border-success">
+
+                <div class="card-body">
+
+                    <p class="text-sm opacity-60">
+                        Sales
+                    </p>
+
+                    <h2 class="text-4xl font-bold text-success">
+                        {{ summary.customers|intcomma }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+            <div class="card bg-base-100 shadow border border-info">
+
+                <div class="card-body">
+
+                    <p class="text-sm opacity-60">
+
+                        Linked Devices
+
+                    </p>
+
+                    <h2 class="text-4xl font-bold text-info">
+
+                        {{ summary.linked_devices|intcomma }}
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+            <div class="card bg-base-100 shadow border border-error">
+
+                <div class="card-body">
+
+                    <p class="text-sm opacity-60">
+
+                        Unlinked Devices
+
+                    </p>
+
+                    <h2 class="text-4xl font-bold text-error">
+
+                        {{ summary.unlinked_devices|intcomma }}
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+            <div class="card bg-base-100 shadow border border-warning">
+
+                <div class="card-body">
+
+                    <p class="text-sm opacity-60">
+
+                        Total Energy of Linked Devices
+
+                    </p>
+
+                    <h2 class="text-3xl font-bold text-warning">
+
+                        {{ summary.total_energy|floatformat:2 }} <span class="text-xs">kWh</span>
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================================== -->
+        <!-- CHARTS -->
+        <!-- ===================================================== -->
+
+        <div class="grid lg:grid-cols-2 gap-6">
+
+            <!-- Purchase Modes -->
+            <div id="purchaseModes" class="card bg-base-100 shadow p-4 border border-success">
+
+                <div class="flex justify-between items-center mb-2">
+
+                    <h3 class="text-lg font-semibold uppercase">
+                        Purchase Modes
+                    </h3>
+
+                    <button
+                        data-ignore-download
+                        onclick="downloadCard('purchaseModes','purchase-modes.png')"
+                        class="btn btn-sm btn-outline btn-success hover:text-white">
+
+                        <i class="fas fa-download mr-2"></i>
+
+                        Download
+
+                    </button>
+
+                </div>
+
+                <div class="flex-1">
+
+                    <canvas id="purchaseChart" class="h-full w-full"></canvas>
+
+                </div>
+
+            </div>
+
+
+            <!-- Counties -->
+            <div id="countySales" class="card bg-base-100 shadow p-4 border border-success">
+
+                <div class="flex justify-between items-center mb-2">
+
+                    <h3 class="text-lg font-semibold uppercase">
+                        Sales By County
+                    </h3>
+
+                    <button
+                        data-ignore-download
+                        onclick="downloadCard('countySales','county-sales.png')"
+                        class="btn btn-sm btn-outline btn-success hover:text-white">
+
+                        <i class="fas fa-download mr-2"></i>
+
+                        Download
+
+                    </button>
+
+                </div>
+
+                <div class="flex-1">
+
+                    <canvas id="countyChart" class="h-full w-full"></canvas>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================================== -->
+        <!-- ANALYTICS TABLE -->
+        <!-- ===================================================== -->
+
+        <div class="card bg-base-100 shadow">
+
+            <div class="card-body">
+
+                <div class="flex justify-between items-center">
+
+                    <h2 class="card-title">
+
+                        Customer / Device Analytics
+
+                    </h2>
+
+                </div>
+
+                <div class="bg-base-100 rounded-lg shadow overflow-x-auto">
+
+                    <table class="table w-full">
+
+                        <thead class="bg-success text-success-content uppercase text-sm">
+
+                        <tr class="text-white">
+
+                            <th>Customer</th>
+
+                            <th>Phone</th>
+
+                            <th>County</th>
+
+                            <th>Product</th>
+
+                            <th>Model</th>
+
+                            <th>Serial</th>
+
+                            <th>Purchase</th>
+
+                            <th>Sales Rep</th>
+
+                            <th>Device</th>
+
+                            <th>Status</th>
+
+                            <th>Total kWh</th>
+
+                            <th>Payments</th>
+
+                        </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for row in analytics %}
+
+                            <!-- MAIN ROW -->
+                            <tr>
+
+                                <td>{{ row.customer_name }}</td>
+
+                                <td>{{ row.phone }}</td>
+
+                                <td>{{ row.county }}</td>
+
+                                <td>{{ row.product }}</td>
+
+                                <td>{{ row.product_model }}</td>
+
+                                <td>
+                                    <span class="font-mono">
+                                        {{ row.product_serial_number }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="badge badge-info text-white">
+                                        {% if row.purchase_mode == "P" %}
+                                            PayGo
+                                        {% elif row.purchase_mode == "C" %}
+                                            Cash
+                                        {% else %}
+                                            Deposit
+                                        {% endif %}
+                                    </span>
+                                </td>
+
+                                <td>{{ row.sales_rep }}</td>
+
+                                <td>
+                                    {% if row.device_id %}
+                                        <span class="badge badge-success text-white">
+                                            {{ row.device_id }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge badge-error text-white">
+                                            No Device
+                                        </span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+
+                                    {% if row.device_active %}
+                                        <span class="badge badge-success text-white">
+                                            Active
+                                        </span>
+                                    {% else %}
+                                        <span class="badge badge-error text-white">
+                                            Offline
+                                        </span>
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+
+                                    {{ row.total_kwh|floatformat:2 }}
+
+                                </td>
+
+                                <td>
+
+                                    {% if row.transactions %}
+
+                                        <button
+                                            class="btn btn-outline btn-success hover:text-white"
+                                            onclick="toggleTxn('{{ row.sale.id }}')"
+                                            id="payments-btn-{{ row.sale.id }}">
+
+                                            Show Payments
+
+                                        </button>
+
+                                    {% else %}
+
+                                        <span class="text-xs opacity-60">
+                                            No Payments
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                            <!-- EXPANDABLE PAYMENT ROW -->
+
+                            <tr
+                                id="txn-{{ row.sale.id }}"
+                                class="hidden bg-base-200">
+
+                                <td colspan="20" class="p-4">
+
+                                    {% if row.transactions %}
+
+                                    <div class="bg-base-100 overflow-x-auto">
+
+                                        <table class="table w-full">
+
+                                            <thead class="bg-warning text-white uppercase">
+
+                                                <tr>
+
+                                                    <th>Date</th>
+
+                                                    <th>Transaction ID</th>
+
+                                                    <th>Transactor Name</th>
+
+                                                    <th>Amount</th>
+
+                                                    <th>Reference</th>
+
+                                                </tr>
+
+                                            </thead>
+
+                                            <tbody>
+
+                                            {% for txn in row.transactions %}
+
+                                                <tr>
+
+                                                    <td>
+                                                        {{ txn.time|date:"j M Y h:i A" }} <span class="text-xs opacity-60 ml-2">({{ txn.time|naturaltime }})</span>
+                                                    </td>
+
+                                                    <td>
+                                                        {{ txn.txn_id }}
+                                                    </td>
+
+                                                    <td>
+                                                        {{ txn.name }}
+                                                    </td>
+
+                                                    <td>
+                                                        Ksh. {{ txn.amount|floatformat:1|intcomma }}
+                                                    </td>
+
+                                                    <td>
+                                                        {{ txn.ref }}
+                                                    </td>
+
+                                                </tr>
+
+                                            {% endfor %}
+
+                                            </tbody>
+
+                                        </table>
+
+                                    </div>
+
+                                    {% else %}
+
+                                        <div class="text-center text-sm opacity-70">
+
+                                            No transactions found.
+
+                                        </div>
+
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+/* ===========================================================
+   Purchase Modes
+=========================================================== */
+Chart.defaults.font.family = "'Saira', sans-serif";
+
+function generateColor(index, saturation=70, lightness=50) {
+    return `hsl(${(index * 137) % 360}, ${saturation}%, ${lightness}%)`;
+}
+
+const purchaseModeColors = [
+    {% for key,value in purchase_modes.items %}
+        generateColor({{ forloop.counter0 }}),
+    {% endfor %}
+];
+
+new Chart(document.getElementById("purchaseChart"),{
+
+    type:"bar",
+
+    data:{
+
+        labels:[
+            {% for key,value in purchase_modes.items %}
+                {% if key == 'P'%}
+                    "Paygo",
+                {% elif key == 'C'%}
+                    "Cash",
+                {% else %}
+                    "Deposit Account",
+                {% endif %}
+            {% endfor %}
+        ],
+
+        datasets:[{
+
+            data:[
+                {% for key,value in purchase_modes.items %}
+                    {{ value }},
+                {% endfor %}
+            ],
+            backgroundColor:purchaseModeColors,
+
+        }]
+
+    },
+
+    options:{
+        responsive:true,
+        plugins:{
+            legend:{
+                display: false
+            }
+        }
+    }
+
+});
+
+/* ===========================================================
+   Counties
+=========================================================== */
+const countyColors = [
+    {% for key,value in counties.items %}
+        generateColor({{ forloop.counter0 }}),
+    {% endfor %}
+];
+new Chart(document.getElementById("countyChart"),{
+
+    type:"bar",
+
+    data:{
+
+        labels:[
+            {% for key,value in counties.items %}
+                "{{ key }}",
+            {% endfor %}
+        ],
+
+        datasets:[{
+
+            label:"Sales",
+            backgroundColor:countyColors,
+
+            data:[
+                {% for key,value in counties.items %}
+                    {{ value }},
+                {% endfor %}
+            ]
+
+        }]
+
+    },
+
+    options:{
+
+        responsive:true,
+
+        plugins:{
+            legend:{
+                display:false
+            }
+        }
+
+    }
+
+});
+
+</script>
+<script>
+
+function toggleTxn(id){
+
+    const row = document.getElementById("txn-" + id);
+    const btn = document.getElementById("payments-btn-" + id);
+
+    if(!row || !btn) return;
+
+    if(row.classList.contains("hidden")){
+
+        row.classList.remove("hidden");
+        btn.innerText = "Hide Payments";
+
+    }else{
+
+        row.classList.add("hidden");
+        btn.innerText = "Show Payments";
+
+    }
+
+}
+
+</script>
+
+{% endblock %}

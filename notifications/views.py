@@ -34,13 +34,11 @@ def mark_all_as_read(request):
 
 @login_required
 def dropdown(request):
-    # Only get unread notifications
-    notifications = request.user.notifications.filter(is_read=False).order_by('-created_at')[:5]
-    unread_exists = notifications.exists()
-    
+    notifications = list(request.user.notifications.filter(is_read=False).order_by('-created_at')[:5])
     html = render_to_string(
         'notifications/dropdown.html',
-        {'notifications': notifications, 'unread_exists': unread_exists}
+        {'notifications': notifications, 'unread_exists': len(notifications) > 0},
+        request=request,
     )
     return HttpResponse(html)
 
@@ -48,13 +46,8 @@ def dropdown(request):
 def unread_count(request):
     count = request.user.notifications.filter(is_read=False).count()
     if count == 0:
-        return HttpResponse('')  # hide badge
-    html = f'''
-    <span id="notifCount"
-          class="badge badge-md bg-orange-500 text-white text-lg font-semibold text-center absolute -top-2 left-5 rounded-full w-6 h-6">
-        {count}
-    </span>
-    '''
+        return HttpResponse('')
+    html = f'''<span class="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white px-1">{count}</span>'''
     return HttpResponse(html)
 
 @login_required

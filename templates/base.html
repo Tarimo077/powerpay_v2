@@ -1,487 +1,256 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="en">  <!-- enables DaisyUI themes -->
+<html lang="en" data-theme="emerald">
 <head>
-    <script src="https://kit.fontawesome.com/69d2af506e.js" crossorigin="anonymous"></script>
-    <link rel="icon" href="{% static 'images/pp_no_bgcropped.png' %}">
-    
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}PowerPay Africa{% endblock %}</title>
+    <link rel="icon" href="{% static 'images/pp_no_bgcropped.png' %}">
 
-    <!-- Tailwind + DaisyUI CSS -->
-    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+    <!-- DaisyUI + Tailwind -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <!-- Libraries -->
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
     <script src="https://unpkg.com/dom-to-image-more@3.2.0/dist/dom-to-image-more.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
 
+    <style>
+        body {
+            font-family: "Inter", system-ui, -apple-system, sans-serif;
+        }
+        @view-transition {
+            navigation: auto;
+        }
+        .htmx-request#htmx-loading,
+        .htmx-request #htmx-loading {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+        #htmx-loading {
+            display: flex;
+            opacity: 0;
+            transition: opacity 200ms ease-in-out;
+        }
+        .sidebar-link {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sidebar-link:hover {
+            transform: translateX(4px);
+        }
+        .glass-card {
+            background: oklch(var(--b1) / 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid oklch(var(--bc) / 0.06);
+        }
+        .stat-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px -8px oklch(var(--bc) / 0.12);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: oklch(var(--bc) / 0.15);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: oklch(var(--bc) / 0.25);
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
 </head>
 
-<body class="min-h-screen bg-base-300">
+<body class="min-h-screen bg-base-200/50">
 
-    <!-- Toast Container 
-    <div id="toast-container"
-        class="toast toast-top toast-center z-[9999] fixed pointer-events-none">
-    </div> -->
- 
     <main class="w-full">
         {% block content %}
-        
         {% endblock %}
     </main>
 
-    <dialog
-        id="messageModal"
-        class="fixed inset-0 z-[9999] m-0 h-full w-full max-w-none bg-transparent p-0 backdrop:bg-slate-950/50 backdrop:backdrop-blur-md"
-    >
-
+    <!-- Modern Notification Modal -->
+    <dialog id="messageModal"
+        class="fixed inset-0 z-[9999] m-0 h-full w-full max-w-none bg-transparent p-0 backdrop:bg-slate-950/40 backdrop:backdrop-blur-sm">
         <div class="flex min-h-full items-start justify-center px-4 pt-6 sm:justify-end sm:px-6 lg:px-8">
+            <div id="modalBox"
+                class="relative w-full max-w-sm overflow-hidden rounded-2xl
+                bg-base-100 shadow-2xl shadow-base-content/10
+                border border-base-300
+                opacity-0 translate-y-[-12px] scale-[0.97]
+                transition-all duration-300 ease-out">
 
-            <div
-                id="modalBox"
-                class="relative w-full max-w-md overflow-hidden rounded-[2rem]
-                border border-white/60 bg-white/90 shadow-[0_24px_80px_rgba(15,23,42,0.22)]
-                backdrop-blur-2xl transition-all duration-300 ease-out
-                opacity-0 translate-y-[-18px] scale-95"
-            >
+                <div id="modalAccent" class="absolute inset-x-0 top-0 h-1 bg-success"></div>
 
-                <div id="modalAccent"
-                    class="absolute inset-x-0 top-0 h-1.5 bg-emerald-500">
-                </div>
-
-
-                <button
-                    onclick="closeModal()"
-                    class="absolute right-4 top-4 z-10 inline-flex h-9 w-9
-                    items-center justify-center rounded-full bg-slate-100
-                    text-slate-500 shadow-sm transition hover:bg-slate-200"
-                >
-                    <i class="fa-solid fa-xmark text-sm"></i>
+                <button onclick="closeModal()"
+                    class="absolute right-3 top-3 z-10 btn btn-ghost btn-sm btn-circle">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
 
-
-                <div class="p-6 pr-14">
-
-                    <div class="flex items-start gap-4">
-
-
-                        <div
-                            id="modalIconWrapper"
-                            class="flex h-14 w-14 shrink-0 items-center
-                            justify-center rounded-2xl bg-emerald-100
-                            text-emerald-700 shadow-inner"
-                        >
-
-                            <i id="modalIcon"
-                            class="fa-solid fa-circle-info text-2xl">
-                            </i>
-
+                <div class="p-5 pr-12">
+                    <div class="flex items-start gap-3">
+                        <div id="modalIconWrapper"
+                            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-success/10 text-success">
+                            <i id="modalIcon" class="fa-solid fa-circle-check text-lg"></i>
                         </div>
-
-
                         <div class="min-w-0 flex-1">
-
-                            <p id="modalLabel"
-                            class="text-xs font-black uppercase tracking-[0.22em]
-                            text-emerald-600">
+                            <p id="modalLabel" class="text-[10px] font-bold uppercase tracking-widest text-success">
                                 Notification
                             </p>
-
-
-                            <h3 id="modalTitle"
-                                class="mt-1 text-2xl font-black leading-tight text-slate-950">
-                                Message
-                            </h3>
-
-
-                            <p id="modalMessage"
-                            class="mt-2 text-sm font-medium leading-6 text-slate-600">
-                                Message content
-                            </p>
-
-
+                            <h3 id="modalTitle" class="mt-0.5 text-base font-bold text-base-content">Message</h3>
+                            <p id="modalMessage" class="mt-1 text-sm text-base-content/70 leading-relaxed">Content</p>
                         </div>
-
-
                     </div>
-
                 </div>
 
-
-                <div class="px-6 pb-5">
-
-                    <div class="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
-
-                        <div id="modalProgress"
-                            class="h-full w-full rounded-full bg-emerald-500">
-                        </div>
-
+                <div class="px-5 pb-4">
+                    <div class="h-1 w-full overflow-hidden rounded-full bg-base-200">
+                        <div id="modalProgress" class="h-full w-full rounded-full bg-success"></div>
                     </div>
-
                 </div>
-
-
             </div>
-
         </div>
-
-
     </dialog>
 
-
-<style>
-  body {
-    font-family: "Saira";
-}
-@view-transition {
-    navigation: auto; /* smooth transitions on DOM updates */
-}
-/* When the request is active, show the indicator */
-.htmx-request#htmx-loading,
-.htmx-request #htmx-loading {
-    opacity: 1 !important;
-    pointer-events: auto !important;
-}
-
-/* Ensure the indicator is hidden by default */
-#htmx-loading {
-    display: flex; /* Keeps flex centering active */
-    opacity: 0;
-    transition: opacity 200ms ease-in-out;
-}
-
-/* Keep all DaisyUI badges from overflowing long organization/customer/status text. */
-/*.badge {
-    max-width: 12rem;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    vertical-align: middle;
-}
-
-.badge.badge-lg {
-    max-width: 16rem;
-}
-
-.badge.badge-sm,
-.badge.badge-xs {
-    max-width: 8rem;
-}*/
-</style>
-
-<script>
-
-let modalTimer = null;
-let progressTimer = null;
-
-
-function closeModal(){
-
-    const modal = document.getElementById("messageModal");
-    const modalBox = document.getElementById("modalBox");
-
-    if(!modal || !modal.open)
-        return;
-
-
-    clearTimeout(modalTimer);
-    clearTimeout(progressTimer);
-
-
-    modalBox.classList.add(
-        "opacity-0",
-        "translate-y-[-18px]",
-        "scale-95"
-    );
-
-
-    modalBox.classList.remove(
-        "opacity-100",
-        "translate-y-0",
-        "scale-100"
-    );
-
-
-    setTimeout(()=>{
-
-        if(modal.open)
-            modal.close();
-
-    },260);
-
-}
-
-
-
-function showModernMessage(type,title,message){
-
-
-const modal=document.getElementById("messageModal");
-const modalBox=document.getElementById("modalBox");
-
-const modalTitle=document.getElementById("modalTitle");
-const modalMessage=document.getElementById("modalMessage");
-const modalLabel=document.getElementById("modalLabel");
-
-const modalAccent=document.getElementById("modalAccent");
-const iconWrapper=document.getElementById("modalIconWrapper");
-const icon=document.getElementById("modalIcon");
-
-const progress=document.getElementById("modalProgress");
-
-
-
-const styles={
-
-
-success:{
-label:"Success",
-accent:"bg-emerald-500",
-labelText:"text-emerald-600",
-iconBox:"bg-emerald-100 text-emerald-700",
-progress:"bg-emerald-500",
-icon:"fa-solid fa-circle-check text-2xl"
-},
-
-
-error:{
-label:"Error",
-accent:"bg-red-500",
-labelText:"text-red-600",
-iconBox:"bg-red-100 text-red-700",
-progress:"bg-red-500",
-icon:"fa-solid fa-circle-exclamation text-2xl"
-},
-
-
-warning:{
-label:"Warning",
-accent:"bg-amber-500",
-labelText:"text-amber-600",
-iconBox:"bg-amber-100 text-amber-700",
-progress:"bg-amber-500",
-icon:"fa-solid fa-triangle-exclamation text-2xl"
-},
-
-
-info:{
-label:"Info",
-accent:"bg-blue-500",
-labelText:"text-blue-600",
-iconBox:"bg-blue-100 text-blue-700",
-progress:"bg-blue-500",
-icon:"fa-solid fa-circle-info text-2xl"
-}
-
-
-};
-
-
-
-const selected=styles[type] || styles.info;
-
-
-modalTitle.textContent=title || selected.label;
-modalMessage.textContent=message;
-modalLabel.textContent=selected.label;
-
-
-modalAccent.className=
-`absolute inset-x-0 top-0 h-1.5 ${selected.accent}`;
-
-
-modalLabel.className=
-`text-xs font-black uppercase tracking-[0.22em] ${selected.labelText}`;
-
-
-iconWrapper.className=
-`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-inner ${selected.iconBox}`;
-
-
-icon.className=selected.icon;
-
-
-progress.className=
-`h-full w-full rounded-full ${selected.progress}`;
-
-
-
-progress.style.transition="none";
-progress.style.width="100%";
-
-
-if(!modal.open)
-    modal.showModal();
-
-
-
-requestAnimationFrame(()=>{
-
-
-modalBox.classList.remove(
-"opacity-0",
-"translate-y-[-18px]",
-"scale-95"
-);
-
-
-modalBox.classList.add(
-"opacity-100",
-"translate-y-0",
-"scale-100"
-);
-
-
-
-progressTimer=setTimeout(()=>{
-
-progress.style.transition="width 3400ms linear";
-progress.style.width="0%";
-
-},80);
-
-
-
-});
-
-
-
-modalTimer=setTimeout(closeModal,3500);
-
-
-
-}
-
-
-
-document.getElementById("messageModal")
-.addEventListener("click",function(e){
-
-if(e.target===this){
-    closeModal();
-}
-
-});
-
-
-
-{% if messages %}
-
-{% for message in messages %}
-
-showModernMessage(
-"{{ message.level_tag|default:'info'|escapejs }}",
-"{{ message.tags|capfirst|default:'Message'|escapejs }}",
-"{{ message|escapejs }}"
-);
-
-{% endfor %}
-
-{% endif %}
-
-
-</script>
-
-<script>
-document.body.addEventListener("htmx:configRequest", (event) => {
-    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-    event.detail.headers["X-CSRFToken"] = csrfToken;
-});
-</script>
-<script>
-document.addEventListener('click', function(event){
-    const dropdown = document.getElementById('notifDropdown');
-    const btn = document.getElementById('notifDropdownBtn');
-
-    if (!btn || !dropdown) return; // <-- prevent errors if elements don't exist
-
-    if (btn.contains(event.target)) {
-        dropdown.classList.toggle('hidden');
-    } else if (!dropdown.contains(event.target)) {
-        dropdown.classList.add('hidden');
+    <script>
+    let modalTimer = null;
+    let progressTimer = null;
+
+    function closeModal() {
+        const modal = document.getElementById("messageModal");
+        const modalBox = document.getElementById("modalBox");
+        if (!modal || !modal.open) return;
+        clearTimeout(modalTimer);
+        clearTimeout(progressTimer);
+        modalBox.classList.add("opacity-0", "translate-y-[-12px]", "scale-[0.97]");
+        modalBox.classList.remove("opacity-100", "translate-y-0", "scale-100");
+        setTimeout(() => { if (modal.open) modal.close(); }, 260);
     }
-});
 
-function downloadCard(cardId, fileName) {
-    const card = document.getElementById(cardId);
-    if (!card) return;
+    function showModernMessage(type, title, message) {
+        const modal = document.getElementById("messageModal");
+        const modalBox = document.getElementById("modalBox");
+        const modalTitle = document.getElementById("modalTitle");
+        const modalMessage = document.getElementById("modalMessage");
+        const modalLabel = document.getElementById("modalLabel");
+        const modalAccent = document.getElementById("modalAccent");
+        const iconWrapper = document.getElementById("modalIconWrapper");
+        const icon = document.getElementById("modalIcon");
+        const progress = document.getElementById("modalProgress");
 
-    const ignored = card.querySelectorAll('[data-ignore-download]');
-    ignored.forEach(el => el.style.display = 'none');
+        const styles = {
+            success: { label: "Success", accent: "bg-success", labelText: "text-success", iconBox: "bg-success/10 text-success", progress: "bg-success", icon: "fa-solid fa-circle-check text-lg" },
+            error: { label: "Error", accent: "bg-error", labelText: "text-error", iconBox: "bg-error/10 text-error", progress: "bg-error", icon: "fa-solid fa-circle-exclamation text-lg" },
+            warning: { label: "Warning", accent: "bg-warning", labelText: "text-warning", iconBox: "bg-warning/10 text-warning", progress: "bg-warning", icon: "fa-solid fa-triangle-exclamation text-lg" },
+            info: { label: "Info", accent: "bg-info", labelText: "text-info", iconBox: "bg-info/10 text-info", progress: "bg-info", icon: "fa-solid fa-circle-info text-lg" }
+        };
 
-    // TEMPORARY STYLING FOR CLEAN IMAGE
-    const originalBoxShadow = card.style.boxShadow;
-    const originalBorder = card.style.border; // Store original
-    card.style.boxShadow = 'none';
-    card.style.border = 'none'; // REMOVE BORDER
+        const selected = styles[type] || styles.info;
+        modalTitle.textContent = title || selected.label;
+        modalMessage.textContent = message;
+        modalLabel.textContent = selected.label;
+        modalAccent.className = `absolute inset-x-0 top-0 h-1 ${selected.accent}`;
+        modalLabel.className = `text-[10px] font-bold uppercase tracking-widest ${selected.labelText}`;
+        iconWrapper.className = `flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${selected.iconBox}`;
+        icon.className = selected.icon;
+        progress.className = `h-full w-full rounded-full ${selected.progress}`;
+        progress.style.transition = "none";
+        progress.style.width = "100%";
 
-    domtoimage.toPng(card, {
-        quality: 1,
-        scale: 2,
-        bgcolor: '#ffffff', // Force white background to prevent transparent artifacts
-        style: {
-            'margin': '0',
-            'padding': '20px', // Add a little breathing room inside the image
-            'border': 'none',
-            'outline': 'none'
+        if (!modal.open) modal.showModal();
+
+        requestAnimationFrame(() => {
+            modalBox.classList.remove("opacity-0", "translate-y-[-12px]", "scale-[0.97]");
+            modalBox.classList.add("opacity-100", "translate-y-0", "scale-100");
+            progressTimer = setTimeout(() => {
+                progress.style.transition = "width 3400ms linear";
+                progress.style.width = "0%";
+            }, 80);
+        });
+        modalTimer = setTimeout(closeModal, 3500);
+    }
+
+    document.getElementById("messageModal").addEventListener("click", function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    {% if messages %}
+    {% for message in messages %}
+    showModernMessage("{{ message.level_tag|default:'info'|escapejs }}", "{{ message.tags|capfirst|default:'Message'|escapejs }}", "{{ message|escapejs }}");
+    {% endfor %}
+    {% endif %}
+    </script>
+
+    <script>
+    document.body.addEventListener("htmx:configRequest", (event) => {
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]")?.value;
+        if (csrfToken) event.detail.headers["X-CSRFToken"] = csrfToken;
+    });
+    </script>
+
+    <script>
+    document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('notifDropdown');
+        const btn = document.getElementById('notifDropdownBtn');
+        if (!btn || !dropdown) return;
+        if (btn.contains(event.target)) {
+            dropdown.classList.toggle('hidden');
+        } else if (!dropdown.contains(event.target)) {
+            dropdown.classList.add('hidden');
         }
-    })
-    .then(dataUrl => {
-        const link = document.createElement('a');
-        link.download = fileName;
-        link.href = dataUrl;
-        link.click();
-    })
-    .catch(err => {
-        console.error('Download failed:', err);
-    })
-    .finally(() => {
-        // RESTORE ORIGINAL UI
-        card.style.boxShadow = originalBoxShadow;
-        card.style.border = originalBorder; // Restore original
-        ignored.forEach(el => el.style.display = '');
     });
-}
-</script>
-<script>
-const THEME_KEY = "theme";
 
-// Apply theme
-function setTheme(theme) {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem(THEME_KEY, theme);
-}
-
-// Toggle handler
-const toggle = document.getElementById("themeToggle");
-
-// Load saved theme
-document.addEventListener("DOMContentLoaded", () => {
-    const savedTheme = localStorage.getItem(THEME_KEY) || "bumblebee";
-    setTheme(savedTheme);
-
-    // Sync toggle state
-    if (toggle) {
-        toggle.checked = savedTheme === "halloween";
+    function downloadCard(cardId, fileName) {
+        const card = document.getElementById(cardId);
+        if (!card) return;
+        const ignored = card.querySelectorAll('[data-ignore-download]');
+        ignored.forEach(el => el.style.display = 'none');
+        const originalBoxShadow = card.style.boxShadow;
+        const originalBorder = card.style.border;
+        card.style.boxShadow = 'none';
+        card.style.border = 'none';
+        domtoimage.toPng(card, { quality: 1, scale: 2, bgcolor: '#ffffff', style: { 'margin': '0', 'padding': '20px', 'border': 'none', 'outline': 'none' } })
+        .then(dataUrl => { const link = document.createElement('a'); link.download = fileName; link.href = dataUrl; link.click(); })
+        .catch(err => console.error('Download failed:', err))
+        .finally(() => { card.style.boxShadow = originalBoxShadow; card.style.border = originalBorder; ignored.forEach(el => el.style.display = ''); });
     }
-});
+    </script>
 
-// On toggle change
-if (toggle) {
-    toggle.addEventListener("change", () => {
-        const newTheme = toggle.checked ? "halloween" : "bumblebee";
-        setTheme(newTheme);
+    <script>
+    const THEME_KEY = "theme";
+    function setTheme(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+        localStorage.setItem(THEME_KEY, theme);
+    }
+    const toggle = document.getElementById("themeToggle");
+    document.addEventListener("DOMContentLoaded", () => {
+        const savedTheme = localStorage.getItem(THEME_KEY) || "emerald";
+        setTheme(savedTheme);
+        if (toggle) toggle.checked = savedTheme === "night";
     });
-}
-</script>
+    if (toggle) {
+        toggle.addEventListener("change", () => {
+            setTheme(toggle.checked ? "night" : "emerald");
+        });
+    }
+    </script>
 </body>
 </html>

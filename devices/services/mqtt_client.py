@@ -5,21 +5,21 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from decouple import config
 
-MQTT_BROKER = config('MQTT_BROKER')
-MQTT_PORT = config('MQTT_PORT', cast=int)
-MQTT_USER = config('MQTT_USER')
-MQTT_PASSWORD = config('MQTT_PASSWORD')
-MQTT_TOPIC = config('MQTT_TOPIC')  
+MQTT_BROKER = config("MQTT_BROKER", default="")
+MQTT_PORT = config("MQTT_PORT", default=1883, cast=int)
+MQTT_USER = config("MQTT_USER", default="")
+MQTT_PASSWORD = config("MQTT_PASSWORD", default="")
+MQTT_TOPIC = config("MQTT_TOPIC", default="")
 
 client = mqtt.Client()
 
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
-        print("✅ MQTT Connected")
+        print("MQTT Connected")
         client.subscribe(MQTT_TOPIC)
     else:
-        print("❌ MQTT Connection Failed:", rc)
+        print("MQTT Connection Failed:", rc)
 
 
 def on_message(client, userdata, msg):
@@ -46,15 +46,21 @@ def on_message(client, userdata, msg):
         print("MQTT message error:", e)
 
 
-
 def start_mqtt():
-    client.username_pw_set(MQTT_USER, MQTT_PASSWORD)
-    client.on_connect = on_connect
-    client.on_message = on_message
-    client.connect(MQTT_BROKER, MQTT_PORT)
+    if not MQTT_BROKER:
+        print("MQTT disabled (MQTT_BROKER not configured)")
+        return
 
-    thread = threading.Thread(target=client.loop_forever)
-    thread.daemon = True
-    thread.start()
+    try:
+        client.username_pw_set(MQTT_USER, MQTT_PASSWORD)
+        client.on_connect = on_connect
+        client.on_message = on_message
+        client.connect(MQTT_BROKER, MQTT_PORT)
 
-    print("🚀 MQTT Client Started")
+        thread = threading.Thread(target=client.loop_forever)
+        thread.daemon = True
+        thread.start()
+
+        print("MQTT Client Started")
+    except Exception as e:
+        print(f"MQTT failed to start: {e}")

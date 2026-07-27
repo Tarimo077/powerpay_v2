@@ -15,7 +15,6 @@ class Warehouse(models.Model):
     )
 
     class Meta:
-        managed = False
         db_table = "warehouses"
 
     def __str__(self):
@@ -41,7 +40,6 @@ class InventoryItem(models.Model):
     def __str__(self):
         return f"{self.name} ({self.serial_number})"
     class Meta:
-        managed = False
         db_table = 'inventory_items'
     @property
     def days_in_current_warehouse(self):
@@ -92,7 +90,6 @@ class InventoryMovement(models.Model):
         )
 
     class Meta:
-        managed = False
         db_table = "inventory_movements"
         ordering = ["-date_moved"]
 
@@ -147,7 +144,6 @@ class InventoryDeliveryNote(models.Model):
         return f"{self.delivery_number} - {self.recipient_name}"
 
     class Meta:
-        managed = False
         db_table = "inventory_delivery_notes"
         ordering = ["-created_at"]
 
@@ -179,7 +175,6 @@ class InventoryDeliveryNoteItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
 
     class Meta:
-        managed = False
         db_table = "inventory_delivery_note_items"
         ordering = ["id"]
 

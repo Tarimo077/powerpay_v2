@@ -2,33 +2,36 @@
 {% load humanize %}
 {% load dict_extras %}
 {% load math_filters %}
-{% block title %}
-  Powerpay Africa | Home
-{% endblock %}
+{% block title %}PowerPay Africa | Dashboard{% endblock %}
 {% block content %}
 
 {% include "partials/navbar.html" %}
 
-<div class="flex min-h-screen overflow-hidden bg-base-200">
+<div class="flex min-h-screen overflow-hidden bg-base-200/50">
 
     {% include "partials/sidebar.html" %}
 
     <div id="page-content"
-     class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
-            lg:ml-64 ml-0">
+         class="px-4 sm:px-6 lg:px-8 py-6 w-full overflow-x-auto transition-all duration-300 lg:ml-[272px] ml-0">
 
-        <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
+        <!-- Header Area -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-base-content tracking-tight">Dashboard</h1>
+                <p class="text-sm text-base-content/50 mt-0.5">Overview of your operations</p>
+            </div>
+            <div class="badge badge-soft badge-neutral text-xs font-medium px-3 py-2">
+                <i class="fas fa-clock mr-1.5 text-emerald-500"></i>
+                Updated {{ time|naturaltime }}
+            </div>
+        </div>
 
-        <div class="flex flex-wrap gap-4 mb-6 items-center">
-
-            <!-- TIME FILTER -->
+        <!-- Filters -->
+        <div class="flex flex-wrap gap-3 mb-8 items-center">
             <form method="get" class="flex gap-2 items-center">
-
-                <p class="font-semibold text-lg">Period:</p>
-
-                <select name="period" class="select select-success select-md"
+                <select name="period"
+                        class="select select-sm bg-base-100 border-base-300 text-sm font-medium rounded-lg focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20"
                         onchange="this.form.submit()">
-
                     <option value="1d" {% if period == "1d" %}selected{% endif %}>Last 24 Hours</option>
                     <option value="3d" {% if period == "3d" %}selected{% endif %}>Last 3 Days</option>
                     <option value="7d" {% if period == "7d" %}selected{% endif %}>Last 1 Week</option>
@@ -39,449 +42,357 @@
                     <option value="180d" {% if period == "180d" %}selected{% endif %}>Last 6 Months</option>
                     <option value="365d" {% if period == "365d" %}selected{% endif %}>Last 1 Year</option>
                     <option value="all" {% if period == "all" %}selected{% endif %}>All Time</option>
-
                 </select>
-
                 {% if request.GET.org %}
                 <input type="hidden" name="org" value="{{ request.GET.org }}">
                 {% endif %}
-
             </form>
-
 
             {% if request.accessible_orgs|length > 1 %}
-            <!-- ORG FILTER -->
-            <form method="get" class="flex items-center gap-2 ml-2">
-
-                <p class="font-semibold text-lg">Organization:</p>
-
-                <select name="org" class="select select-success select-md" onchange="this.form.submit()">
-
-                    <option value=""
-                        {% if not request.selected_org %}
-                            selected
-                        {% endif %}
-                    >
-                        All Organizations
-                    </option>
-
+            <form method="get" class="flex items-center gap-2">
+                <select name="org"
+                        class="select select-sm bg-base-100 border-base-300 text-sm font-medium rounded-lg focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20"
+                        onchange="this.form.submit()">
+                    <option value="" {% if not request.selected_org %}selected{% endif %}>All Organizations</option>
                     {% for org in request.accessible_orgs %}
-                        <option value="{{ org.id }}"
-                            {% if request.selected_org and org.id == request.selected_org.id %}
-                                selected
-                            {% endif %}
-                        >
-                            {{ org.name }}
-                        </option>
+                    <option value="{{ org.id }}" {% if request.selected_org and org.id == request.selected_org.id %}selected{% endif %}>{{ org.name }}</option>
                     {% endfor %}
-
                 </select>
-
                 <input type="hidden" name="period" value="{{ period }}">
-
             </form>
             {% endif %}
-
-            <div class="badge badge-lg badge-outline badge-success ml-auto self-center">
-                Last Update: {{ time|naturaltime }}
-            </div>
-
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <div class="card bg-base-100 shadow border border-success">
-                <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the number of devices visible to {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}."></i>Devices</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-plug text-2xl text-success"></i></div></div>
-                    <p class="text-2xl font-bold text-success">{{ device_count }}</p>
+        <!-- Stat Cards Row 1 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+            <!-- Devices -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Devices</span>
+                    <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
+                        <i class="fas fa-plug text-emerald-600 text-sm"></i>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold text-base-content">{{ device_count|intcomma }}</p>
+            </div>
+
+            <!-- Energy -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Energy</span>
+                    <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
+                        <i class="fas fa-bolt text-amber-600 text-sm"></i>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold text-base-content">{{ kwh_total|floatformat:2|intcomma }} <span class="text-sm font-normal text-base-content/50">kWh</span></p>
+                <div class="flex items-center gap-1.5 mt-2">
+                    {% if kwh_change > 0 %}
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md"><i class="fas fa-arrow-up text-[9px]"></i>{{ kwh_change }}%</span>
+                    {% elif kwh_change < 0 %}
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-md"><i class="fas fa-arrow-down text-[9px]"></i>{{ kwh_change|abs }}%</span>
+                    {% else %}
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-base-content/50 bg-base-200 px-1.5 py-0.5 rounded-md">0%</span>
+                    {% endif %}
+                    <span class="text-[10px] text-base-content/40">vs prev period</span>
                 </div>
             </div>
 
-            <div class="card bg-base-100 shadow border border-success">
-                <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the energy used in kWh by devices visible to {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Energy ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-bolt text-2xl text-success"></i></div></div>
-                    <div class="flex">
-                        <p class="text-2xl font-bold text-success">{{ kwh_total|floatformat:2|intcomma }} kWh</p>
-                        <p class="text-md
-                        {% if kwh_change > 0 %}text-success{% elif kwh_change == 0 %}text-warning{% else %}text-error{% endif %}">
-                        {% if kwh_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ kwh_change }}% {% elif kwh_change == 0 %} <i class="fa-solid fa-square-minus"></i> {{ kwh_change }}%  {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ kwh_change|abs }}%{% endif %}
-                        </p>
+            <!-- CO2 -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">CO&#8322; Emissions</span>
+                    <div class="w-9 h-9 rounded-xl bg-sky-50 flex items-center justify-center">
+                        <i class="fas fa-leaf text-sky-600 text-sm"></i>
                     </div>
+                </div>
+                <p class="text-2xl font-bold text-base-content">{{ co2_total|floatformat:2|intcomma }} <span class="text-sm font-normal text-base-content/50">kgCO&#8322;</span></p>
+                <div class="flex items-center gap-1.5 mt-2">
+                    {% if co2_change > 0 %}
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md"><i class="fas fa-arrow-up text-[9px]"></i>{{ co2_change }}%</span>
+                    {% elif co2_change < 0 %}
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-md"><i class="fas fa-arrow-down text-[9px]"></i>{{ co2_change|abs }}%</span>
+                    {% else %}
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-base-content/50 bg-base-200 px-1.5 py-0.5 rounded-md">0%</span>
+                    {% endif %}
+                    <span class="text-[10px] text-base-content/40">vs prev period</span>
                 </div>
             </div>
 
-            <div class="card bg-base-100 shadow border border-success">
-                <div class="card-body justify-center">
-                    <div class="flex"><p class="text-sm uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the amount of carbon released to the atmosphere in kgs by devices visible to {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>CO₂ Emissions ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-plug-circle-exclamation text-2xl text-success"></i></div></div>
-                    <div class="flex">
-                        <p class="text-2xl font-bold text-success">{{ co2_total|floatformat:2 }} kgCO₂</p>
-                        <p class="text-md
-                            {% if co2_change > 0 %}text-success{% elif co2_change == 0 %}text-warning{% else %}text-error{% endif %}">
-                            {% if co2_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ co2_change }}% {% elif co2_change == 0 %} <i class="fa-solid fa-square-minus"></i> {{ co2_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ co2_change|abs }}%{% endif %}
-                        </p>
+            <!-- Cooking Events -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Cooking Events</span>
+                    <div class="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center">
+                        <i class="fas fa-fire-burner text-orange-600 text-sm"></i>
                     </div>
                 </div>
-            </div>
-
-            <div class="card bg-base-100 shadow border border-success">
-                <div class="card-body justify-center">
-                    <div class="flex"><p class="text-sm uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the amount of cooking events by devices visible to {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Cooking Events({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-mortar-pestle text-2xl text-success"></i></div></div>
-                    <div class="flex">
-                        <p class="text-2xl font-bold text-success">{{ cooking_events_count|intcomma }} </p>
-                        <p class="text-md
-                            {% if cooking_events_change > 0 %}text-success{% elif cooking_events_change == 0 %}text-warning{% else %}text-error{% endif %}">
-                            {% if cooking_events_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ cooking_events_change }}% {% elif cooking_events_change == 0 %} <i class="fa-solid fa-square-minus"></i> {{ cooking_events_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ cooking_events_change|abs }}%{% endif %}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            
-            <div class="card bg-base-100 shadow border border-success">
-                <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the number of organizations in the system."></i>Organizations</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-industry text-2xl text-success"></i></div></div>
-                    <p class="text-2xl font-bold text-success">{{ org_count }}</p>
-                </div>
-            </div>
-            
-            <div class="card bg-base-100 shadow border border-success">
-                <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the total income in Ksh logged by the system from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Total Money ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-piggy-bank text-2xl text-success"></i></div></div>
-                    <div class="flex">
-                        <p class="text-2xl font-bold text-success">Ksh. {{ total_money|intcomma }}</p>
-                        <p class="text-md
-                            {% if money_change > 0 %}text-success {% elif money_change == 0 %}text-warning{% else %}text-error{% endif %}">
-                            {% if money_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ money_change }}% {% elif money_change == 0 %} <i class="fa-solid fa-square-minus"></i> {{ money_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ money_change|abs }}%{% endif %}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card bg-base-100 shadow border border-success">
-                <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the number of transactions logged by the system from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Total Transactions ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-hand-holding-dollar text-2xl text-success"></i></div></div>
-                    <div class="flex">
-                        <p class="text-2xl font-bold text-success">{{ total_transactions|intcomma }}</p>
-                        <p class="text-md
-                            {% if tx_change > 0 %}text-success {% elif tx_change == 0 %}text-warning{% else %}text-error{% endif %}">
-                            {% if tx_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ tx_change }}% {% elif tx_change == 0 %} <i class="fa-solid fa-square-minus"></i> {{ tx_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ tx_change|abs }}%{% endif %}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card bg-base-100 shadow border border-success">
-                <div class="card-body flex flex-col justify-center">
-                    <div class="flex"><p class="text-sm uppercase"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the total cooking time logged by the system from {% if request.GET.org %}the selected organization{% else %}all organizations{% endif %}{% if period != 'all' %} within the last {{ period }}{% if period == '1d' %}ay{% else %}ays{% endif %}{% endif %}."></i>Cooking Time ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-stopwatch text-2xl text-success"></i></div></div>
-                    <div class="flex">
-                        <p class="text-2xl font-bold text-success">{{ total_cooking_time_minutes|divide:60|floatformat:1|intcomma }} HRS</p>
-                        <p class="text-md
-                            {% if cooking_time_change > 0 %}text-success {% elif cooking_time_change == 0 %}text-warning{% else %}text-error{% endif %}">
-                            {% if cooking_time_change > 0 %} <i class="fa-solid fa-arrow-trend-up"></i> {{ cooking_time_change }}% {% elif cooking_time_change == 0 %} <i class="fa-solid fa-square-minus"></i> {{ cooking_time_change }}% {% else %} <i class="fa-solid fa-arrow-trend-down"></i> {{ cooking_time_change|abs }}%{% endif %}
-                        </p>
-                    </div>
+                <p class="text-2xl font-bold text-base-content">{{ cooking_events_count|intcomma }}</p>
+                <div class="flex items-center gap-1.5 mt-2">
+                    {% if cooking_events_change > 0 %}
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md"><i class="fas fa-arrow-up text-[9px]"></i>{{ cooking_events_change }}%</span>
+                    {% elif cooking_events_change < 0 %}
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-md"><i class="fas fa-arrow-down text-[9px]"></i>{{ cooking_events_change|abs }}%</span>
+                    {% else %}
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-base-content/50 bg-base-200 px-1.5 py-0.5 rounded-md">0%</span>
+                    {% endif %}
+                    <span class="text-[10px] text-base-content/40">vs prev period</span>
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-
-            <div id="deviceStatus" class="card bg-base-100 shadow p-4 flex flex-col border border-success outline-none">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold uppercase">Device Status</h3>
-                    <button data-ignore-download onclick="downloadCard('deviceStatus', 'device-status.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
-                        <i class="fas fa-download mr-2"></i> Download
-                    </button>
+        <!-- Stat Cards Row 2 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+            <!-- Organizations -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Organizations</span>
+                    <div class="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
+                        <i class="fas fa-building text-violet-600 text-sm"></i>
+                    </div>
                 </div>
-                <div class="flex-1">
-                    <canvas id="deviceStatusChart" class="w-full h-full"></canvas>
+                <p class="text-2xl font-bold text-base-content">{{ org_count }}</p>
+            </div>
+
+            <!-- Total Money -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Total Money</span>
+                    <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
+                        <i class="fas fa-coins text-emerald-600 text-sm"></i>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold text-base-content">Ksh {{ total_money|intcomma }}</p>
+                <div class="flex items-center gap-1.5 mt-2">
+                    {% if money_change > 0 %}
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md"><i class="fas fa-arrow-up text-[9px]"></i>{{ money_change }}%</span>
+                    {% elif money_change < 0 %}
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-md"><i class="fas fa-arrow-down text-[9px]"></i>{{ money_change|abs }}%</span>
+                    {% else %}
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-base-content/50 bg-base-200 px-1.5 py-0.5 rounded-md">0%</span>
+                    {% endif %}
+                    <span class="text-[10px] text-base-content/40">vs prev period</span>
                 </div>
             </div>
 
-            <div id="energy7d" class="card bg-base-100 shadow p-4 flex flex-col border border-success">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold uppercase">Energy Use ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</h3>
-                    <button data-ignore-download onclick="downloadCard('energy7d', 'energy-7d.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
-                        <i class="fas fa-download mr-2"></i> Download
-                    </button>
+            <!-- Transactions -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Transactions</span>
+                    <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+                        <i class="fas fa-credit-card text-blue-600 text-sm"></i>
+                    </div>
                 </div>
-                <div class="flex-1">
-                    <canvas id="kwhLineChart" class="w-full h-full"></canvas>
-                </div>
-            </div>
-
-
-            <!-- Meal Type Chart -->
-            <div id="mealTypeCard" class="card bg-base-100 shadow p-4 flex flex-col border border-success outline-none mb-6">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold uppercase">Type of Meals ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</h3>
-                    <button data-ignore-download onclick="downloadCard('mealTypeCard','meal-type.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
-                        <i class="fas fa-download mr-2"></i> Download
-                    </button>
-                </div>
-                <div class="flex-1">
-                    <canvas id="mealTypeChart" class="w-full h-full"></canvas>
+                <p class="text-2xl font-bold text-base-content">{{ total_transactions|intcomma }}</p>
+                <div class="flex items-center gap-1.5 mt-2">
+                    {% if tx_change > 0 %}
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md"><i class="fas fa-arrow-up text-[9px]"></i>{{ tx_change }}%</span>
+                    {% elif tx_change < 0 %}
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-md"><i class="fas fa-arrow-down text-[9px]"></i>{{ tx_change|abs }}%</span>
+                    {% else %}
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-base-content/50 bg-base-200 px-1.5 py-0.5 rounded-md">0%</span>
+                    {% endif %}
+                    <span class="text-[10px] text-base-content/40">vs prev period</span>
                 </div>
             </div>
 
-            <!-- Cooking Time Distribution Chart -->
-            <div id="cookingTimeCard" class="card bg-base-100 shadow p-4 flex flex-col border border-success outline-none mb-6">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold uppercase">Cooking Events Time-Distribution ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</h3>
-                    <button data-ignore-download onclick="downloadCard('cookingTimeCard','cooking-time.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
-                        <i class="fas fa-download mr-2"></i> Download
+            <!-- Cooking Time -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Cooking Time</span>
+                    <div class="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center">
+                        <i class="fas fa-stopwatch text-rose-600 text-sm"></i>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold text-base-content">{{ total_cooking_time_minutes|divide:60|floatformat:1|intcomma }} <span class="text-sm font-normal text-base-content/50">hrs</span></p>
+                <div class="flex items-center gap-1.5 mt-2">
+                    {% if cooking_time_change > 0 %}
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md"><i class="fas fa-arrow-up text-[9px]"></i>{{ cooking_time_change }}%</span>
+                    {% elif cooking_time_change < 0 %}
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-md"><i class="fas fa-arrow-down text-[9px]"></i>{{ cooking_time_change|abs }}%</span>
+                    {% else %}
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-base-content/50 bg-base-200 px-1.5 py-0.5 rounded-md">0%</span>
+                    {% endif %}
+                    <span class="text-[10px] text-base-content/40">vs prev period</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+            <!-- Device Status -->
+            <div id="deviceStatus" class="bg-base-100 rounded-2xl p-6 border border-base-200 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-base-content">Device Status</h3>
+                        <p class="text-xs text-base-content/50 mt-0.5">Active vs Inactive devices</p>
+                    </div>
+                    <button data-ignore-download onclick="downloadCard('deviceStatus', 'device-status.png')" class="btn btn-ghost btn-xs text-base-content/40 hover:text-emerald-600">
+                        <i class="fas fa-download text-xs"></i>
                     </button>
                 </div>
-                <div class="flex-1">
-                    <canvas id="cookingTimeChart" class="w-full h-full"></canvas>
+                <div class="h-56">
+                    <canvas id="deviceStatusChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Energy Use -->
+            <div id="energy7d" class="bg-base-100 rounded-2xl p-6 border border-base-200 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-base-content">Energy Usage</h3>
+                        <p class="text-xs text-base-content/50 mt-0.5">kWh over selected period</p>
+                    </div>
+                    <button data-ignore-download onclick="downloadCard('energy7d', 'energy-7d.png')" class="btn btn-ghost btn-xs text-base-content/40 hover:text-emerald-600">
+                        <i class="fas fa-download text-xs"></i>
+                    </button>
+                </div>
+                <div class="h-56">
+                    <canvas id="kwhLineChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Meal Type -->
+            <div id="mealTypeCard" class="bg-base-100 rounded-2xl p-6 border border-base-200 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-base-content">Meal Types</h3>
+                        <p class="text-xs text-base-content/50 mt-0.5">Breakfast, Lunch, Supper distribution</p>
+                    </div>
+                    <button data-ignore-download onclick="downloadCard('mealTypeCard','meal-type.png')" class="btn btn-ghost btn-xs text-base-content/40 hover:text-emerald-600">
+                        <i class="fas fa-download text-xs"></i>
+                    </button>
+                </div>
+                <div class="h-56">
+                    <canvas id="mealTypeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Cooking Time Distribution -->
+            <div id="cookingTimeCard" class="bg-base-100 rounded-2xl p-6 border border-base-200 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-base-content">Cooking Time Distribution</h3>
+                        <p class="text-xs text-base-content/50 mt-0.5">Events by hour of day</p>
+                    </div>
+                    <button data-ignore-download onclick="downloadCard('cookingTimeCard','cooking-time.png')" class="btn btn-ghost btn-xs text-base-content/40 hover:text-emerald-600">
+                        <i class="fas fa-download text-xs"></i>
+                    </button>
+                </div>
+                <div class="h-56">
+                    <canvas id="cookingTimeChart"></canvas>
                 </div>
             </div>
 
             {% if is_superadmin %}
-            <div id="moneyOrg" class="card bg-base-100 shadow p-4 flex flex-col border border-success outline-none">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold uppercase">Money by Organization</h3>
-                    <button data-ignore-download onclick="downloadCard('moneyOrg', 'money-org.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
-                        <i class="fas fa-download mr-2"></i> Download
+            <!-- Money by Org -->
+            <div id="moneyOrg" class="bg-base-100 rounded-2xl p-6 border border-base-200 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-base-content">Revenue by Organization</h3>
+                        <p class="text-xs text-base-content/50 mt-0.5">Income distribution per org</p>
+                    </div>
+                    <button data-ignore-download onclick="downloadCard('moneyOrg', 'money-org.png')" class="btn btn-ghost btn-xs text-base-content/40 hover:text-emerald-600">
+                        <i class="fas fa-download text-xs"></i>
                     </button>
                 </div>
-                <div class="flex-1">
-                    <canvas id="moneyByOrgChart" class="w-full h-full"></canvas>
+                <div class="h-56">
+                    <canvas id="moneyByOrgChart"></canvas>
                 </div>
             </div>
 
-            <div id="money-7d" class="card bg-base-100 shadow p-4 flex flex-col border border-success outline-none">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold uppercase">Money In ({% if period == 'all' %}ALL TIME{% elif period == '1d' %}LAST {{ period }}AY{% else %}LAST {{ period }}AYS{% endif %})</h3>
-                    <button data-ignore-download onclick="downloadCard('money-7d', 'money-7d.png')" class="btn btn-sm btn-outline btn-success hover:text-white">
-                        <i class="fas fa-download mr-2"></i> Download
+            <!-- Money In -->
+            <div id="money-7d" class="bg-base-100 rounded-2xl p-6 border border-base-200 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-base-content">Revenue Trend</h3>
+                        <p class="text-xs text-base-content/50 mt-0.5">Income over time</p>
+                    </div>
+                    <button data-ignore-download onclick="downloadCard('money-7d', 'money-7d.png')" class="btn btn-ghost btn-xs text-base-content/40 hover:text-emerald-600">
+                        <i class="fas fa-download text-xs"></i>
                     </button>
                 </div>
-                <div class="flex-1">
-                    <canvas id="moneyLineChart" class="w-full h-full"></canvas>
+                <div class="h-56">
+                    <canvas id="moneyLineChart"></canvas>
                 </div>
             </div>
-            
             {% endif %}
+
         </div>
     </div>
 </div>
 
-
 <script>
-Chart.defaults.font.family = "'Saira', sans-serif";
-Chart.defaults.font.size = 12;
+Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.color = '#64748b';
 
-// Utility function to generate colors
 function generateColor(index, saturation=70, lightness=50) {
     return `hsl(${(index * 137) % 360}, ${saturation}%, ${lightness}%)`;
 }
 
-
-// Meal Type Chart
 const mealTypeEl = document.getElementById('mealTypeChart');
 if(mealTypeEl){
-    const mealColors=['#f97316','#22c55e','#3b82f6'];
     new Chart(mealTypeEl,{
         type:'bar',
         data:{
             labels:['Breakfast','Lunch','Supper'],
-            datasets:[{label:'Cooking Events', data:{{ meal_data|safe }}, backgroundColor:mealColors}]
+            datasets:[{label:'Events', data:{{ meal_data|safe }}, backgroundColor:['#f97316','#22c55e','#3b82f6'], borderRadius: 8, barPercentage: 0.6}]
         },
-        options:{
-            responsive:true,
-            maintainAspectRatio:false,
-            scales:{
-                y:{beginAtZero:true, grid:{display:false}},
-                x:{grid:{display:false}}
-            },
-            plugins:{legend:{display:false}}
-        }
+        options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true, grid:{color:'#f1f5f9'}}, x:{grid:{display:false}}}, plugins:{legend:{display:false}}}
     });
 }
 
-// Cooking Time Distribution Chart
 const cookingTimeEl = document.getElementById('cookingTimeChart');
 if(cookingTimeEl){
-    const cookingColors=[];
-    for (let i=0;i<24;i++) cookingColors.push(generateColor(i, 60, 55));
+    const colors=[];for(let i=0;i<24;i++)colors.push(generateColor(i,55,55));
     new Chart(cookingTimeEl,{
         type:'bar',
-        data:{
-            labels:{{cooking_event_hours_labels|safe}},
-            datasets:[{label:'Cooking Events', data:{{ cooking_event_hours_data|safe }}, backgroundColor:cookingColors}]
-        },
-        options:{
-            responsive:true,
-            maintainAspectRatio:false,
-            scales:{
-                y:{beginAtZero:true, grid:{display:false}},
-                x:{grid:{display:false}}
-            },
-            plugins:{legend:{display:false}}
-        }
+        data:{labels:{{cooking_event_hours_labels|safe}}, datasets:[{label:'Events', data:{{cooking_event_hours_data|safe}}, backgroundColor:colors, borderRadius:4, barPercentage:0.7}]},
+        options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true, grid:{color:'#f1f5f9'}}, x:{grid:{display:false}}}, plugins:{legend:{display:false}}}
     });
 }
 
-
-// -------- Device Status Pie Chart --------
 const deviceStatusEl = document.getElementById('deviceStatusChart');
-if (deviceStatusEl) {
-    new Chart(deviceStatusEl.getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: ['ACTIVE', 'INACTIVE'],
-            datasets: [{
-                data: [{{ device_status_counts.ON|default:0 }}, {{ device_status_counts.OFF|default:0 }}],
-                backgroundColor: ['#22c55e', '#eda11f'],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    grid: {
-                        display: false // Removes vertical lines
-                    }
-                },
-                y: {
-                    grid: {
-                        display: false // Removes horizontal lines
-                    },
-                    beginAtZero: true
-                }
-            },
-            plugins: {
-                legend: { display: false },
-                datalabels: {
-                    color: '#fff',
-                    formatter: (value, ctx) => {
-                        const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
-                        const percent = sum > 0 ? ((value/sum)*100).toFixed(1) : 0;
-                        return `${value} (${percent}%)`;
-                    },
-                    font: { weight: 'bold', size: 12 }
-                }
-            }
-        },
-        plugins: [ChartDataLabels]
+if(deviceStatusEl){
+    new Chart(deviceStatusEl.getContext('2d'),{
+        type:'bar',
+        data:{labels:['Active','Inactive'], datasets:[{data:[{{device_status_counts.ON|default:0}},{{device_status_counts.OFF|default:0}}], backgroundColor:['#10b981','#f59e0b'], borderRadius:8, barPercentage:0.5}]},
+        options:{responsive:true, maintainAspectRatio:false, scales:{x:{grid:{display:false}}, y:{grid:{color:'#f1f5f9'},beginAtZero:true}}, plugins:{legend:{display:false}, datalabels:{color:'#fff', font:{weight:'bold',size:12}, formatter:(v,ctx)=>{const s=ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);return s>0?`${v} (${((v/s)*100).toFixed(0)}%)`:'0';}}}},
+        plugins:[ChartDataLabels]
     });
 }
 
-// -------- kWh Line Chart --------
 const kwhLineEl = document.getElementById('kwhLineChart');
-if (kwhLineEl) {
-    new Chart(kwhLineEl.getContext('2d'), {
-        type: 'line',
-        data: { 
-            // FIXED: use energy_line_labels
-            labels: {{ energy_line_labels|safe }}, 
-            datasets: [{
-                label: "Total kWh",
-                // FIXED: use energy_line_data
-                data: {{ energy_line_data|safe }},
-                borderColor: '#22c55e',
-                backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                tension: 0.3,
-                fill: true
-            }] 
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: { grid: { display: false } },
-                y: { grid: { display: false }, beginAtZero: true }
-            },
-            plugins: { legend: { display: false } }
-        }
+if(kwhLineEl){
+    new Chart(kwhLineEl.getContext('2d'),{
+        type:'line',
+        data:{labels:{{energy_line_labels|safe}}, datasets:[{label:"kWh", data:{{energy_line_data|safe}}, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.08)', tension:0.4, fill:true, pointRadius:2, pointHoverRadius:5, borderWidth:2}]},
+        options:{responsive:true, maintainAspectRatio:false, scales:{x:{grid:{display:false}}, y:{grid:{color:'#f1f5f9'},beginAtZero:true}}, plugins:{legend:{display:false}}}
     });
 }
 
-// -------- Superadmin Charts --------
 {% if is_superadmin %}
 const moneyByOrgEl = document.getElementById('moneyByOrgChart');
-if (moneyByOrgEl) {
-    new Chart(moneyByOrgEl.getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: {{ money_by_org_labels|safe }},
-            datasets: [{
-                data: {{ money_by_org_data|safe }},
-                backgroundColor: ['#22c55e', '#eda11f', '#3b82f6', '#facc15', '#8b5cf6'],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    grid: {
-                        display: false // Removes vertical lines
-                    }
-                },
-                y: {
-                    grid: {
-                        display: false // Removes horizontal lines
-                    },
-                    beginAtZero: true
-                }
-            },
-            plugins: {
-                legend: { display: false },
-                datalabels: {
-                    color: '#fff',
-                    formatter: (value, ctx) => {
-                        const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
-                        const percent = sum > 0 ? ((value/sum)*100).toFixed(1) : 0;
-                        return value.toLocaleString() + ` (${percent}%)`;
-                    },
-                }
-            }
-        },
-        plugins: [ChartDataLabels]
+if(moneyByOrgEl){
+    new Chart(moneyByOrgEl.getContext('2d'),{
+        type:'bar',
+        data:{labels:{{money_by_org_labels|safe}}, datasets:[{data:{{money_by_org_data|safe}}, backgroundColor:['#10b981','#f59e0b','#3b82f6','#8b5cf6','#ef4444'], borderRadius:8, barPercentage:0.6}]},
+        options:{responsive:true, maintainAspectRatio:false, scales:{x:{grid:{display:false}}, y:{grid:{color:'#f1f5f9'},beginAtZero:true}}, plugins:{legend:{display:false}, datalabels:{color:'#fff', font:{weight:'bold'}, formatter:(v)=>v.toLocaleString()}}},
+        plugins:[ChartDataLabels]
     });
 }
 
-// -------- Money Line Chart --------
 const moneyLineEl = document.getElementById('moneyLineChart');
-if (moneyLineEl) {
-    const moneyLineDatasets = [];
-    // This loop matches your Python: context["money_line_data"] = money_line_data
+if(moneyLineEl){
+    const datasets=[];
     {% for org_name, daily_values in money_line_data.items %}
-        moneyLineDatasets.push({
-            label: "{{ org_name }}",
-            data: {{ daily_values|safe }},
-            borderColor: (function(index) {
-                if (index === 0) return 'hsl(120, 70%, 50%)'; // Green
-                if (index === 1) return 'hsl(30, 70%, 50%)';  // Orange
-                // Start the rotation from a different offset for the rest
-                return `hsl(${ ((index * 137) + 200) % 360 }, 70%, 50%)`; 
-            })({{ forloop.counter0 }}),
-            tension: 0.3,
-            fill: false
-        });
+    datasets.push({label:"{{org_name}}", data:{{daily_values|safe}}, borderColor:(function(i){const c=['#10b981','#f59e0b','#3b82f6','#8b5cf6','#ef4444'];return c[i%c.length];})({{forloop.counter0}}), tension:0.4, fill:false, pointRadius:2, borderWidth:2});
     {% endfor %}
-
-    new Chart(moneyLineEl.getContext('2d'), {
-        type: 'line',
-        // FIXED: ensure it uses money_line_labels
-        data: { labels: {{ money_line_labels|safe }}, datasets: moneyLineDatasets },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-            },
-            scales: {
-                x: { grid: { display: false } },
-                y: { grid: { display: false }, beginAtZero: true }
-            }
-        }
+    new Chart(moneyLineEl.getContext('2d'),{
+        type:'line',
+        data:{labels:{{money_line_labels|safe}}, datasets:datasets},
+        options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:true, position:'top', labels:{boxWidth:8, usePointStyle:true, pointStyle:'circle', font:{size:10}}}}, scales:{x:{grid:{display:false}}, y:{grid:{color:'#f1f5f9'},beginAtZero:true}}}
     });
 }
 {% endif %}

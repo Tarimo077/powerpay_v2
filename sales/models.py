@@ -47,7 +47,6 @@ class Sale(models.Model):
 
     class Meta:
         db_table = "sale"
-        managed = False
 
     def __str__(self):
         return f"{self.product_serial_number} - {self.product_name}"

@@ -1,144 +1,153 @@
 {% load static %}
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
 
 <!-- Mobile Hamburger -->
 <button id="mobile-menu-btn"
-        class="lg:hidden fixed top-1 left-2 z-50 bg-base-100 p-2 rounded-md shadow">
-    <i class="fas fa-bars text-xl text-green-600"></i>
+        class="lg:hidden fixed top-4 left-4 z-[60] bg-base-100 p-2.5 rounded-xl shadow-lg border border-base-300 hover:shadow-xl transition-all duration-200">
+    <i class="fas fa-bars text-lg text-emerald-600"></i>
 </button>
 
 <!-- Mobile Overlay -->
 <div id="mobile-overlay"
-     class="fixed inset-0 bg-black/40 z-40 hidden lg:hidden"></div>
+     class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity duration-300"></div>
 
 <!-- Sidebar -->
 <nav id="sidebar"
-     class="
-        fixed top-0 left-0 h-screen bg-base-100 shadow-sm flex flex-col
-        transition-all duration-300 z-50
-        w-64
-        -translate-x-full lg:translate-x-0
-     ">
+     class="fixed top-0 left-0 h-screen bg-base-100 border-r border-base-200 flex flex-col
+            transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] z-50
+            w-[272px] -translate-x-full lg:translate-x-0 shadow-xl lg:shadow-sm">
 
     <!-- Mobile Close -->
-    <div class="flex justify-end p-2 lg:hidden shrink-0">
-        <button id="mobile-close-btn" class="btn btn-ghost btn-sm text-gray-500">
-            <i class="fas fa-xmark text-xl"></i>
+    <div class="flex justify-end p-3 lg:hidden shrink-0">
+        <button id="mobile-close-btn" class="btn btn-ghost btn-sm btn-circle text-base-content/60 hover:text-base-content">
+            <i class="fas fa-xmark text-lg"></i>
         </button>
     </div>
 
-    <!-- Logo -->
-    <div class="flex items-center justify-center mt-4 shrink-0">
+    <!-- Logo Section -->
+    <div class="flex items-center justify-center px-6 pt-6 pb-2 shrink-0">
         <img id="sidebar-image"
              src="{% static 'images/pp_no_bgcropped.png' %}"
-             class="h-8 w-8 hidden">
-
+             class="h-9 w-9 hidden transition-all duration-300">
         <img id="sidebar-text"
              src="{% static 'images/powerpaylogo.png' %}"
-             style="height: 100px; width: auto;">
+             class="h-[72px] w-auto transition-all duration-300">
     </div>
 
-    <div class="divider p-2 shrink-0"></div>
+    <div class="px-6 shrink-0">
+        <div class="h-px bg-gradient-to-r from-transparent via-base-300 to-transparent my-4"></div>
+    </div>
 
-    <!-- Scrollable Navigation Container -->
-    <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+    <!-- Scrollable Navigation -->
+    <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 pb-4">
+        <div class="flex flex-col gap-1 text-[13px] font-medium">
 
-        <!-- Inner Nav Wrapper -->
-        <div class="flex flex-col space-y-2 text-sm pb-4">
+            <!-- Section Label -->
+            <p class="link-text px-4 pt-2 pb-1.5 text-[10px] uppercase tracking-[0.08em] font-semibold text-base-content/40">Main</p>
 
             <!-- Overview -->
             <a href="{% url 'core:index' %}"
-               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               class="sidebar-link flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all
                {% if request.path == '/' %}
-                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                    bg-emerald-50 text-emerald-700 font-semibold shadow-sm shadow-emerald-100
                {% else %}
-                    hover:text-success
+                    text-base-content/70 hover:bg-base-200/80 hover:text-base-content
                {% endif %}">
-                <i class="fas fa-chart-line w-5"></i>
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg {% if request.path == '/' %}bg-emerald-100{% else %}bg-base-200/60{% endif %}">
+                    <i class="fas fa-chart-line text-sm {% if request.path == '/' %}text-emerald-600{% endif %}"></i>
+                </div>
                 <span class="link-text">Overview</span>
+            </a>
+
+            <!-- Analytics -->
+            <a href="{% url 'analytics:dashboard' %}"
+               class="sidebar-link flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all
+               {% if 'analytics' in request.path %}
+                    bg-emerald-50 text-emerald-700 font-semibold shadow-sm shadow-emerald-100
+               {% else %}
+                    text-base-content/70 hover:bg-base-200/80 hover:text-base-content
+               {% endif %}">
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg {% if 'analytics' in request.path %}bg-emerald-100{% else %}bg-base-200/60{% endif %}">
+                    <i class="fas fa-chart-pie text-sm {% if 'analytics' in request.path %}text-emerald-600{% endif %}"></i>
+                </div>
+                <span class="link-text">Analytics</span>
             </a>
 
             <!-- Organizations -->
             {% if is_superuser %}
             <a href="{% url 'organizations:organizations_page' %}"
-               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               class="sidebar-link flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all
                {% if 'organizations' in request.path %}
-                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                    bg-emerald-50 text-emerald-700 font-semibold shadow-sm shadow-emerald-100
                {% else %}
-                    hover:text-success
+                    text-base-content/70 hover:bg-base-200/80 hover:text-base-content
                {% endif %}">
-                <i class="fas fa-industry w-5"></i>
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg {% if 'organizations' in request.path %}bg-emerald-100{% else %}bg-base-200/60{% endif %}">
+                    <i class="fas fa-building text-sm {% if 'organizations' in request.path %}text-emerald-600{% endif %}"></i>
+                </div>
                 <span class="link-text">Organizations</span>
             </a>
             {% endif %}
 
+            <!-- Section Label -->
+            <p class="link-text px-4 pt-4 pb-1.5 text-[10px] uppercase tracking-[0.08em] font-semibold text-base-content/40">Operations</p>
+
             <!-- Devices Group -->
-            <div class="collapse collapse-arrow rounded-none bg-base-100 mx-3">
-
-                <input type="checkbox"
-                       {% if request.resolver_match.namespace == 'devices' %}checked{% endif %} />
-
-                <!-- Parent is NOT highlighted. Only submenu links are highlighted. -->
-                <div class="collapse-title px-4 py-4 hover:text-success">
-                    <div class="flex items-center gap-4">
-                        <i class="fas fa-plug w-5"></i>
-                        <span class="link-text">Devices</span>
+            <div x-data="{ open: {% if request.resolver_match.namespace == 'devices' %}true{% else %}false{% endif %} }" class="rounded-xl">
+                <button @click="open = !open" class="sidebar-link w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all text-base-content/70 hover:bg-base-200/80 hover:text-base-content">
+                    <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-base-200/60">
+                        <i class="fas fa-plug text-sm"></i>
                     </div>
-                </div>
-
-                <div class="collapse-content mx-1">
-
-                    <!-- Device List -->
+                    <span class="link-text flex-1 text-left">Devices</span>
+                    <i class="link-text fas fa-chevron-down text-[10px] transition-transform duration-200" :class="open && 'rotate-180'"></i>
+                </button>
+                <div x-show="open" x-collapse class="ml-6 mt-1 space-y-0.5 border-l-2 border-base-200 pl-4">
                     <a href="{% url 'devices:device_list' %}"
-                       class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+                       class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-[12.5px] transition-all
                        {% if request.resolver_match.namespace == 'devices' and 'schedules' not in request.path and 'testing-batches' not in request.path %}
-                            bg-success/10 border-l-4 text-success border-success font-semibold
+                            bg-emerald-50 text-emerald-700 font-semibold
                        {% else %}
-                            hover:text-success
+                            text-base-content/60 hover:text-base-content hover:bg-base-200/60
                        {% endif %}">
-                        <i class="fas fa-microchip w-5"></i>
+                        <i class="fas fa-microchip w-4 text-[11px]"></i>
                         <span class="link-text">Device List</span>
                     </a>
-
-                    <!-- Device Schedules -->
                     <a href="{% url 'devices:device_schedule_list' %}"
-                       class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+                       class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-[12.5px] transition-all
                        {% if request.resolver_match.namespace == 'devices' and 'schedules' in request.path %}
-                            bg-success/10 border-l-4 text-success border-success font-semibold
+                            bg-emerald-50 text-emerald-700 font-semibold
                        {% else %}
-                            hover:text-success
+                            text-base-content/60 hover:text-base-content hover:bg-base-200/60
                        {% endif %}">
-                        <i class="fa-solid fa-calendar-day w-5"></i>
-                        <span class="link-text">Device Schedules</span>
+                        <i class="fas fa-calendar-day w-4 text-[11px]"></i>
+                        <span class="link-text">Schedules</span>
                     </a>
-
-                    <!-- Testing Batches -->
                     {% if is_superuser %}
                     <a href="{% url 'devices:testing_batch_list' %}"
-                       class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+                       class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-[12.5px] transition-all
                        {% if request.resolver_match.namespace == 'devices' and 'testing-batches' in request.path %}
-                            bg-success/10 border-l-4 text-success border-success font-semibold
+                            bg-emerald-50 text-emerald-700 font-semibold
                        {% else %}
-                            hover:text-success
+                            text-base-content/60 hover:text-base-content hover:bg-base-200/60
                        {% endif %}">
-                        <i class="fa-solid fa-flask-vial w-5"></i>
+                        <i class="fas fa-flask-vial w-4 text-[11px]"></i>
                         <span class="link-text">Testing Batches</span>
                     </a>
                     {% endif %}
-
                 </div>
             </div>
 
             <!-- Smart Meters -->
             {% if 'smart_meters' in allowed_apps %}
             <a href="{% url 'smart_meters:meter_list' %}"
-               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               class="sidebar-link flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all
                {% if 'smart-meters' in request.path %}
-                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                    bg-emerald-50 text-emerald-700 font-semibold shadow-sm shadow-emerald-100
                {% else %}
-                    hover:text-success
+                    text-base-content/70 hover:bg-base-200/80 hover:text-base-content
                {% endif %}">
-                <i class="fas fa-charging-station w-5"></i>
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg {% if 'smart-meters' in request.path %}bg-emerald-100{% else %}bg-base-200/60{% endif %}">
+                    <i class="fas fa-bolt text-sm {% if 'smart-meters' in request.path %}text-emerald-600{% endif %}"></i>
+                </div>
                 <span class="link-text">Smart Meters</span>
             </a>
             {% endif %}
@@ -146,13 +155,15 @@
             <!-- Customers -->
             {% if 'customers' in allowed_apps %}
             <a href="{% url 'customers:customers_page' %}"
-               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               class="sidebar-link flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all
                {% if 'customers' in request.path %}
-                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                    bg-emerald-50 text-emerald-700 font-semibold shadow-sm shadow-emerald-100
                {% else %}
-                    hover:text-success
+                    text-base-content/70 hover:bg-base-200/80 hover:text-base-content
                {% endif %}">
-                <i class="fas fa-users w-5"></i>
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg {% if 'customers' in request.path %}bg-emerald-100{% else %}bg-base-200/60{% endif %}">
+                    <i class="fas fa-users text-sm {% if 'customers' in request.path %}text-emerald-600{% endif %}"></i>
+                </div>
                 <span class="link-text">Customers</span>
             </a>
             {% endif %}
@@ -160,87 +171,78 @@
             <!-- Sales -->
             {% if 'sales' in allowed_apps %}
             <a href="{% url 'sales:sales_page' %}"
-               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               class="sidebar-link flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all
                {% if 'sales' in request.path %}
-                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                    bg-emerald-50 text-emerald-700 font-semibold shadow-sm shadow-emerald-100
                {% else %}
-                    hover:text-success
+                    text-base-content/70 hover:bg-base-200/80 hover:text-base-content
                {% endif %}">
-                <i class="fa-solid fa-cash-register w-5"></i>
-                <span class="link-text">All Sales</span>
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg {% if 'sales' in request.path %}bg-emerald-100{% else %}bg-base-200/60{% endif %}">
+                    <i class="fas fa-shopping-bag text-sm {% if 'sales' in request.path %}text-emerald-600{% endif %}"></i>
+                </div>
+                <span class="link-text">Sales</span>
             </a>
             {% endif %}
 
             <!-- PayGo -->
             {% if 'paygo' in allowed_apps %}
             <a href="{% url 'paygo:paygo_sales' %}"
-               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               class="sidebar-link flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all
                {% if 'paygo' in request.path %}
-                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                    bg-emerald-50 text-emerald-700 font-semibold shadow-sm shadow-emerald-100
                {% else %}
-                    hover:text-success
+                    text-base-content/70 hover:bg-base-200/80 hover:text-base-content
                {% endif %}">
-                <i class="fa-solid fa-file-invoice-dollar w-5"></i>
-                <span class="link-text">Paygo Sales</span>
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg {% if 'paygo' in request.path %}bg-emerald-100{% else %}bg-base-200/60{% endif %}">
+                    <i class="fas fa-money-bill-wave text-sm {% if 'paygo' in request.path %}text-emerald-600{% endif %}"></i>
+                </div>
+                <span class="link-text">PayGo</span>
             </a>
             {% endif %}
 
             <!-- Inventory Group -->
             {% if 'inventory' in allowed_apps %}
-            <div class="collapse collapse-arrow rounded-none bg-base-100 mx-3">
-
-                <input type="checkbox"
-                       {% if request.resolver_match.namespace == 'inventory' %}checked{% endif %} />
-
-                <!-- Parent is NOT highlighted. Only submenu links are highlighted. -->
-                <div class="collapse-title px-4 py-4 hover:text-success">
-                    <div class="flex items-center gap-4">
-                        <i class="fa-solid fa-boxes-stacked w-5"></i>
-                        <span class="link-text">Inventory</span>
+            <div x-data="{ open: {% if request.resolver_match.namespace == 'inventory' %}true{% else %}false{% endif %} }" class="rounded-xl">
+                <button @click="open = !open" class="sidebar-link w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all text-base-content/70 hover:bg-base-200/80 hover:text-base-content">
+                    <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-base-200/60">
+                        <i class="fas fa-boxes-stacked text-sm"></i>
                     </div>
-                </div>
-
-                <div class="collapse-content mx-1">
-
-                    <!-- Inventory List -->
+                    <span class="link-text flex-1 text-left">Inventory</span>
+                    <i class="link-text fas fa-chevron-down text-[10px] transition-transform duration-200" :class="open && 'rotate-180'"></i>
+                </button>
+                <div x-show="open" x-collapse class="ml-6 mt-1 space-y-0.5 border-l-2 border-base-200 pl-4">
                     <a href="{% url 'inventory:inventory_page' %}"
-                       class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+                       class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-[12.5px] transition-all
                        {% if request.resolver_match.namespace == 'inventory' and 'warehouses' not in request.path and 'delivery-notes' not in request.path %}
-                            bg-success/10 border-l-4 text-success border-success font-semibold
+                            bg-emerald-50 text-emerald-700 font-semibold
                        {% else %}
-                            hover:text-success
+                            text-base-content/60 hover:text-base-content hover:bg-base-200/60
                        {% endif %}">
-                        <i class="fa-solid fa-box-open w-5"></i>
-                        <span class="link-text">Inventory List</span>
+                        <i class="fas fa-box-open w-4 text-[11px]"></i>
+                        <span class="link-text">Items</span>
                     </a>
-
-                    <!-- Warehouses -->
                     {% if is_superuser %}
                     <a href="{% url 'inventory:warehouses_page' %}"
-                       class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+                       class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-[12.5px] transition-all
                        {% if request.resolver_match.namespace == 'inventory' and 'warehouses' in request.path %}
-                            bg-success/10 border-l-4 text-success border-success font-semibold
+                            bg-emerald-50 text-emerald-700 font-semibold
                        {% else %}
-                            hover:text-success
+                            text-base-content/60 hover:text-base-content hover:bg-base-200/60
                        {% endif %}">
-                        <i class="fa-solid fa-warehouse w-5"></i>
+                        <i class="fas fa-warehouse w-4 text-[11px]"></i>
                         <span class="link-text">Warehouses</span>
                     </a>
-
-                    <!-- Delivery Notes -->
                     <a href="{% url 'inventory:delivery_note_list' %}"
-                       class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+                       class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-[12.5px] transition-all
                        {% if request.resolver_match.namespace == 'inventory' and 'delivery-notes' in request.path %}
-                            bg-success/10 border-l-4 text-success border-success font-semibold
+                            bg-emerald-50 text-emerald-700 font-semibold
                        {% else %}
-                            hover:text-success
+                            text-base-content/60 hover:text-base-content hover:bg-base-200/60
                        {% endif %}">
-                        <i class="fa-solid fa-file-signature w-5"></i>
+                        <i class="fas fa-truck text-[11px] w-4"></i>
                         <span class="link-text">Delivery Notes</span>
                     </a>
-
                     {% endif %}
-
                 </div>
             </div>
             {% endif %}
@@ -248,79 +250,81 @@
             <!-- Transactions -->
             {% if 'transactions' in allowed_apps %}
             <a href="{% url 'transactions:transactions_page' %}"
-               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               class="sidebar-link flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all
                {% if 'transactions' in request.path %}
-                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                    bg-emerald-50 text-emerald-700 font-semibold shadow-sm shadow-emerald-100
                {% else %}
-                    hover:text-success
+                    text-base-content/70 hover:bg-base-200/80 hover:text-base-content
                {% endif %}">
-                <i class="fas fa-credit-card w-5"></i>
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg {% if 'transactions' in request.path %}bg-emerald-100{% else %}bg-base-200/60{% endif %}">
+                    <i class="fas fa-credit-card text-sm {% if 'transactions' in request.path %}text-emerald-600{% endif %}"></i>
+                </div>
                 <span class="link-text">Transactions</span>
             </a>
             {% endif %}
 
+            <!-- Section Label -->
+            <p class="link-text px-4 pt-4 pb-1.5 text-[10px] uppercase tracking-[0.08em] font-semibold text-base-content/40">Tools</p>
+
             <!-- Export -->
             <a href="{% url 'core:export_data' %}"
-               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               class="sidebar-link flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all
                {% if 'export' in request.path %}
-                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                    bg-emerald-50 text-emerald-700 font-semibold shadow-sm shadow-emerald-100
                {% else %}
-                    hover:text-success
+                    text-base-content/70 hover:bg-base-200/80 hover:text-base-content
                {% endif %}">
-                <i class="fas fa-file-export w-5"></i>
-                <span class="link-text">Export Center</span>
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg {% if 'export' in request.path %}bg-emerald-100{% else %}bg-base-200/60{% endif %}">
+                    <i class="fas fa-download text-sm {% if 'export' in request.path %}text-emerald-600{% endif %}"></i>
+                </div>
+                <span class="link-text">Export</span>
             </a>
 
             <!-- Import -->
             <a href="{% url 'core:import_center' %}"
-               class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+               class="sidebar-link flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all
                {% if 'import' in request.path %}
-                    bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                    bg-emerald-50 text-emerald-700 font-semibold shadow-sm shadow-emerald-100
                {% else %}
-                    hover:text-success
+                    text-base-content/70 hover:bg-base-200/80 hover:text-base-content
                {% endif %}">
-                <i class="fas fa-file-import w-5"></i>
-                <span class="link-text">Import Center</span>
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg {% if 'import' in request.path %}bg-emerald-100{% else %}bg-base-200/60{% endif %}">
+                    <i class="fas fa-upload text-sm {% if 'import' in request.path %}text-emerald-600{% endif %}"></i>
+                </div>
+                <span class="link-text">Import</span>
             </a>
 
-            <!-- Billing -->
+            <!-- Billing Group -->
             {% if request.user.role == "superadmin" or request.user.role == "admin" or 'billing' in allowed_apps %}
-            <div class="collapse collapse-arrow rounded-none bg-base-100 mx-3">
-
-                <input type="checkbox"
-                       {% if request.resolver_match.namespace == 'billing' %}checked{% endif %} />
-
-                <div class="collapse-title px-4 py-4">
-                    <div class="flex items-center gap-4">
-                        <i class="fa-solid fa-file-invoice-dollar w-5"></i>
-                        <span class="link-text">Billing</span>
+            <div x-data="{ open: {% if request.resolver_match.namespace == 'billing' %}true{% else %}false{% endif %} }" class="rounded-xl">
+                <button @click="open = !open" class="sidebar-link w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all text-base-content/70 hover:bg-base-200/80 hover:text-base-content">
+                    <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-base-200/60">
+                        <i class="fas fa-file-invoice-dollar text-sm"></i>
                     </div>
-                </div>
-
-                <div class="collapse-content mx-1">
-
+                    <span class="link-text flex-1 text-left">Billing</span>
+                    <i class="link-text fas fa-chevron-down text-[10px] transition-transform duration-200" :class="open && 'rotate-180'"></i>
+                </button>
+                <div x-show="open" x-collapse class="ml-6 mt-1 space-y-0.5 border-l-2 border-base-200 pl-4">
                     <a href="{% url 'billing:invoice_list' %}"
-                       class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+                       class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-[12.5px] transition-all
                        {% if 'invoice' in request.path %}
-                            bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                            bg-emerald-50 text-emerald-700 font-semibold
                        {% else %}
-                            hover:text-success
+                            text-base-content/60 hover:text-base-content hover:bg-base-200/60
                        {% endif %}">
-                        <i class="fa-solid fa-file-lines w-5"></i>
+                        <i class="fas fa-file-lines w-4 text-[11px]"></i>
                         <span class="link-text">Invoices</span>
                     </a>
-
                     <a href="{% url 'billing:receipt_list' %}"
-                       class="flex items-center gap-4 p-4 mx-3 rounded-sm transition
+                       class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-[12.5px] transition-all
                        {% if 'receipt' in request.path %}
-                            bg-base-200 border-l-4 text-success border-r-4 border-success font-semibold
+                            bg-emerald-50 text-emerald-700 font-semibold
                        {% else %}
-                            hover:text-success
+                            text-base-content/60 hover:text-base-content hover:bg-base-200/60
                        {% endif %}">
-                        <i class="fa-solid fa-receipt w-5"></i>
+                        <i class="fas fa-receipt w-4 text-[11px]"></i>
                         <span class="link-text">Receipts</span>
                     </a>
-
                 </div>
             </div>
             {% endif %}
@@ -328,31 +332,32 @@
         </div>
     </div>
 
-    <!-- Fixed Footer -->
-    <div class="shrink-0">
-        <div class="divider p-3"></div>
-
+    <!-- Footer -->
+    <div class="shrink-0 p-3 border-t border-base-200">
         <form method="post" action="{% url 'accounts:logout' %}">
             {% csrf_token %}
             <button type="submit"
-                    class="flex items-center gap-4 p-4 mx-3 text-error hover:text-red-800 hover:bg-base-200 rounded-lg transition cursor-pointer w-[calc(100%-1.5rem)]">
-                <i class="fas fa-right-from-bracket w-5"></i>
-                <span class="link-text">Logout</span>
+                    class="sidebar-link w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-red-500 hover:bg-red-50 hover:text-red-700 transition-all">
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-red-50">
+                    <i class="fas fa-right-from-bracket text-sm"></i>
+                </div>
+                <span class="link-text text-[13px] font-medium">Logout</span>
             </button>
         </form>
     </div>
 
     <!-- Desktop Toggle -->
     <button id="sidebar-toggle"
-            class="hidden lg:block absolute top-4 -right-4 -translate-y-2/3 mt-3 bg-base-100 rounded-full p-2 shadow text-green-500 cursor-pointer"
-            title="Click to expand/collapse the sidebar.">
-        <i class="fas fa-chevron-left"></i>
+            class="hidden lg:flex absolute top-7 -right-3.5 h-7 w-7 items-center justify-center
+                   bg-base-100 rounded-full border border-base-300 shadow-sm
+                   text-base-content/50 hover:text-emerald-600 hover:border-emerald-200 hover:shadow-md
+                   transition-all duration-200 cursor-pointer">
+        <i class="fas fa-chevron-left text-[10px]"></i>
     </button>
 </nav>
 
 <script>
 const SIDEBAR_KEY = 'sidebar_state';
-
 document.addEventListener('DOMContentLoaded', () => {
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('sidebar-toggle');
@@ -363,7 +368,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const pageContent = document.getElementById('page-content');
     const chevron = toggleBtn?.querySelector('i');
     const mobileCloseBtn = document.getElementById('mobile-close-btn');
-
     const isDesktop = () => window.innerWidth >= 1024;
 
     if (isDesktop()) {
@@ -377,13 +381,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isDesktop()) return;
         sidebar.classList.contains('w-20') ? expand(true) : collapse(true);
     });
-
     mobileBtn?.addEventListener('click', () => {
         expand(false);
         sidebar.classList.remove('-translate-x-full');
         overlay.classList.remove('hidden');
     });
-
     mobileCloseBtn?.addEventListener('click', closeMobile);
     overlay?.addEventListener('click', closeMobile);
 
@@ -391,49 +393,35 @@ document.addEventListener('DOMContentLoaded', () => {
         sidebar.classList.add('-translate-x-full');
         overlay.classList.add('hidden');
     }
-
     function collapse(save) {
         if (isDesktop()) {
-            sidebar.classList.replace('w-64', 'w-20');
-            pageContent?.classList.replace('lg:ml-64', 'lg:ml-20');
-
-            document.querySelectorAll('.link-text')
-                .forEach(e => e.classList.add('hidden'));
-
-            sidebarText.classList.add('hidden');
-            sidebarImage.classList.remove('hidden');
-
+            sidebar.classList.remove('w-[272px]');
+            sidebar.classList.add('w-20');
+            pageContent?.classList.remove('lg:ml-[272px]');
+            pageContent?.classList.add('lg:ml-20');
+            document.querySelectorAll('.link-text').forEach(e => e.classList.add('hidden'));
+            sidebarText?.classList.add('hidden');
+            sidebarImage?.classList.remove('hidden');
             chevron?.classList.replace('fa-chevron-left', 'fa-chevron-right');
-
             if (save) localStorage.setItem(SIDEBAR_KEY, 'collapsed');
         }
     }
-
     function expand(save) {
         sidebar.classList.remove('w-20');
-        sidebar.classList.add('w-64');
-
+        sidebar.classList.add('w-[272px]');
         if (isDesktop()) {
             pageContent?.classList.remove('lg:ml-20');
-            pageContent?.classList.add('lg:ml-64');
-
+            pageContent?.classList.add('lg:ml-[272px]');
             if (save) localStorage.setItem(SIDEBAR_KEY, 'expanded');
         }
-
-        document.querySelectorAll('.link-text')
-            .forEach(e => e.classList.remove('hidden'));
-
-        sidebarText.classList.remove('hidden');
-        sidebarImage.classList.add('hidden');
-
+        document.querySelectorAll('.link-text').forEach(e => e.classList.remove('hidden'));
+        sidebarText?.classList.remove('hidden');
+        sidebarImage?.classList.add('hidden');
         chevron?.classList.replace('fa-chevron-right', 'fa-chevron-left');
     }
-
     window.addEventListener('resize', () => {
-        if (!isDesktop()) {
-            closeMobile();
-            expand(false);
-        } else {
+        if (!isDesktop()) { closeMobile(); expand(false); }
+        else {
             const state = localStorage.getItem(SIDEBAR_KEY) || 'expanded';
             state === 'collapsed' ? collapse(false) : expand(false);
         }
