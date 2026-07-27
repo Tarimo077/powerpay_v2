@@ -18,20 +18,20 @@
     <div class="flex items-center gap-2 sm:gap-3">
 
         <!-- Theme Toggle -->
-        <label class="btn btn-ghost btn-sm btn-circle swap swap-rotate text-base-content/60 hover:text-base-content">
+        <label class="btn btn-ghost btn-lg btn-circle swap swap-rotate text-base-content/60 hover:text-base-content">
             <input type="checkbox" id="themeToggle" />
-            <i class="swap-off fas fa-sun text-sm"></i>
-            <i class="swap-on fas fa-moon text-sm"></i>
+            <i class="swap-off fas fa-sun text-lg"></i>
+            <i class="swap-on fas fa-moon text-lg"></i>
         </label>
 
         <!-- Notifications -->
         <div class="relative" id="notifContainer">
             <button id="notifDropdownBtn"
-                    class="btn btn-ghost btn-sm btn-circle text-base-content/60 hover:text-base-content relative"
+                    class="btn btn-ghost btn-lg btn-circle text-base-content/60 hover:text-base-content relative"
                     hx-get="{% url 'notifications:dropdown' %}"
                     hx-target="#notifDropdown"
                     hx-trigger="click">
-                <i class="fas fa-bell text-sm"></i>
+                <i class="fas fa-bell text-lg"></i>
                 <span id="notifCount"
                       hx-get="{% url 'notifications:unread_count' %}"
                       hx-trigger="refresh, load"
