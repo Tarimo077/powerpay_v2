@@ -39,7 +39,7 @@ def enforce_paygo():
 
         device_qs = DeviceInfo.objects.filter(deviceid__endswith=serial_last4)
 
-        if total_paid < expected_paid * 0.7:
+        if total_paid < expected_paid:
             device_qs.update(active=False)
         else:
             device_qs.update(active=True)
