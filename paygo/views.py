@@ -129,6 +129,8 @@ def paygo_sales_view(request):
         if total_paid >= plan["total_price"]:
             days_behind = 0
             days_to_next = 0
+            balance = 0
+            paygo_balance = 0
         else:
             expected_weeks = (total_paid - plan["deposit"]) // plan["weekly_payment"] if plan["weekly_payment"] > 0 else 0
             expected_next_payment_date = start_date + timezone.timedelta(weeks=expected_weeks + 1)
