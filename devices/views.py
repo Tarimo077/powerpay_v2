@@ -46,7 +46,7 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 from django.conf import settings
-
+from core.tasks import CO2_PER_KWH
 
 COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
 
@@ -849,7 +849,7 @@ def device_detail(request, deviceid):
     # ---------------------------
     # CO2
     # ---------------------------
-    CO2_PER_KWH = 0.41
+    
     co2_emissions = total_kwh * CO2_PER_KWH
     previous_co2 = previous_kwh * CO2_PER_KWH
 
