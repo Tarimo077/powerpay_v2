@@ -324,7 +324,7 @@
 
 <script>
 Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
-Chart.defaults.font.size = 11;
+Chart.defaults.font.size = 12;
 Chart.defaults.color = '#64748b';
 
 function generateColor(index, saturation=70, lightness=50) {
@@ -339,7 +339,7 @@ if(mealTypeEl){
             labels:['Breakfast','Lunch','Supper'],
             datasets:[{label:'Events', data:{{ meal_data|safe }}, backgroundColor:['#f97316','#22c55e','#3b82f6'], borderRadius: 8, barPercentage: 0.6}]
         },
-        options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true, grid:{color:'#f1f5f9'}}, x:{grid:{display:false}}}, plugins:{legend:{display:false}}}
+        options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true, grid:{display: false}}, x:{grid:{display:false}}}, plugins:{legend:{display:false}}}
     });
 }
 
@@ -349,7 +349,7 @@ if(cookingTimeEl){
     new Chart(cookingTimeEl,{
         type:'bar',
         data:{labels:{{cooking_event_hours_labels|safe}}, datasets:[{label:'Events', data:{{cooking_event_hours_data|safe}}, backgroundColor:colors, borderRadius:4, barPercentage:0.7}]},
-        options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true, grid:{color:'#f1f5f9'}}, x:{grid:{display:false}}}, plugins:{legend:{display:false}}}
+        options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true, grid:{display: false}}, x:{grid:{display:false}}}, plugins:{legend:{display:false}}}
     });
 }
 
@@ -358,7 +358,7 @@ if(deviceStatusEl){
     new Chart(deviceStatusEl.getContext('2d'),{
         type:'bar',
         data:{labels:['Active','Inactive'], datasets:[{data:[{{device_status_counts.ON|default:0}},{{device_status_counts.OFF|default:0}}], backgroundColor:['#10b981','#f59e0b'], borderRadius:8, barPercentage:0.5}]},
-        options:{responsive:true, maintainAspectRatio:false, scales:{x:{grid:{display:false}}, y:{grid:{color:'#f1f5f9'},beginAtZero:true}}, plugins:{legend:{display:false}, datalabels:{color:'#fff', font:{weight:'bold',size:12}, formatter:(v,ctx)=>{const s=ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);return s>0?`${v} (${((v/s)*100).toFixed(0)}%)`:'0';}}}},
+        options:{responsive:true, maintainAspectRatio:false, scales:{x:{grid:{display:false}}, y:{grid:{display: false},beginAtZero:true}}, plugins:{legend:{display:false}, datalabels:{color:'#fff', font:{weight:'bold',size:12}, formatter:(v,ctx)=>{const s=ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);return s>0?`${v} (${((v/s)*100).toFixed(0)}%)`:'0';}}}},
         plugins:[ChartDataLabels]
     });
 }
@@ -368,7 +368,7 @@ if(kwhLineEl){
     new Chart(kwhLineEl.getContext('2d'),{
         type:'line',
         data:{labels:{{energy_line_labels|safe}}, datasets:[{label:"kWh", data:{{energy_line_data|safe}}, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.08)', tension:0.4, fill:true, pointRadius:2, pointHoverRadius:5, borderWidth:2}]},
-        options:{responsive:true, maintainAspectRatio:false, scales:{x:{grid:{display:false}}, y:{grid:{color:'#f1f5f9'},beginAtZero:true}}, plugins:{legend:{display:false}}}
+        options:{responsive:true, maintainAspectRatio:false, scales:{x:{grid:{display:false}}, y:{grid:{display: false},beginAtZero:true}}, plugins:{legend:{display:false}}}
     });
 }
 
@@ -378,7 +378,7 @@ if(moneyByOrgEl){
     new Chart(moneyByOrgEl.getContext('2d'),{
         type:'bar',
         data:{labels:{{money_by_org_labels|safe}}, datasets:[{data:{{money_by_org_data|safe}}, backgroundColor:['#10b981','#f59e0b','#3b82f6','#8b5cf6','#ef4444'], borderRadius:8, barPercentage:0.6}]},
-        options:{responsive:true, maintainAspectRatio:false, scales:{x:{grid:{display:false}}, y:{grid:{color:'#f1f5f9'},beginAtZero:true}}, plugins:{legend:{display:false}, datalabels:{color:'#fff', font:{weight:'bold'}, formatter:(v)=>v.toLocaleString()}}},
+        options:{responsive:true, maintainAspectRatio:false, scales:{x:{grid:{display:false}}, y:{grid:{display: false},beginAtZero:true}}, plugins:{legend:{display:false}, datalabels:{color:'#fff', font:{weight:'bold'}, formatter:(v)=>v.toLocaleString()}}},
         plugins:[ChartDataLabels]
     });
 }
@@ -392,7 +392,7 @@ if(moneyLineEl){
     new Chart(moneyLineEl.getContext('2d'),{
         type:'line',
         data:{labels:{{money_line_labels|safe}}, datasets:datasets},
-        options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false, position:'top', labels:{boxWidth:8, usePointStyle:true, pointStyle:'circle', font:{size:10}}}}, scales:{x:{grid:{display:false}}, y:{grid:{color:'#f1f5f9'},beginAtZero:true}}}
+        options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false, position:'top', labels:{boxWidth:8, usePointStyle:true, pointStyle:'circle', font:{size:10}}}}, scales:{x:{grid:{display:false}}, y:{grid:{display: false},beginAtZero:true}}}
     });
 }
 {% endif %}
