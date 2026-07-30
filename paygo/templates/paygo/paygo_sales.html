@@ -161,7 +161,8 @@
             result{{ total_results|pluralize }}
         </div>
 
-        <table class="table bg-base-100">
+        <div class="bg-base-100 overflow-x-auto w-full">
+        <table class="table">
             <thead class="bg-success text-success-content text-sm uppercase tracking-wide">
                 <tr>
                     <th class="px-4 py-3 text-left text-white rounded-tl-lg"><a href="?sort=serial&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.serial }}&page_size={{ page_size }}">
@@ -393,6 +394,7 @@
         </tbody>
 
         </table>
+        </div>
 
 
         <div class="flex justify-end mt-6">

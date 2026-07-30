@@ -24,7 +24,7 @@
         <div>
 
             <!-- Filters -->
-            <form method="get" class="flex flex-row gap-2 mb-6 w-1/2">
+            <form method="get" class="flex flex-row gap-2 mb-6">
 
                 {% if is_superadmin %}
                 <select
@@ -115,7 +115,7 @@
                         <i class="fas fa-coins text-amber-600 text-sm"></i>
                     </div>
                 </div>
-                <p class="text-2xl font-bold text-base-content">Ksh {{ total_revenue|intcomma }}</p>
+                <p class="text-2xl font-bold text-base-content">Ksh {{ total_revenue|floatformat:1|intcomma }}</p>
                 <div class="flex items-center gap-1.5 mt-2">
                     <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-base-content/50 bg-base-200 px-1.5 py-0.5 rounded-md">{{ total_transactions|intcomma }}</span>
                     <span class="text-[10px] text-base-content/40">transactions</span>
@@ -146,7 +146,7 @@
                         <i class="fas fa-calculator text-violet-600 text-sm"></i>
                     </div>
                 </div>
-                <p class="text-2xl font-bold text-base-content">Ksh {{ avg_transaction|intcomma }}</p>
+                <p class="text-2xl font-bold text-base-content">Ksh {{ avg_transaction|floatformat:1|intcomma }}</p>
             </div>
 
             <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
@@ -156,7 +156,7 @@
                         <i class="fas fa-chart-bar text-orange-600 text-sm"></i>
                     </div>
                 </div>
-                <p class="text-2xl font-bold text-base-content">Ksh {{ revenue_per_customer|floatformat:0|intcomma }}</p>
+                <p class="text-2xl font-bold text-base-content">Ksh {{ revenue_per_customer|floatformat:1|intcomma }}</p>
             </div>
 
             <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
@@ -166,7 +166,7 @@
                         <i class="fas fa-percent text-rose-600 text-sm"></i>
                     </div>
                 </div>
-                <p class="text-2xl font-bold text-base-content">{{ conversion_rate }}%</p>
+                <p class="text-2xl font-bold text-base-content">{{ conversion_rate|floatformat:1 }}%</p>
                 <div class="flex items-center gap-1.5 mt-2">
                     <span class="text-[10px] text-base-content/40">Customers with purchases</span>
                 </div>
@@ -203,7 +203,7 @@
                         <i class="fas fa-download text-xs"></i>
                     </button>
                 </div>
-                <div class="h-56">
+                <div class="h-64">
                     <canvas id="customerGrowthChart"></canvas>
                 </div>
             </div>
@@ -219,7 +219,7 @@
                         <i class="fas fa-download text-xs"></i>
                     </button>
                 </div>
-                <div class="h-56">
+                <div class="h-64">
                     <canvas id="salesTrendChart"></canvas>
                 </div>
             </div>
@@ -235,7 +235,7 @@
                         <i class="fas fa-download text-xs"></i>
                     </button>
                 </div>
-                <div class="h-56 flex items-center justify-center">
+                <div class="h-64 flex items-center justify-center">
                     <canvas id="genderChart"></canvas>
                 </div>
             </div>
@@ -251,7 +251,7 @@
                         <i class="fas fa-download text-xs"></i>
                     </button>
                 </div>
-                <div class="h-56 flex items-center justify-center">
+                <div class="h-64 flex items-center justify-center">
                     <canvas id="productChart"></canvas>
                 </div>
             </div>
@@ -267,7 +267,7 @@
                         <i class="fas fa-download text-xs"></i>
                     </button>
                 </div>
-                <div class="h-56">
+                <div class="h-64">
                     <canvas id="modeChart"></canvas>
                 </div>
             </div>
@@ -283,7 +283,7 @@
                         <i class="fas fa-download text-xs"></i>
                     </button>
                 </div>
-                <div class="h-56">
+                <div class="h-64">
                     <canvas id="hourChart"></canvas>
                 </div>
             </div>
@@ -299,7 +299,7 @@
                         <i class="fas fa-download text-xs"></i>
                     </button>
                 </div>
-                <div class="h-56">
+                <div class="h-64">
                     <canvas id="countyChart"></canvas>
                 </div>
             </div>
@@ -315,7 +315,7 @@
                         <i class="fas fa-download text-xs"></i>
                     </button>
                 </div>
-                <div class="h-56 flex items-center justify-center">
+                <div class="h-64 flex items-center justify-center">
                     <canvas id="deviceStatusChart"></canvas>
                 </div>
             </div>
@@ -542,7 +542,7 @@ new Chart(document.getElementById('revenueTrendChart'), {
     },
     options: {
         responsive: true, maintainAspectRatio: false,
-        scales: { x: { grid: { display: false } }, y: { grid: { color: '#f1f5f9' }, beginAtZero: true } },
+        scales: { x: { grid: { display: false } }, y: { grid: { display: false }, beginAtZero: true } },
         plugins: { legend: { display: false } }
     }
 });
@@ -556,7 +556,7 @@ new Chart(document.getElementById('customerGrowthChart'), {
     },
     options: {
         responsive: true, maintainAspectRatio: false,
-        scales: { x: { grid: { display: false } }, y: { grid: { color: '#f1f5f9' }, beginAtZero: true } },
+        scales: { x: { grid: { display: false } }, y: { grid: { display: false }, beginAtZero: true } },
         plugins: { legend: { display: false } }
     }
 });
@@ -570,7 +570,7 @@ new Chart(document.getElementById('salesTrendChart'), {
     },
     options: {
         responsive: true, maintainAspectRatio: false,
-        scales: { x: { grid: { display: false } }, y: { grid: { color: '#f1f5f9' }, beginAtZero: true } },
+        scales: { x: { grid: { display: false } }, y: { grid: { display: false }, beginAtZero: true } },
         plugins: { legend: { display: false } }
     }
 });
@@ -593,21 +593,21 @@ new Chart(document.getElementById('productChart'), {
 new Chart(document.getElementById('modeChart'), {
     type: 'bar',
     data: { labels: {{ mode_labels|safe }}, datasets: [{ data: {{ mode_data|safe }}, backgroundColor: ['#10b981', '#3b82f6', '#f59e0b'], borderRadius: 8, barPercentage: 0.6 }] },
-    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { grid: { color: '#f1f5f9' }, beginAtZero: true }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { grid: { display: false }, beginAtZero: true }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
 });
 
 // Transactions by Hour
 new Chart(document.getElementById('hourChart'), {
     type: 'bar',
     data: { labels: {{ hour_labels|safe }}, datasets: [{ data: {{ hour_data|safe }}, backgroundColor: '#06b6d4', borderRadius: 4, barPercentage: 0.7 }] },
-    options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { grid: { color: '#f1f5f9' }, beginAtZero: true } }, plugins: { legend: { display: false } } }
+    options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { grid: { display: false }, beginAtZero: true } }, plugins: { legend: { display: false } } }
 });
 
 // County Chart - each bar a different color
 new Chart(document.getElementById('countyChart'), {
     type: 'bar',
     data: { labels: {{ county_labels|safe }}, datasets: [{ data: {{ county_data|safe }}, backgroundColor: countyColors, borderRadius: 6, barPercentage: 0.6 }] },
-    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { grid: { color: '#f1f5f9' }, beginAtZero: true }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { grid: { display: false }, beginAtZero: true }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
 });
 
 // Device Status Doughnut
