@@ -4,7 +4,8 @@ from . import views
 app_name = "core"
 
 urlpatterns = [
-    path("", views.index, name="index"),
+    path("", views.landing, name="landing"),
+    path("dashboard/", views.index, name="index"),
     path("storyboard/", views.storyboard, name="storyboard"),
     path("export/", views.export_data_view, name="export_data"),
     path("export/count/", views.export_count_view, name="export_count"), 

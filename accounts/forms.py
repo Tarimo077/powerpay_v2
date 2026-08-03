@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
+from django.contrib.auth.password_validation import validate_password
 from .models import User, UserInvite
 from organizations.models import Organization
 
@@ -199,3 +200,56 @@ class UserEditForm(forms.ModelForm):
 
         self.fields["first_name"].required = False
         self.fields["last_name"].required = False
+
+
+# ======================
+# INVITE PASSWORD FORM
+# ======================
+PASSWORD_INPUT_CLASSES = (
+    "input input-bordered w-full border-green-300 "
+    "focus:border-green-500 focus:ring focus:ring-green-200 "
+    "rounded-lg bg-base-100 transition"
+)
+
+
+class SetInvitePasswordForm(forms.Form):
+    """Password + confirmation for a user activating an invited account."""
+
+    password1 = forms.CharField(
+        label="Password",
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            "placeholder": "Enter password",
+            "class": PASSWORD_INPUT_CLASSES,
+            "autocomplete": "new-password",
+        }),
+    )
+
+    password2 = forms.CharField(
+        label="Confirm Password",
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            "placeholder": "Re-enter password",
+            "class": PASSWORD_INPUT_CLASSES,
+            "autocomplete": "new-password",
+        }),
+    )
+
+    def __init__(self, *args, email=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.email = email
+
+    def clean_password1(self):
+        password = self.cleaned_data.get("password1")
+        validate_password(password, User(email=self.email or ""))
+        return password
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get("password1")
+        password2 = cleaned_data.get("password2")
+
+        if password1 and password2 and password1 != password2:
+            self.add_error("password2", "The two password fields didn't match.")
+
+        return cleaned_data

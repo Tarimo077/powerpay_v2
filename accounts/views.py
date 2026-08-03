@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate
 from django.contrib import messages
 from django.contrib.auth import login
 from .models import EmailOTP, User, UserInvite
-from .forms import LoginForm, InviteUserForm
+from .forms import LoginForm, InviteUserForm, SetInvitePasswordForm
 import random
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
@@ -211,24 +211,29 @@ def accept_invite(request, token):
         return redirect("accounts:login")
 
     if request.method == "POST":
-        password = request.POST.get("password")
+        form = SetInvitePasswordForm(request.POST, email=invite.email)
 
-        user = User.objects.create_user(
-            email=invite.email,
-            password=password,
-            organization=invite.organization,
-            role=invite.role,
-            is_staff=invite.role in ["admin", "staff"],
-        )
+        if form.is_valid():
+            user = User.objects.create_user(
+                email=invite.email,
+                password=form.cleaned_data["password1"],
+                organization=invite.organization,
+                role=invite.role,
+                is_staff=invite.role in ["admin", "staff"],
+            )
 
-        invite.is_used = True
-        invite.save()
+            invite.is_used = True
+            invite.save()
 
-        notify(user, "Welcome", f"Welcome to the {invite.organization} organization.", "success")
-        notify(invite.invited_by, "Invite Accepted", f"Your invite to {invite.email} has been accepted.", "success")
-        return redirect("accounts:login")
+            notify(user, "Welcome", f"Welcome to the {invite.organization} organization.", "success")
+            notify(invite.invited_by, "Invite Accepted", f"Your invite to {invite.email} has been accepted.", "success")
+            return redirect("accounts:login")
 
-    return render(request, "accounts/accept_invite.html")
+        messages.error(request, "Please correct the errors below.")
+    else:
+        form = SetInvitePasswordForm(email=invite.email)
+
+    return render(request, "accounts/accept_invite.html", {"form": form})
 
 
 @login_required

@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}PowerPay Africa | Clean Energy Appliances on PayGo{% endblock %}
+
+{% block extra_head %}
+<meta name="description" content="PowerPay Africa brings clean-energy appliances to the next billion households through pay-as-you-go financing, smart metering and real-time device telemetry.">
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-base-100 text-base-content">
+
+  <!-- Nav -->
+  <header class="sticky top-0 z-30 border-b border-base-300 bg-base-100 backdrop-blur">
+    <nav class=" flex items-center justify-between px-1 py-1">
+      <a href="{% url 'core:landing' %}" class="flex items-center gap-2">
+        <img src="{% static 'images/powerpaylogo.png' %}" alt="PowerPay Africa" class="h-24 w-auto object-contain">
+      </a>
+      <a href="{% url 'accounts:login' %}" class="btn btn-success btn-sm text-white font-bold rounded-lg shadow">
+        <i class="fa-solid fa-right-to-bracket"></i> Sign In
+      </a>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden">
+    <div class="pointer-events-none absolute -left-32 -top-32 h-80 w-80 rounded-full bg-success/20 blur-3xl"></div>
+    <div class="pointer-events-none absolute -bottom-40 -right-32 h-96 w-96 rounded-full bg-warning/20 blur-3xl"></div>
+
+    <div class="relative  px-5 py-24 md:py-32">
+      <div class="max-w-3xl">
+        <span class="inline-flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-success">
+          <i class="fa-solid fa-bolt"></i> PayGo Energy Platform
+        </span>
+
+        <h1 class="mt-6 text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl md:text-6xl">
+          Appliances for the
+          <span class="text-success">next billion</span>
+        </h1>
+
+        <p class="mt-6 max-w-2xl text-lg leading-relaxed text-base-content/70">
+          PowerPay Africa delivers the technology to power clean-energy appliances and smart meters on flexible pay-as-you-go terms, featuring live device telemetry, automated billing, and field-ready operations.
+        </p>
+
+        <div class="mt-9 flex flex-wrap items-center gap-4">
+          <a href="{% url 'accounts:login' %}" class="btn btn-success btn-lg text-white font-bold rounded-xl shadow-lg">
+            <i class="fa-solid fa-right-to-bracket"></i> Sign In
+          </a>
+          <span class="text-sm text-base-content/50">Access is invitation only.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- What we do -->
+  <section class="border-y border-base-300/60 bg-base-200/60">
+    <div class=" px-5 py-20">
+      <h2 class="text-2xl font-bold tracking-tight sm:text-3xl">One platform, end to end</h2>
+      <p class="mt-2 max-w-2xl text-base-content/60">From the warehouse shelf to the last repayment.</p>
+
+      <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="stat-card rounded-2xl border border-base-300/70 bg-base-100 p-6">
+          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-success/10 text-success">
+            <i class="fa-solid fa-blender text-lg"></i>
+          </div>
+          <h3 class="mt-4 font-bold">PayGo appliances</h3>
+          <p class="mt-1.5 text-sm leading-relaxed text-base-content/60">
+            Electric cookers and appliances sold on affordable instalment plans with automated unlock control.
+          </p>
+        </div>
+
+        <div class="stat-card rounded-2xl border border-base-300/70 bg-base-100 p-6">
+          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-info/10 text-info">
+            <i class="fa-solid fa-gauge-high text-lg"></i>
+          </div>
+          <h3 class="mt-4 font-bold">Smart metering</h3>
+          <p class="mt-1.5 text-sm leading-relaxed text-base-content/60">
+            Meter-level consumption, tariffs and top-ups tracked continuously across every deployment.
+          </p>
+        </div>
+
+        <div class="stat-card rounded-2xl border border-base-300/70 bg-base-100 p-6">
+          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-warning/10 text-warning">
+            <i class="fa-solid fa-tower-broadcast text-lg"></i>
+          </div>
+          <h3 class="mt-4 font-bold">Device telemetry</h3>
+          <p class="mt-1.5 text-sm leading-relaxed text-base-content/60">
+            Live cooking events, energy usage and device health streamed straight from the field.
+          </p>
+        </div>
+
+        <div class="stat-card rounded-2xl border border-base-300/70 bg-base-100 p-6">
+          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+            <i class="fa-solid fa-file-invoice-dollar text-lg"></i>
+          </div>
+          <h3 class="mt-4 font-bold">Billing &amp; collections</h3>
+          <p class="mt-1.5 text-sm leading-relaxed text-base-content/60">
+            Invoices, receipts and repayment reconciliation handled automatically per customer.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust row -->
+  <section class=" px-5 py-20">
+    <div class="grid gap-8 rounded-3xl border border-base-300/70 bg-base-100 p-10 sm:grid-cols-3">
+      <div>
+        <p class="text-4xl font-black text-success">Clean</p>
+        <p class="mt-1 text-sm text-base-content/60">Electric cooking that replaces charcoal and kerosene.</p>
+      </div>
+      <div>
+        <p class="text-4xl font-black text-success">Affordable</p>
+        <p class="mt-1 text-sm text-base-content/60">Daily and weekly plans matched to household income.</p>
+      </div>
+      <div>
+        <p class="text-4xl font-black text-success">Connected</p>
+        <p class="mt-1 text-sm text-base-content/60">Every device monitored, every payment accounted for.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-base-300/60 bg-base-200/60">
+    <div class=" flex flex-col items-center justify-between gap-4 px-5 py-8 sm:flex-row">
+      <div class="flex items-center gap-2">
+        <img src="{% static 'images/pp_no_bgcropped.png' %}" alt="PowerPay Africa" class="h-7 w-auto object-contain">
+        <span class="text-sm text-base-content/60">Appliances for the next billion</span>
+      </div>
+      <p class="text-xs text-base-content/50">&copy; {% now "Y" %} PowerPay Africa. All rights reserved.</p>
+    </div>
+  </footer>
+
+</div>
+{% endblock %}

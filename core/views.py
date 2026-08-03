@@ -238,6 +238,13 @@ def _testing_export_rows(queryset, model):
     return [], []
 
 
+def landing(request):
+    """Public marketing landing page. Signed-in users go straight to the dashboard."""
+    if request.user.is_authenticated:
+        return redirect("core:index")
+    return render(request, "landing.html")
+
+
 @login_required
 def index(request):
     user = request.user
