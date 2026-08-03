@@ -42,86 +42,96 @@
         </div>
 
         <!-- STATS -->
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            <div class="card bg-base-100 shadow border-2 border-success">
-                <div class="card-body">
-                    <div class="flex justify-between items-center">
-                        <p class="text-sm uppercase">Total Units</p>
-                        <div class="rounded-full bg-base-100 flex items-center justify-center">
-                            <i class="fa-solid fa-boxes-stacked text-xl text-success"></i>
-                        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+
+            <!-- Total Units -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Total Units
+                    </span>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-boxes-stacked text-blue-600 text-sm"></i>
                     </div>
-
-                    <p class="text-3xl font-bold text-success">
-                        {{ total_items|default:0|intcomma }}
-                    </p>
-
-                    <p class="text-xs">
-                        Total physical quantity across all active inventory rows.
-                    </p>
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ total_items|default:0|intcomma }}
+                </p>
+
+                <p class="text-xs text-base-content/60 mt-2">
+                    Total physical quantity across all active inventory rows.
+                </p>
             </div>
 
-            <div class="card bg-base-100 shadow border-2 border-success">
-                <div class="card-body">
-                    <div class="flex justify-between items-center">
-                        <p class="text-sm uppercase">Unique Items</p>
-                        <div class="rounded-full bg-base-100 flex items-center justify-center">
-                            <i class="fa-solid fa-fingerprint text-xl text-success"></i>
-                        </div>
+            <!-- Unique Items -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Unique Items
+                    </span>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-fingerprint text-violet-600 text-sm"></i>
                     </div>
-
-                    <p class="text-3xl font-bold text-success">
-                        {{ unique_items|default:0|intcomma }}
-                    </p>
-
-                    <p class="text-xs">
-                        Individually tracked serial numbers. Each one has quantity 1.
-                    </p>
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ unique_items|default:0|intcomma }}
+                </p>
+
+                <p class="text-xs text-base-content/60 mt-2">
+                    Individually tracked serial numbers. Each one has quantity 1.
+                </p>
             </div>
 
-            <div class="card bg-base-100 shadow border-2 border-success">
-                <div class="card-body">
-                    <div class="flex justify-between items-center">
-                        <p class="text-sm uppercase">Shared Stock Rows</p>
-                        <div class="rounded-full bg-base-100 flex items-center justify-center">
-                            <i class="fa-solid fa-layer-group text-xl text-success"></i>
-                        </div>
+            <!-- Shared Stock Rows -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Shared Stock Rows
+                    </span>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-layer-group text-amber-600 text-sm"></i>
                     </div>
-
-                    <p class="text-3xl font-bold text-success">
-                        {{ shared_rows|default:0|intcomma }}
-                    </p>
-
-                    <p class="text-xs">
-                        Active shared serial rows grouped by serial number and warehouse.
-                    </p>
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ shared_rows|default:0|intcomma }}
+                </p>
+
+                <p class="text-xs text-base-content/60 mt-2">
+                    Active shared serial rows grouped by serial number and warehouse.
+                </p>
             </div>
 
-            <div class="card bg-base-100 shadow border-2 border-success">
-                <div class="card-body">
-                    <div class="flex justify-between items-center">
-                        <p class="text-sm uppercase">Shared Units</p>
-                        <div class="rounded-full bg-base-100 flex items-center justify-center">
-                            <i class="fa-solid fa-cubes text-xl text-success"></i>
-                        </div>
+            <!-- Shared Units -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Shared Units
+                    </span>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-cubes text-emerald-600 text-sm"></i>
                     </div>
-
-                    <p class="text-3xl font-bold text-success">
-                        {{ shared_units|default:0|intcomma }}
-                    </p>
-
-                    <p class="text-xs">
-                        Total quantity held by shared serial stock.
-                    </p>
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ shared_units|default:0|intcomma }}
+                </p>
+
+                <p class="text-xs text-base-content/60 mt-2">
+                    Total quantity held by shared serial stock.
+                </p>
             </div>
+
         </div>
 
         <!-- QUICK USAGE GUIDE -->
-        <div class="collapse collapse-arrow bg-base-100 shadow border border-base-300">
+        <div class="collapse collapse-arrow bg-base-100 shadow border border-base-200">
             <input type="checkbox" />
 
             <div class="collapse-title font-semibold">
@@ -258,7 +268,7 @@ RES-102:1</code></pre>
 
         <!-- CHARTS -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div id="itemsWarehouse" class="card bg-base-100 border-2 border-success shadow p-4 outline-none flex flex-col min-h-96">
+            <div id="itemsWarehouse" class="card bg-base-100 border border-base-200 shadow p-4 outline-none flex flex-col min-h-96">
                 <div class="flex flex-wrap justify-between items-center gap-2 mb-2 border-none outline-none">
                     <div>
                         <h3 class="text-lg font-semibold border-none">
@@ -284,7 +294,7 @@ RES-102:1</code></pre>
                 </div>
             </div>
 
-            <div id="inventoryGrowth" class="card bg-base-100 border-2 border-success shadow p-4 outline-none flex flex-col min-h-96">
+            <div id="inventoryGrowth" class="card bg-base-100 border border-base-200 shadow p-4 outline-none flex flex-col min-h-96">
                 <div class="flex flex-wrap justify-between items-center gap-2 mb-2 border-none outline-none">
                     <div>
                         <h3 class="text-lg font-semibold border-none outline-none">
@@ -370,12 +380,20 @@ new Chart(document.getElementById("inventoryGrowthChart"), {
         },
         scales: {
             y: {
+                grid: {
+                    display: false
+                },
                 beginAtZero: true,
                 ticks: {
                     precision: 0,
                     callback: function(value) {
                         return Number(value).toLocaleString();
                     }
+                }
+            },
+            x: {
+                grid: {
+                    display: false
                 }
             }
         }

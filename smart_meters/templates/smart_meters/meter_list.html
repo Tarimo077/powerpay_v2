@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Powerpay Africa | Smart Meters{% endblock %}
-
+{% load humanize %}
 {% block content %}
 {% include "partials/navbar.html" %}
 
@@ -22,12 +22,24 @@
         </div>
 
         <!-- Summary Cards -->
-        <div class="grid grid-cols-1 gap-4 mb-6">
-            <div class="card bg-base-100 p-4 shadow border-2 border-success">
-                <p class="text-sm mb-2">Total Meters</p>
-                <p class="font-semibold text-success">{{ total_meters }}</p>
+        <div class="grid grid-cols-1 gap-6 mb-6">
+
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Total Meters
+                    </span>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-gauge-high text-success text-sm"></i>
+                    </div>
+                </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ total_meters|intcomma }}
+                </p>
             </div>
-            
+
         </div>
 
         <!-- Table -->

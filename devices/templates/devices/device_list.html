@@ -41,52 +41,52 @@
         <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
 
-            <div class="stat-card bg-base-100 rounded-2xl p-5 shadow-sm border border-base-200">
-                <div class="flex flex-col justify-center">
-                    <div class="flex items-center justify-between">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
-                            Total Devices
-                        </p>
-                        <div class="rounded-xl flex items-center justify-center ml-auto">
-                            <i class="fas fa-plug text-info text-sm"></i>
-                        </div>
+            <!-- Total Devices -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Total Devices
+                    </span>
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-plug text-info text-sm"></i>
                     </div>
-                    <p class="text-2xl font-bold text-base-content mt-2">
-                        {{ total_devices|intcomma }}
-                    </p>
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ total_devices|intcomma }}
+                </p>
             </div>
 
-            <div class="stat-card bg-base-100 rounded-2xl p-5 shadow-sm border border-base-200">
-                <div class="flex flex-col justify-center">
-                    <div class="flex items-center justify-between">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
-                            Active Devices
-                        </p>
-                        <div class="rounded-xl flex items-center justify-center ml-auto">
-                            <i class="fas fa-plug-circle-check text-success text-sm"></i>
-                        </div>
+            <!-- Active Devices -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Active Devices
+                    </span>
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-plug-circle-check text-success text-sm"></i>
                     </div>
-                    <p class="text-2xl font-bold text-base-content mt-2">
-                        {{ active_devices|intcomma }}
-                    </p>
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ active_devices|intcomma }}
+                </p>
             </div>
 
-            <div class="stat-card bg-base-100 rounded-2xl p-5 shadow-sm border border-base-200">
-                <div class="flex flex-col justify-center">
-                    <div class="flex items-center justify-between">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
-                            Inactive Devices
-                        </p>
-                        <div class="rounded-xl flex items-center justify-center ml-auto">
-                            <i class="fas fa-plug-circle-xmark text-error text-sm"></i>
-                        </div>
+            <!-- Inactive Devices -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Inactive Devices
+                    </span>
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-plug-circle-xmark text-error text-sm"></i>
                     </div>
-                    <p class="text-2xl font-bold text-base-content mt-2">
-                        {{ inactive_devices|intcomma }}
-                    </p>
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ inactive_devices|intcomma }}
+                </p>
             </div>
 
         </div>

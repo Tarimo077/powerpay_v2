@@ -22,19 +22,38 @@
         <!-- SUMMARY CARDS -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
+            <!-- Total Money -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Total Money
+                    </span>
 
-            <div class="card bg-base-100 shadow border-2 border-success">
-                    <div class="card-body flex flex-col justify-center">
-                        <div class="flex"><p class="text-sm uppercase">Total Money</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-piggy-bank text-2xl text-success"></i></div></div>
-                        <p class="text-2xl font-bold text-success">{{ total_amount|intcomma }}</p>
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-piggy-bank text-emerald-600 text-sm"></i>
                     </div>
+                </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ total_amount|intcomma }}
+                </p>
             </div>
 
-            <div class="card bg-base-100 shadow border-2 border-success">
-                    <div class="card-body flex flex-col justify-center">
-                        <div class="flex"><p class="text-sm uppercase">Transactions Count</p><div class="flex p-2 items-center justify-center rounded-full bg-base-100"><i class="fa-solid fa-money-bills text-2xl text-success"></i></div></div>
-                        <p class="text-2xl font-bold text-success">{{ transaction_count|intcomma }}</p>
+            <!-- Transactions Count -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Transactions Count
+                    </span>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-money-bill-transfer text-blue-600 text-sm"></i>
                     </div>
+                </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ transaction_count|intcomma }}
+                </p>
             </div>
 
         </div>
@@ -45,7 +64,7 @@
 
             
             <!-- Money by Org Card -->
-            <div id="moneyByOrgCard" class="card bg-base-100 border-2 border-success shadow p-4 outline-none flex flex-col">
+            <div id="moneyByOrgCard" class="card bg-base-100 border border-base-200 shadow p-4 outline-none flex flex-col">
 
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
                     <h3 class="text-lg font-semibold border-none">
@@ -69,7 +88,7 @@
 
             </div>
         <!-- Money Last 7 Days Line Chart -->
-            <div id="week-transactions" class="card bg-base-100 border-2 border-success shadow outline-none p-4 flex flex-col">
+            <div id="week-transactions" class="card bg-base-100 border border-base-200 shadow outline-none p-4 flex flex-col">
                 <div class="flex justify-between items-center mb-2 border-none outline-none">
                     <h3 class="text-lg font-semibold border-none">
                         Money In Last 7 Days
@@ -212,8 +231,8 @@ new Chart(moneyLineCtx, {
             tooltip: { mode: 'index', intersect: false, usePointStyle: true }
         },
         scales: {
-            y: { title: { display: true, text: 'Amount' }, beginAtZero: true },
-            x: { title: { display: true, text: 'Day' } }
+            y: { grid: { display: false }, title: { display: true, text: 'Amount' }, beginAtZero: true },
+            x: { grid: { display: false }, title: { display: true, text: 'Day' } }
         }
     }
 });

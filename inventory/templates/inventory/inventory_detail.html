@@ -29,48 +29,110 @@
         </a>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="card bg-base-100 p-4 shadow border-2 border-success">
-            <p class="text-sm mb-4 text-gray-500">Serial Number</p>
-            <p class="font-semibold text-success font-mono">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <!-- Serial Number -->
+        <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                    Serial Number
+                </span>
+
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                    <i class="fa-solid fa-barcode text-blue-600 text-sm"></i>
+                </div>
+            </div>
+
+            <p class="text-xl font-bold font-mono text-base-content break-all">
                 {{ item.serial_number }}
             </p>
         </div>
 
-        <div class="card bg-base-100 p-4 shadow border-2 border-success">
-            <p class="text-sm mb-4 text-gray-500">Tracking Type</p>
-            <p class="font-semibold text-success">
+        <!-- Tracking Type -->
+        <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                    Tracking Type
+                </span>
+
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                    <i class="fa-solid fa-location-crosshairs text-violet-600 text-sm"></i>
+                </div>
+            </div>
+
+            <p class="text-2xl font-bold text-base-content">
                 {{ item.get_item_type_display }}
             </p>
         </div>
 
-        <div class="card bg-base-100 p-4 shadow border-2 border-success">
-            <p class="text-sm mb-4 text-gray-500">Quantity in This Warehouse Row</p>
-            <p class="font-semibold text-success">
+        <!-- Quantity -->
+        <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                    Quantity
+                </span>
+
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                    <i class="fa-solid fa-cubes text-emerald-600 text-sm"></i>
+                </div>
+            </div>
+
+            <p class="text-2xl font-bold text-base-content">
                 {{ item.quantity }}
             </p>
         </div>
 
-        <div class="card bg-base-100 p-4 shadow border-2 border-success">
-            <p class="text-sm mb-4 text-gray-500">Current Warehouse Row</p>
-            <p class="font-semibold text-success">
+        <!-- Current Warehouse -->
+        <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                    Current Warehouse
+                </span>
+
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                    <i class="fa-solid fa-warehouse text-amber-600 text-sm"></i>
+                </div>
+            </div>
+
+            <p class="text-xl font-bold text-base-content">
                 {{ item.current_warehouse.name }}
             </p>
         </div>
 
-        <div class="card bg-base-100 p-4 shadow border-2 border-success">
-            <p class="text-sm mb-4 text-gray-500">Days in Current Warehouse Row</p>
-            <p class="font-semibold text-success">
+        <!-- Days in Warehouse -->
+        <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                    Days in Warehouse
+                </span>
+
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                    <i class="fa-solid fa-calendar-days text-orange-600 text-sm"></i>
+                </div>
+            </div>
+
+            <p class="text-2xl font-bold text-base-content">
                 {{ item.days_in_current_warehouse }}
             </p>
         </div>
 
-        <div class="card bg-base-100 p-4 shadow border-2 border-success">
-            <p class="text-sm mb-4 text-gray-500">Total Quantity for Serial</p>
-            <p class="font-semibold text-success">
+        <!-- Total Quantity -->
+        <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                    Total Quantity for Serial
+                </span>
+
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                    <i class="fa-solid fa-boxes-stacked text-cyan-600 text-sm"></i>
+                </div>
+            </div>
+
+            <p class="text-2xl font-bold text-base-content">
                 {{ total_quantity_for_serial }}
             </p>
         </div>
+
     </div>
 
     {% if warehouse_breakdown %}

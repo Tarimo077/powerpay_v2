@@ -100,7 +100,7 @@
                     <span class="link-text flex-1 text-left">Devices</span>
                     <i class="link-text fas fa-chevron-down text-[10px] transition-transform duration-200" :class="open && 'rotate-180'"></i>
                 </button>
-                <div x-show="open" x-collapse class="ml-6 mt-1 space-y-0.5 border-l-2 border-base-200 pl-4">
+                <div x-show="open" x-collapse class="ml-6 mt-1 space-y-2 border-l-2 border-base-200 pl-4">
                     <a href="{% url 'devices:device_list' %}"
                        class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-[12.5px] transition-all
                        {% if request.resolver_match.namespace == 'devices' and 'schedules' not in request.path and 'testing-batches' not in request.path %}
@@ -210,7 +210,7 @@
                     <span class="link-text flex-1 text-left">Inventory</span>
                     <i class="link-text fas fa-chevron-down text-[10px] transition-transform duration-200" :class="open && 'rotate-180'"></i>
                 </button>
-                <div x-show="open" x-collapse class="ml-6 mt-1 space-y-0.5 border-l-2 border-base-200 pl-4">
+                <div x-show="open" x-collapse class="ml-6 mt-1 space-y-2 border-l-2 border-base-200 pl-4">
                     <a href="{% url 'inventory:inventory_page' %}"
                        class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-[12.5px] transition-all
                        {% if request.resolver_match.namespace == 'inventory' and 'warehouses' not in request.path and 'delivery-notes' not in request.path %}
@@ -333,7 +333,7 @@
     </div>
 
     <!-- Footer -->
-    <div class="shrink-0 p-3 border-t border-base-200">
+    <div class="shrink-0 p-3 border-t-2 border-base-300">
         <form method="post" action="{% url 'accounts:logout' %}">
             {% csrf_token %}
             <button type="submit"

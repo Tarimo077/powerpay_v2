@@ -49,40 +49,108 @@ Powerpay Africa | Delivery Note {{ delivery_note.delivery_number }}
         </div>
         {% endif %}
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="card bg-base-100 shadow border-2 border-success">
-                <div class="card-body">
-                    <p class="text-sm uppercase">Movement</p>
-                    <p class="font-bold text-success">{{ delivery_note.from_warehouse|default:"-" }}</p>
-                    <p class="text-xs text-gray-500">to</p>
-                    <p class="font-bold text-success">{{ delivery_note.to_warehouse|default:"-" }}</p>
-                </div>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-            <div class="card bg-base-100 shadow border-2 border-info">
-                <div class="card-body">
-                    <p class="text-sm uppercase">Receiver</p>
-                    <p class="font-bold text-info">{{ delivery_note.recipient_name }}</p>
-                    <p class="text-xs text-gray-500">{{ delivery_note.recipient_organization|default:"-" }}</p>
-                    <p class="text-xs text-gray-500">{{ delivery_note.recipient_phone|default:"-" }}</p>
-                    <p class="text-xs text-gray-500">{{ delivery_note.recipient_email|default:"-" }}</p>
-                </div>
-            </div>
+            <!-- Movement -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Movement
+                    </span>
 
-            <div class="card bg-base-100 shadow border-2 {% if delivery_note.is_received %}border-success{% else %}border-warning{% endif %}">
-                <div class="card-body">
-                    <p class="text-sm uppercase">Receipt Status</p>
-                    {% if delivery_note.is_received %}
-                        <span class="badge badge-success text-white badge-lg">Received</span>
-                        <p class="text-xs text-gray-500 mt-2">
-                            {{ delivery_note.received_by_name }} · {{ delivery_note.received_at|date:"j M Y H:i" }}
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-truck-arrow-right text-blue-600 text-sm"></i>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <div>
+                        <p class="text-xs text-base-content/50 uppercase">From</p>
+                        <p class="text-lg font-bold text-base-content">
+                            {{ delivery_note.from_warehouse|default:"-" }}
                         </p>
-                    {% else %}
-                        <span class="badge badge-warning text-white badge-lg">Awaiting Confirmation</span>
-                        <p class="text-xs text-gray-500 mt-2">Receiver has not confirmed yet.</p>
-                    {% endif %}
+                    </div>
+
+                    <div class="flex justify-center">
+                        <i class="fa-solid fa-arrow-down text-base-content/30"></i>
+                    </div>
+
+                    <div>
+                        <p class="text-xs text-base-content/50 uppercase">To</p>
+                        <p class="text-lg font-bold text-base-content">
+                            {{ delivery_note.to_warehouse|default:"-" }}
+                        </p>
+                    </div>
                 </div>
             </div>
+
+            <!-- Receiver -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Receiver
+                    </span>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-user-check text-emerald-600 text-sm"></i>
+                    </div>
+                </div>
+
+                <p class="text-xl font-bold text-base-content">
+                    {{ delivery_note.recipient_name }}
+                </p>
+
+                <div class="mt-3 space-y-1 text-sm text-base-content/60">
+                    <p>{{ delivery_note.recipient_organization|default:"-" }}</p>
+                    <p>{{ delivery_note.recipient_phone|default:"-" }}</p>
+                    <p>{{ delivery_note.recipient_email|default:"-" }}</p>
+                </div>
+            </div>
+
+            <!-- Receipt Status -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Receipt Status
+                    </span>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        {% if delivery_note.is_received %}
+                            <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
+                        {% else %}
+                            <i class="fa-solid fa-clock text-amber-600 text-sm"></i>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if delivery_note.is_received %}
+
+                    <span class="badge badge-success badge-lg text-white w-fit">
+                        Received
+                    </span>
+
+                    <div class="mt-3 text-sm text-base-content/60">
+                        <p class="font-medium text-base-content">
+                            {{ delivery_note.received_by_name }}
+                        </p>
+                        <p>
+                            {{ delivery_note.received_at|date:"j M Y H:i" }}
+                        </p>
+                    </div>
+
+                {% else %}
+
+                    <span class="badge badge-warning badge-lg text-white w-fit">
+                        Awaiting Confirmation
+                    </span>
+
+                    <p class="mt-3 text-sm text-base-content/60">
+                        Receiver has not confirmed receipt yet.
+                    </p>
+
+                {% endif %}
+            </div>
+
         </div>
 
         <div class="bg-base-100 shadow rounded-lg p-6 space-y-4">

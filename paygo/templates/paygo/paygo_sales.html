@@ -14,102 +14,175 @@
 
         <h2 class="text-2xl font-bold mb-4">PayGo Tracker</h2>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
 
-            <!-- EXISTING STATUS CARDS -->
+            <!-- PAYMENT STATUS CARDS -->
             {% for key, val in stats.items %}
-            <div class="card bg-base-100 shadow border-2 border-success">
-                <div class="card-body flex flex-col justify-center">
-                    <div class="flex justify-between items-center">
-                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the number of devices whose payments are {{ key }}."></i><p class="text-sm uppercase">{{ key }}</p></div>
-                        <div class="flex p-2 items-center justify-center rounded-full bg-base-100">
-                            <i class="fa-solid 
-                                {% if key == 'Fully Paid' %} fa-clipboard-check 
-                                {% elif key == 'At Risk' %} fa-triangle-exclamation 
-                                {% elif key == 'On Track' %} fa-hourglass-half 
-                                {% else %} fa-ban 
-                                {% endif %}  
-                                text-2xl text-success"></i>
-                        </div>
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+
+                <div class="flex items-center justify-between mb-3">
+
+                    <div class="flex items-center gap-2">
+
+                        <i
+                            class="fa-solid fa-circle-info cursor-pointer text-success text-sm"
+                            title="This represents the number of devices whose payments are {{ key }}.">
+                        </i>
+
+                        <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                            {{ key }}
+                        </span>
+
                     </div>
-                    <p class="text-2xl font-bold text-success">{{ val|intcomma }}</p>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+
+                        <i class="fa-solid
+                            {% if key == 'Fully Paid' %}
+                                fa-clipboard-check text-success
+                            {% elif key == 'At Risk' %}
+                                fa-triangle-exclamation text-warning
+                            {% elif key == 'On Track' %}
+                                fa-hourglass-half text-info
+                            {% else %}
+                                fa-ban text-error
+                            {% endif %}
+                            text-sm">
+                        </i>
+
+                    </div>
+
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ val|intcomma }}
+                </p>
+
             </div>
             {% endfor %}
 
+
             <!-- TOTAL RECEIVABLE -->
-            <div class="card bg-base-100 shadow border-2 border-success">
-                <div class="card-body flex flex-col justify-center">
-                    <div class="flex justify-between items-center">
-                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the total receivable cash expected to be paid from all sales."></i><p class="text-sm uppercase">Total Receivables</p></div>
-                        <div class="flex p-2 rounded-full bg-base-100">
-                            <i class="fa-solid fa-coins text-2xl text-success"></i>
-                        </div>
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+
+                <div class="flex items-center justify-between mb-3">
+
+                    <div class="flex items-center gap-2">
+
+                        <i
+                            class="fa-solid fa-circle-info cursor-pointer text-success text-sm"
+                            title="This represents the total receivable cash expected to be paid from all sales.">
+                        </i>
+
+                        <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                            Total Receivables
+                        </span>
+
                     </div>
-                    <p class="text-2xl font-bold text-success">
-                        Ksh. {{ total_receivable|intcomma }}
-                    </p>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-coins text-warning text-sm"></i>
+                    </div>
+
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    Ksh. {{ total_receivable|intcomma }}
+                </p>
+
             </div>
 
-            <!-- RAR -->
-            <div class="card bg-base-100 shadow border-2 border-success">
-                <div class="card-body flex flex-col justify-center">
-                    <div class="flex justify-between items-center">
-                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the total cash that is at risk of defaulting."></i><p class="text-sm uppercase">Receivables At Risk(RAR)</p></div>
-                        <div class="flex p-2 rounded-full bg-base-100">
-                            <i class="fa-solid fa-exclamation-circle text-2xl text-success"></i>
-                        </div>
+
+            <!-- RECEIVABLES AT RISK -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+
+                <div class="flex items-center justify-between mb-3">
+
+                    <div class="flex items-center gap-2">
+
+                        <i
+                            class="fa-solid fa-circle-info cursor-pointer text-success text-sm"
+                            title="This represents the total cash that is at risk of defaulting.">
+                        </i>
+
+                        <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                            Receivables At Risk
+                        </span>
+
                     </div>
-                    <p class="text-2xl font-bold text-success">
-                        Ksh. {{ receivable_at_risk|intcomma }}
-                    </p>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-exclamation-circle text-error text-sm"></i>
+                    </div>
+
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    Ksh. {{ receivable_at_risk|intcomma }}
+                </p>
+
             </div>
 
-            <!-- CHURN -->
-            <div class="card bg-base-100 shadow border-2 border-success">
-                <div class="card-body flex flex-col justify-center">
-                    <div class="flex justify-between items-center">
-                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represent the percentage of sales that are behind on payments."></i><p class="text-sm uppercase">Delinquency Rate</p></div>
-                        <div class="flex p-2 rounded-full bg-base-100">
-                            <i class="fa-solid fa-user-slash text-2xl text-success"></i>
-                        </div>
+
+            <!-- DELINQUENCY RATE -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+
+                <div class="flex items-center justify-between mb-3">
+
+                    <div class="flex items-center gap-2">
+
+                        <i
+                            class="fa-solid fa-circle-info cursor-pointer text-success text-sm"
+                            title="This represent the percentage of sales that are behind on payments.">
+                        </i>
+
+                        <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                            Delinquency Rate
+                        </span>
+
                     </div>
-                    <p class="text-2xl font-bold text-success">
-                        {{ churn_rate|floatformat:1 }}%
-                    </p>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-user-slash text-error text-sm"></i>
+                    </div>
+
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ churn_rate|floatformat:1 }}%
+                </p>
+
             </div>
 
-            <!-- MOM GROWTH 
-            <div class="card bg-base-100 shadow border-2 border-success">
-                <div class="card-body flex flex-col justify-center">
-                    <div class="flex justify-between items-center">
-                        <p class="text-sm uppercase">Month On Month Growth</p>
-                        <div class="flex p-2 rounded-full bg-base-100">
-                            <i class="fa-solid fa-chart-line text-2xl text-success"></i>
-                        </div>
-                    </div>
-                    <p class="text-2xl font-bold text-success">
-                        {{ mom_growth|floatformat:1 }}%
-                    </p>
-                </div>
-            </div> -->
 
             <!-- COLLECTION RATE -->
-            <div class="card bg-base-100 shadow border-2 border-success">
-                <div class="card-body flex flex-col justify-center">
-                    <div class="flex justify-between items-center">
-                        <div class="flex"><i class="fa-solid fa-circle-info cursor-pointer text-success text-lg mr-2" title="This represents the percentage of money successfully collected from the sales."></i><p class="text-sm uppercase">Collection Rate</p></div>
-                        <div class="flex p-2 rounded-full bg-base-100">
-                            <i class="fa-solid fa-hand-holding-dollar text-2xl text-success"></i>
-                        </div>
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+
+                <div class="flex items-center justify-between mb-3">
+
+                    <div class="flex items-center gap-2">
+
+                        <i
+                            class="fa-solid fa-circle-info cursor-pointer text-success text-sm"
+                            title="This represents the percentage of money successfully collected from the sales.">
+                        </i>
+
+                        <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                            Collection Rate
+                        </span>
+
                     </div>
-                    <p class="text-2xl font-bold text-success">
-                        {{ collection_rate|floatformat:1 }}%
-                    </p>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-hand-holding-dollar text-success text-sm"></i>
+                    </div>
+
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ collection_rate|floatformat:1 }}%
+                </p>
+
             </div>
 
         </div>

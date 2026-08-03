@@ -60,57 +60,78 @@
         <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            <div class="card bg-base-100 shadow border-2 border-success">
-                <div class="card-body flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-2">
-                        <p class="text-sm uppercase">Product Name</p>
-                        <div class="flex p-2 items-center justify-center rounded-full bg-base-100">
-                            <i class="fa-solid fa-box text-2xl text-success"></i>
-                        </div>
+            <!-- Product Name -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Product Name
+                    </span>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-box text-blue-600 text-sm"></i>
                     </div>
-                    <p class="text-2xl font-bold text-success">{{ sale.product_name }}</p>
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ sale.product_name }}
+                </p>
             </div>
 
-            <div class="card bg-base-100 shadow border-2 border-success">
-                <div class="card-body flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-2">
-                        <p class="text-sm uppercase">Product Model</p>
-                        <div class="flex p-2 items-center justify-center rounded-full bg-base-100">
-                            <i class="fa-solid fa-cogs text-2xl text-success"></i>
-                        </div>
+            <!-- Product Model -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Product Model
+                    </span>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-cogs text-violet-600 text-sm"></i>
                     </div>
-                    <p class="text-2xl font-bold text-success">{{ sale.product_model }}</p>
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ sale.product_model }}
+                </p>
             </div>
 
-            <div class="card bg-base-100 shadow border-2 border-success">
-                <div class="card-body flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-2">
-                        <p class="text-sm uppercase">Purchase Mode</p>
-                        <div class="flex p-2 items-center justify-center rounded-full bg-base-100">
-                            <i class="fa-solid fa-money-bill text-2xl text-success"></i>
-                        </div>
+            <!-- Purchase Mode -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Purchase Mode
+                    </span>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-money-bill text-emerald-600 text-sm"></i>
                     </div>
-                    <p class="text-2xl font-bold text-success">
-                        {% if sale.purchase_mode == 'C' %}Cash
-                        {% elif sale.purchase_mode == 'P' %}Pay-Go
-                        {% else %}Deposit Account
-                        {% endif %}
-                    </p>
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {% if sale.purchase_mode == 'C' %}
+                        Cash
+                    {% elif sale.purchase_mode == 'P' %}
+                        Pay-Go
+                    {% else %}
+                        Deposit Account
+                    {% endif %}
+                </p>
             </div>
 
-            <div class="card bg-base-100 shadow border-2 border-success">
-                <div class="card-body flex flex-col justify-center">
-                    <div class="flex justify-between items-center mb-2">
-                        <p class="text-sm uppercase">Sales Rep</p>
-                        <div class="flex p-2 items-center justify-center rounded-full bg-base-100">
-                            <i class="fa-solid fa-user-tie text-2xl text-success"></i>
-                        </div>
+            <!-- Sales Representative -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Sales Representative
+                    </span>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-user-tie text-amber-600 text-sm"></i>
                     </div>
-                    <p class="text-2xl font-bold text-success">{{ sale.sales_rep }}</p>
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ sale.sales_rep }}
+                </p>
             </div>
 
         </div>

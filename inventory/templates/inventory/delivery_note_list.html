@@ -25,74 +25,90 @@ Powerpay Africa | Delivery Notes
         </div>
 
         <!-- STATS -->
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 
-            <div class="card bg-base-100 shadow border-2 border-success">
-                <div class="card-body">
-                    <div class="flex justify-between items-center">
-                        <p class="text-sm uppercase">Delivery Notes</p>
-                        <i class="fa-solid fa-file-signature text-xl text-success"></i>
+            <!-- Delivery Notes -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Delivery Notes
+                    </span>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-file-signature text-blue-600 text-sm"></i>
                     </div>
-
-                    <p class="text-3xl font-bold text-success">
-                        {{ total_results|default:0|intcomma }}
-                    </p>
-
-                    <p class="text-xs">
-                        Total notes matching current filters.
-                    </p>
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ total_results|default:0|intcomma }}
+                </p>
+
+                <p class="text-xs text-base-content/60 mt-2">
+                    Total notes matching current filters.
+                </p>
             </div>
 
-            <div class="card bg-base-100 shadow border-2 border-warning">
-                <div class="card-body">
-                    <div class="flex justify-between items-center">
-                        <p class="text-sm uppercase">Pending Receipt</p>
-                        <i class="fa-solid fa-clock text-xl text-warning"></i>
+            <!-- Pending Receipt -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Pending Receipt
+                    </span>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-clock text-amber-600 text-sm"></i>
                     </div>
-
-                    <p class="text-3xl font-bold text-warning">
-                        {{ pending_count|default:0|intcomma }}
-                    </p>
-
-                    <p class="text-xs">
-                        Receiver has not confirmed yet.
-                    </p>
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ pending_count|default:0|intcomma }}
+                </p>
+
+                <p class="text-xs text-base-content/60 mt-2">
+                    Receiver has not confirmed yet.
+                </p>
             </div>
 
-            <div class="card bg-base-100 shadow border-2 border-info">
-                <div class="card-body">
-                    <div class="flex justify-between items-center">
-                        <p class="text-sm uppercase">Confirmed</p>
-                        <i class="fa-solid fa-circle-check text-xl text-info"></i>
+            <!-- Confirmed -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Confirmed
+                    </span>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
                     </div>
-
-                    <p class="text-3xl font-bold text-info">
-                        {{ confirmed_count|default:0|intcomma }}
-                    </p>
-
-                    <p class="text-xs">
-                        Received in good order and condition.
-                    </p>
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ confirmed_count|default:0|intcomma }}
+                </p>
+
+                <p class="text-xs text-base-content/60 mt-2">
+                    Received in good order and condition.
+                </p>
             </div>
 
-            <div class="card bg-base-100 shadow border-2 border-success">
-                <div class="card-body">
-                    <div class="flex justify-between items-center">
-                        <p class="text-sm uppercase">Total Units</p>
-                        <i class="fa-solid fa-cubes text-xl text-success"></i>
+            <!-- Total Units -->
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                        Total Units
+                    </span>
+
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-cubes text-violet-600 text-sm"></i>
                     </div>
-
-                    <p class="text-3xl font-bold text-success">
-                        {{ total_units|default:0|intcomma }}
-                    </p>
-
-                    <p class="text-xs">
-                        Units included in matching delivery notes.
-                    </p>
                 </div>
+
+                <p class="text-2xl font-bold text-base-content">
+                    {{ total_units|default:0|intcomma }}
+                </p>
+
+                <p class="text-xs text-base-content/60 mt-2">
+                    Units included in matching delivery notes.
+                </p>
             </div>
 
         </div>

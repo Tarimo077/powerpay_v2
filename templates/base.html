@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="en" data-theme="emerald">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -80,7 +80,7 @@
     {% block extra_head %}{% endblock %}
 </head>
 
-<body class="min-h-screen bg-base-200/50">
+<body class="min-h-screen bg-base-200">
 
     <main class="w-full">
         {% block content %}
@@ -242,13 +242,13 @@
     }
     const toggle = document.getElementById("themeToggle");
     document.addEventListener("DOMContentLoaded", () => {
-        const savedTheme = localStorage.getItem(THEME_KEY) || "emerald";
+        const savedTheme = localStorage.getItem(THEME_KEY) || "light";
         setTheme(savedTheme);
-        if (toggle) toggle.checked = savedTheme === "night";
+        if (toggle) toggle.checked = savedTheme === "dark";
     });
     if (toggle) {
         toggle.addEventListener("change", () => {
-            setTheme(toggle.checked ? "night" : "emerald");
+            setTheme(toggle.checked ? "dark" : "light");
         });
     }
     </script>

@@ -18,20 +18,20 @@
     <div class="flex items-center gap-2 sm:gap-3">
 
         <!-- Theme Toggle -->
-        <label class="btn btn-ghost btn-lg btn-circle swap swap-rotate text-base-content/60 hover:text-base-content">
+        <label class="btn btn-ghost btn-xl btn-circle swap swap-rotate text-base-content/60 hover:text-base-content">
             <input type="checkbox" id="themeToggle" />
-            <i class="swap-off fas fa-sun text-lg"></i>
-            <i class="swap-on fas fa-moon text-lg"></i>
+            <i class="swap-off fas fa-sun text-xl text-yellow-500"></i>
+            <i class="swap-on fas fa-moon text-xl text-blue-500"></i>
         </label>
 
         <!-- Notifications -->
         <div class="relative" id="notifContainer">
             <button id="notifDropdownBtn"
-                    class="btn btn-ghost btn-lg btn-circle text-base-content/60 hover:text-base-content relative"
+                    class="btn btn-xl btn-ghost text-orange-500 btn-circle relative"
                     hx-get="{% url 'notifications:dropdown' %}"
                     hx-target="#notifDropdown"
                     hx-trigger="click">
-                <i class="fas fa-bell text-lg"></i>
+                <i class="fas fa-bell text-xl"></i>
                 <span id="notifCount"
                       hx-get="{% url 'notifications:unread_count' %}"
                       hx-trigger="refresh, load"
@@ -52,12 +52,12 @@
         <!-- Profile Dropdown -->
         <div class="dropdown dropdown-end">
             <div tabindex="0" role="button" class="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-full hover:bg-base-200/80 transition-all cursor-pointer">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-[11px] font-bold text-white shadow-sm">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-md font-bold text-white shadow-sm">
                     {{ request.user.first_name.0|default:"U" }}{{ request.user.last_name.0|default:"" }}
                 </div>
                 <div class="hidden sm:block text-left">
                     <p class="text-[12px] font-semibold text-base-content leading-tight">{{ request.user.first_name }} {{ request.user.last_name }}</p>
-                    <p class="text-[10px] text-base-content/50 leading-tight">{{ request.user.role|default:"User" }}</p>
+                    <p class="text-[11px] text-base-content/50 leading-tight">{{ request.user.role|default:"User" }}</p>
                 </div>
                 <i class="hidden sm:inline fas fa-chevron-down text-[9px] text-base-content/40"></i>
             </div>
