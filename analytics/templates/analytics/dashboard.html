@@ -83,13 +83,13 @@
             <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Total Customers</span>
-                    <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
                         <i class="fas fa-users text-blue-600 text-sm"></i>
                     </div>
                 </div>
                 <p class="text-2xl font-bold text-base-content">{{ total_customers|intcomma }}</p>
                 <div class="flex items-center gap-1.5 mt-2">
-                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md"><i class="fas fa-arrow-up text-[9px]"></i>{{ new_customers }}</span>
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-emerald-600 px-1.5 py-0.5 rounded-md"><i class="fas fa-arrow-up text-[9px]"></i>{{ new_customers }}</span>
                     <span class="text-[10px] text-base-content/40">this period</span>
                 </div>
             </div>
@@ -97,13 +97,13 @@
             <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Total Sales</span>
-                    <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
                         <i class="fas fa-shopping-bag text-emerald-600 text-sm"></i>
                     </div>
                 </div>
                 <p class="text-2xl font-bold text-base-content">{{ total_sales|intcomma }}</p>
                 <div class="flex items-center gap-1.5 mt-2">
-                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md"><i class="fas fa-arrow-up text-[9px]"></i>{{ new_sales }}</span>
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-emerald-600 px-1.5 py-0.5 rounded-md"><i class="fas fa-arrow-up text-[9px]"></i>{{ new_sales }}</span>
                     <span class="text-[10px] text-base-content/40">this period</span>
                 </div>
             </div>
@@ -111,13 +111,13 @@
             <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Revenue</span>
-                    <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
                         <i class="fas fa-coins text-amber-600 text-sm"></i>
                     </div>
                 </div>
                 <p class="text-2xl font-bold text-base-content">Ksh {{ total_revenue|floatformat:1|intcomma }}</p>
                 <div class="flex items-center gap-1.5 mt-2">
-                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-base-content/50 bg-base-200 px-1.5 py-0.5 rounded-md">{{ total_transactions|intcomma }}</span>
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-base-content/50 px-1.5 py-0.5 rounded-md">{{ total_transactions|intcomma }}</span>
                     <span class="text-[10px] text-base-content/40">transactions</span>
                 </div>
             </div>
@@ -125,13 +125,13 @@
             <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Devices</span>
-                    <div class="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
                         <i class="fas fa-plug text-teal-600 text-sm"></i>
                     </div>
                 </div>
                 <p class="text-2xl font-bold text-base-content">{{ total_devices|intcomma }}</p>
                 <div class="flex items-center gap-1.5 mt-2">
-                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">{{ active_devices }}</span>
+                    <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-emerald-600 px-1.5 py-0.5 rounded-md">{{ active_devices }}</span>
                     <span class="text-[10px] text-base-content/40">active</span>
                 </div>
             </div>
@@ -142,7 +142,7 @@
             <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Avg Transaction</span>
-                    <div class="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
                         <i class="fas fa-calculator text-violet-600 text-sm"></i>
                     </div>
                 </div>
@@ -152,7 +152,7 @@
             <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Revenue / Customer</span>
-                    <div class="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
                         <i class="fas fa-chart-bar text-orange-600 text-sm"></i>
                     </div>
                 </div>
@@ -162,7 +162,7 @@
             <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Conversion Rate</span>
-                    <div class="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
                         <i class="fas fa-percent text-rose-600 text-sm"></i>
                     </div>
                 </div>
