@@ -221,17 +221,45 @@
     function downloadCard(cardId, fileName) {
         const card = document.getElementById(cardId);
         if (!card) return;
+
         const ignored = card.querySelectorAll('[data-ignore-download]');
         ignored.forEach(el => el.style.display = 'none');
-        const originalBoxShadow = card.style.boxShadow;
-        const originalBorder = card.style.border;
-        card.style.boxShadow = 'none';
-        card.style.border = 'none';
+
+        // dom-to-image clones the node and loses Tailwind's global `border-width: 0`
+        // reset, so every element falls back to `medium solid currentColor` (black).
+        // Force borders/outlines/shadows off inline (inline styles survive cloning).
+        const targets = [card, ...card.querySelectorAll('*')];
+        const snapshots = targets.map(el => ({
+            el,
+            border: el.style.getPropertyValue('border'),
+            borderPriority: el.style.getPropertyPriority('border'),
+            outline: el.style.getPropertyValue('outline'),
+            outlinePriority: el.style.getPropertyPriority('outline'),
+            shadow: el.style.getPropertyValue('box-shadow'),
+            shadowPriority: el.style.getPropertyPriority('box-shadow'),
+        }));
+        targets.forEach(el => {
+            el.style.setProperty('border', '0 none transparent', 'important');
+            el.style.setProperty('outline', '0 none transparent', 'important');
+            el.style.setProperty('box-shadow', 'none', 'important');
+        });
+
         domtoimage.toPng(card, { quality: 1, scale: 2, bgcolor: '#ffffff', style: { 'margin': '0', 'padding': '20px', 'border': 'none', 'outline': 'none' } })
         .then(dataUrl => { const link = document.createElement('a'); link.download = fileName; link.href = dataUrl; link.click(); })
         .catch(err => console.error('Download failed:', err))
-        .finally(() => { card.style.boxShadow = originalBoxShadow; card.style.border = originalBorder; ignored.forEach(el => el.style.display = ''); });
+        .finally(() => {
+            snapshots.forEach(s => {
+                s.el.style.removeProperty('border');
+                s.el.style.removeProperty('outline');
+                s.el.style.removeProperty('box-shadow');
+                if (s.border) s.el.style.setProperty('border', s.border, s.borderPriority);
+                if (s.outline) s.el.style.setProperty('outline', s.outline, s.outlinePriority);
+                if (s.shadow) s.el.style.setProperty('box-shadow', s.shadow, s.shadowPriority);
+            });
+            ignored.forEach(el => el.style.display = '');
+        });
     }
+
     </script>
 
     <script>

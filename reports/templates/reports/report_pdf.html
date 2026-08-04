@@ -1,0 +1,182 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @page { size: A4; margin: 1.6cm; }
+        body { font-family: Helvetica, Arial, sans-serif; font-size: 10px; color: #111827; }
+        .brand { color: #16a34a; }
+        h1 { font-size: 20px; color: #16a34a; margin: 0; }
+        .muted { color: #6b7280; }
+        .period-band {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 10px 12px;
+            margin-top: 12px;
+        }
+        table.summary { width: 100%; border-collapse: collapse; margin-top: 14px; }
+        table.summary td {
+            border: 1px solid #e5e7eb;
+            padding: 8px;
+            width: 20%;
+            text-align: center;
+        }
+        table.summary .label { font-size: 8px; color: #6b7280; text-transform: uppercase; }
+        table.summary .value { font-size: 15px; font-weight: bold; }
+        h2.section {
+            font-size: 12px;
+            color: #ffffff;
+            background-color: #16a34a;
+            padding: 6px 8px;
+            margin: 18px 0 0 0;
+        }
+        table.data { width: 100%; border-collapse: collapse; }
+        table.data th {
+            background-color: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            padding: 5px;
+            text-align: left;
+            font-size: 9px;
+        }
+        table.data td { border: 1px solid #e5e7eb; padding: 5px; font-size: 9px; }
+        .empty { text-align: center; color: #9ca3af; padding: 10px; }
+        .footer { margin-top: 26px; text-align: center; font-size: 8px; color: #9ca3af; }
+    </style>
+</head>
+<body>
+
+    <table style="width:100%">
+        <tr>
+            <td>
+                {% if STATIC_ROOT %}
+                <img src="{{ STATIC_ROOT }}/images/powerpaylogo.png" style="height:44px">
+                {% endif %}
+                <div class="brand" style="font-size:9px;">Appliances For The Next Billion</div>
+            </td>
+            <td align="right">
+                <h1>ACTIVITY REPORT</h1>
+                <div class="muted">Generated {{ generated_at|date:"j M Y H:i" }}</div>
+                <div class="muted">By {{ generated_by.first_name }} {{ generated_by.last_name }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="period-band">
+        <strong>Reporting period:</strong>
+        {{ period_start|date:"j M Y, H:i" }} &nbsp;to&nbsp; {{ period_end|date:"j M Y, H:i" }}
+        ({{ days }} day{{ days|pluralize }})
+        {% if organization %}<br><strong>Organization:</strong> {{ organization.name }}{% endif %}
+    </div>
+
+    <table class="summary">
+        <tr>
+            <td><div class="label">Customers</div><div class="value">{{ summary.customers|intcomma }}</div></td>
+            <td><div class="label">Sales</div><div class="value">{{ summary.sales|intcomma }}</div></td>
+            <td><div class="label">Inventory</div><div class="value">{{ summary.inventory|intcomma }}</div></td>
+            <td><div class="label">Devices</div><div class="value">{{ summary.devices|intcomma }}</div></td>
+            <td>
+                <div class="label">Transactions</div>
+                <div class="value">{{ summary.transactions|intcomma }}</div>
+                <div class="label">KES {{ summary.transactions_total|floatformat:2|intcomma }}</div>
+            </td>
+        </tr>
+    </table>
+
+    {% if sections.customers %}
+    <h2 class="section">NEW CUSTOMERS ({{ summary.customers }})</h2>
+    <table class="data">
+        <tr><th>Name</th><th>Phone</th><th>County</th><th>Organization</th><th>Registered</th></tr>
+        {% for c in customers %}
+        <tr>
+            <td>{{ c.name }}</td>
+            <td>{{ c.phone_number }}</td>
+            <td>{{ c.county|default:"-" }}</td>
+            <td>{{ c.organization.name }}</td>
+            <td>{{ c.date|date:"j M Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="empty">No customers added in this period.</td></tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    {% if sections.sales %}
+    <h2 class="section">NEW SALES ({{ summary.sales }})</h2>
+    <table class="data">
+        <tr><th>Customer</th><th>Product</th><th>Serial</th><th>Mode</th><th>Date</th></tr>
+        {% for s in sales %}
+        <tr>
+            <td>{{ s.customer.name }}</td>
+            <td>{{ s.product_name }} {{ s.product_model }}</td>
+            <td>{{ s.product_serial_number }}</td>
+            <td>{{ s.get_purchase_mode_display }}</td>
+            <td>{{ s.registration_date|date:"j M Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="empty">No sales added in this period.</td></tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    {% if sections.inventory %}
+    <h2 class="section">NEW INVENTORY ({{ summary.inventory }})</h2>
+    <table class="data">
+        <tr><th>Item</th><th>Serial</th><th>Type</th><th>Qty</th><th>Warehouse</th><th>Added</th></tr>
+        {% for i in inventory %}
+        <tr>
+            <td>{{ i.name }}</td>
+            <td>{{ i.serial_number }}</td>
+            <td>{{ i.product_type }}</td>
+            <td>{{ i.quantity }}</td>
+            <td>{{ i.current_warehouse.name }}</td>
+            <td>{{ i.date_added|date:"j M Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="empty">No inventory added in this period.</td></tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    {% if sections.devices %}
+    <h2 class="section">NEW DEVICES ({{ summary.devices }})</h2>
+    <table class="data">
+        <tr><th>Device ID</th><th>MSISDN</th><th>Status</th><th>Organization</th><th>Onboarded</th></tr>
+        {% for d in devices %}
+        <tr>
+            <td>{{ d.deviceid }}</td>
+            <td>{{ d.msisdn|default:"-" }}</td>
+            <td>{% if d.active %}Active{% else %}Inactive{% endif %}</td>
+            <td>{{ d.organization.name }}</td>
+            <td>{{ d.time|date:"j M Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="empty">No devices added in this period.</td></tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    {% if sections.transactions %}
+    <h2 class="section">TRANSACTIONS ({{ summary.transactions }})</h2>
+    <table class="data">
+        <tr><th>Txn ID</th><th>Name</th><th>Ref</th><th>Amount (KES)</th><th>Organization</th><th>Time</th></tr>
+        {% for t in transactions %}
+        <tr>
+            <td>{{ t.txn_id }}</td>
+            <td>{{ t.name }}</td>
+            <td>{{ t.ref|default:"-" }}</td>
+            <td>{{ t.amount|floatformat:2|intcomma }}</td>
+            <td>{{ t.org.name }}</td>
+            <td>{{ t.time|date:"j M Y H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="empty">No transactions in this period.</td></tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    <div class="footer">
+        PowerPay Africa &middot; Appliances For The Next Billion &middot; support@powerpayafrica.com
+    </div>
+
+</body>
+</html>

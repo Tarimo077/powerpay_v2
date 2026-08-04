@@ -266,6 +266,21 @@
             <!-- Section Label -->
             <p class="link-text px-4 pt-4 pb-1.5 text-[10px] uppercase tracking-[0.08em] font-semibold text-base-content/40">Tools</p>
 
+            <!-- Reports -->
+            <a href="{% url 'reports:report_center' %}"
+               class="sidebar-link flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all
+               {% if 'reports' in request.path %}
+                    bg-emerald-50 text-emerald-700 font-semibold shadow-sm shadow-emerald-100
+               {% else %}
+                    text-base-content/70 hover:bg-base-200/80 hover:text-base-content
+               {% endif %}">
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg {% if 'reports' in request.path %}bg-emerald-100{% else %}bg-base-200/60{% endif %}">
+                    <i class="fas fa-file-lines text-sm {% if 'reports' in request.path %}text-emerald-600{% endif %}"></i>
+                </div>
+                <span class="link-text">Reports</span>
+            </a>
+
+
             <!-- Export -->
             <a href="{% url 'core:export_data' %}"
                class="sidebar-link flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all

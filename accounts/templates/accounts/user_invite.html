@@ -1,41 +1,34 @@
-<!DOCTYPE html>
-<html>
-<body style="background:#f3f4f6; padding:20px;">
+{% extends "emails/base_email.html" %}
 
-<div style="max-width:600px;margin:40px auto;background:#fff;border-radius:20px;box-shadow:0 8px 25px rgba(0,0,0,.08);">
+{% block title %}You have been invited to PowerPay Africa{% endblock %}
+{% block preheader %}Accept your invitation to join {{ organization }} on PowerPay Africa.{% endblock %}
+{% block eyebrow %}Invitation{% endblock %}
+{% block heading %}You&rsquo;ve been invited{% endblock %}
 
-  <div style="text-align:center;padding:30px;">
-    <img src="https://appliatrix.com/static/css/pplogo.png" width="240">
-  </div>
+{% block content %}
+  <p style="margin:0 0 12px 0; text-align:center;">
+    You&rsquo;ve been invited to join
+    <strong style="color:#0f172a;">{{ organization }}</strong>
+    on the PowerPay Africa platform.
+  </p>
+  <p style="margin:0; text-align:center; font-size:14px; color:#64748b;">
+    Accept the invitation to set your password and get started.
+  </p>
+{% endblock %}
 
-  <div style="padding:40px;text-align:center;">
-    <h2 style="color:#16a34a;">You’ve been invited</h2>
+{% block cta %}
+  <table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:28px auto 16px auto;">
+    <tr>
+      <td align="center" style="background:#16a34a; border-radius:12px;">
+        <a href="{{ invite_url }}"
+           style="display:inline-block; padding:14px 30px; font-size:15px; font-weight:700; color:#ffffff; text-decoration:none;">
+          Accept invitation
+        </a>
+      </td>
+    </tr>
+  </table>
 
-    <p style="font-size:16px;color:#374151;">
-      You’ve been invited to join <strong>{{ organization }} Organization</strong>
-      on PowerPay Africa SaaS Platform.
-    </p>
-
-    <a href="{{ invite_url }}"
-       style="
-         display:inline-block;
-         margin-top:25px;
-         padding:14px 28px;
-         background:#16a34a;
-         color:white;
-         text-decoration:none;
-         border-radius:10px;
-         font-weight:600;
-       ">
-      Accept Invitation
-    </a>
-
-    <p style="margin-top:20px;font-size:14px;color:#6b7280;">
-      This invitation expires in 3 days.
-    </p>
-  </div>
-
-</div>
-
-</body>
-</html>
+  <p style="margin:0; text-align:center; font-size:12px; color:#94a3b8;">
+    This invitation expires in 3 days.
+  </p>
+{% endblock %}

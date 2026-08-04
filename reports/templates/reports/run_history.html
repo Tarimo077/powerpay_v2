@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Powerpay Africa | Report History{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content" class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0">
+
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <div>
+                <h2 class="text-2xl font-bold">Report History</h2>
+                <p class="text-sm text-base-content/60">Every report you generated or that was emailed on schedule.</p>
+            </div>
+            <a href="{% url 'reports:report_center' %}" class="btn btn-sm btn-ghost rounded-xl">
+                <i class="fa-solid fa-arrow-left"></i> Report centre
+            </a>
+        </div>
+
+        <div class="bg-base-100 rounded-2xl border border-base-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Generated</th>
+                            <th>Source</th>
+                            <th>Schedule</th>
+                            <th>Period</th>
+                            <th>Recipients</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for run in page_obj %}
+                        <tr>
+                            <td>{{ run.created_at|date:"j M Y H:i" }}</td>
+                            <td><span class="badge badge-ghost badge-sm">{{ run.get_source_display }}</span></td>
+                            <td>{{ run.schedule.name|default:"-" }}</td>
+                            <td>{{ run.period_start|date:"j M Y" }} &rarr; {{ run.period_end|date:"j M Y" }}</td>
+                            <td class="text-xs max-w-[220px] truncate" title="{{ run.recipients }}">
+                                {{ run.recipients|default:"Downloaded" }}
+                            </td>
+                            <td>
+                                <span class="badge badge-sm {% if run.status == 'success' %}badge-success{% else %}badge-error{% endif %}"
+                                      title="{{ run.error }}">
+                                    {{ run.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-base-content/50 py-12">No reports generated yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <div class="flex justify-center gap-2 my-6">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm rounded-xl">Previous</a>
+            {% endif %}
+            <span class="btn btn-sm btn-ghost rounded-xl">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm rounded-xl">Next</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

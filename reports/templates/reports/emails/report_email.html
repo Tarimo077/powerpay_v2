@@ -1,0 +1,76 @@
+{% extends "emails/base_email.html" %}
+{% load humanize %}
+
+{% block title %}PowerPay Africa Report{% endblock %}
+{% block preheader %}Report for {{ period_start|date:"j M Y" }} - {{ period_end|date:"j M Y" }} is attached.{% endblock %}
+{% block eyebrow %}{% if schedule %}{{ schedule.get_frequency_display }} report{% else %}Report{% endif %}{% endblock %}
+{% block heading %}{% if schedule %}{{ schedule.name }}{% else %}Activity report{% endif %}{% endblock %}
+
+{% block content %}
+  <p style="margin:0 0 18px 0; text-align:center;">
+    Here is your PowerPay Africa activity report. The full PDF is attached.
+  </p>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+         style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:14px; padding:14px;">
+    <tr>
+      <td align="center" style="font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#15803d; font-weight:700;">
+        Reporting period
+      </td>
+    </tr>
+    <tr>
+      <td align="center" style="padding-top:6px; font-size:15px; color:#0f172a; font-weight:700;">
+        {{ period_start|date:"j M Y, H:i" }} &rarr; {{ period_end|date:"j M Y, H:i" }}
+      </td>
+    </tr>
+    <tr>
+      <td align="center" style="padding-top:4px; font-size:12px; color:#64748b;">
+        {{ days }} day{{ days|pluralize }}
+      </td>
+    </tr>
+  </table>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:22px;">
+    {% if sections.customers %}
+    <tr>
+      <td style="padding:9px 6px; font-size:13px; color:#64748b; border-bottom:1px solid #eef2f6;">New customers</td>
+      <td style="padding:9px 6px; font-size:14px; color:#0f172a; font-weight:800; text-align:right; border-bottom:1px solid #eef2f6;">{{ summary.customers|intcomma }}</td>
+    </tr>
+    {% endif %}
+    {% if sections.sales %}
+    <tr>
+      <td style="padding:9px 6px; font-size:13px; color:#64748b; border-bottom:1px solid #eef2f6;">New sales</td>
+      <td style="padding:9px 6px; font-size:14px; color:#0f172a; font-weight:800; text-align:right; border-bottom:1px solid #eef2f6;">{{ summary.sales|intcomma }}</td>
+    </tr>
+    {% endif %}
+    {% if sections.inventory %}
+    <tr>
+      <td style="padding:9px 6px; font-size:13px; color:#64748b; border-bottom:1px solid #eef2f6;">Inventory items added</td>
+      <td style="padding:9px 6px; font-size:14px; color:#0f172a; font-weight:800; text-align:right; border-bottom:1px solid #eef2f6;">{{ summary.inventory|intcomma }}</td>
+    </tr>
+    {% endif %}
+    {% if sections.devices %}
+    <tr>
+      <td style="padding:9px 6px; font-size:13px; color:#64748b; border-bottom:1px solid #eef2f6;">Devices onboarded</td>
+      <td style="padding:9px 6px; font-size:14px; color:#0f172a; font-weight:800; text-align:right; border-bottom:1px solid #eef2f6;">{{ summary.devices|intcomma }}</td>
+    </tr>
+    {% endif %}
+    {% if sections.transactions %}
+    <tr>
+      <td style="padding:9px 6px; font-size:13px; color:#64748b;">Transactions</td>
+      <td style="padding:9px 6px; font-size:14px; color:#0f172a; font-weight:800; text-align:right;">
+        {{ summary.transactions|intcomma }}
+        <span style="display:block; font-size:12px; color:#ea580c; font-weight:700;">
+          KES {{ summary.transactions_total|floatformat:2|intcomma }}
+        </span>
+      </td>
+    </tr>
+    {% endif %}
+  </table>
+{% endblock %}
+
+{% block footer_note %}
+  <p style="margin:0 0 10px 0; font-size:12px; color:#64748b;">
+    Generated {{ generated_at|date:"j M Y H:i" }}{% if schedule %} by your {{ schedule.get_frequency_display|lower }} schedule{% endif %}.
+  </p>
+{% endblock %}

@@ -60,6 +60,7 @@ class CoordsRouter:
         "paygo",
         "billing",
         "easyaudit",
+        "reports",
     }
 
     # Apps that already exist in Postgres (We use them, but don't migrate them)

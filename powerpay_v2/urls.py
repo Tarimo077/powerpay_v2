@@ -20,6 +20,7 @@ urlpatterns = [
     path("smart-meters/", include("smart_meters.urls", namespace="smart_meters")),
     path("device-orders/", include("device_orders.urls", namespace="device_orders")),
     path("analytics/", include("analytics.urls", namespace="analytics")),
+    path("reports/", include("reports.urls", namespace="reports")),
     path("", include("core.urls", namespace="core")),
     
 ]

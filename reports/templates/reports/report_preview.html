@@ -1,0 +1,239 @@
+{% load humanize %}
+
+<!-- PERIOD BANNER -->
+<div class="rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white p-6 mb-6 shadow-sm">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+            <p class="text-[10px] uppercase tracking-[0.15em] opacity-80">Reporting period</p>
+            <h3 class="text-xl font-bold mt-1">
+                {{ report.period_start|date:"j M Y, H:i" }} &rarr; {{ report.period_end|date:"j M Y, H:i" }}
+            </h3>
+            <p class="text-sm opacity-90 mt-1">
+                {{ report.days }} day{{ report.days|pluralize }} &middot; generated {{ report.generated_at|date:"j M Y H:i" }}
+            </p>
+        </div>
+
+        <a href="{% url 'reports:report_download' %}?{{ query_string }}"
+           class="btn bg-white text-emerald-700 border-0 rounded-xl hover:bg-emerald-50">
+            <i class="fa-solid fa-file-pdf"></i> Download PDF
+        </a>
+    </div>
+</div>
+
+<!-- SUMMARY CARDS -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-6 mb-6">
+
+    <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-info cursor-pointer text-success text-sm"
+                   title="New customers registered during the selected period."></i>
+                <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Customers</span>
+            </div>
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-50">
+                <i class="fa-solid fa-users text-success text-sm"></i>
+            </div>
+        </div>
+        <p class="text-2xl font-bold">{{ report.summary.customers|intcomma }}</p>
+    </div>
+
+    <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-info cursor-pointer text-success text-sm"
+                   title="Sales registered during the selected period."></i>
+                <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Sales</span>
+            </div>
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-orange-50">
+                <i class="fa-solid fa-cart-shopping text-warning text-sm"></i>
+            </div>
+        </div>
+        <p class="text-2xl font-bold">{{ report.summary.sales|intcomma }}</p>
+    </div>
+
+    <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-info cursor-pointer text-success text-sm"
+                   title="Inventory items added to your warehouses during the selected period."></i>
+                <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Inventory</span>
+            </div>
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-sky-50">
+                <i class="fa-solid fa-boxes-stacked text-info text-sm"></i>
+            </div>
+        </div>
+        <p class="text-2xl font-bold">{{ report.summary.inventory|intcomma }}</p>
+        <p class="text-xs text-base-content/50 mt-1">{{ report.summary.inventory_units|intcomma }} units</p>
+    </div>
+
+    <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-info cursor-pointer text-success text-sm"
+                   title="Devices onboarded during the selected period."></i>
+                <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Devices</span>
+            </div>
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-violet-50">
+                <i class="fa-solid fa-microchip text-secondary text-sm"></i>
+            </div>
+        </div>
+        <p class="text-2xl font-bold">{{ report.summary.devices|intcomma }}</p>
+    </div>
+
+    <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-info cursor-pointer text-success text-sm"
+                   title="Payments received during the selected period and their total value."></i>
+                <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Transactions</span>
+            </div>
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-50">
+                <i class="fa-solid fa-credit-card text-success text-sm"></i>
+            </div>
+        </div>
+        <p class="text-2xl font-bold">{{ report.summary.transactions|intcomma }}</p>
+        <p class="text-xs text-base-content/50 mt-1">KES {{ report.summary.transactions_total|floatformat:2|intcomma }}</p>
+    </div>
+</div>
+
+<!-- TABLES -->
+{% if report.sections.customers %}
+<div class="bg-base-100 rounded-2xl border border-base-200 shadow-sm mb-6 overflow-hidden">
+    <div class="px-5 py-4 border-b border-base-200 flex items-center gap-2">
+        <i class="fa-solid fa-users text-success"></i>
+        <h3 class="font-bold">New customers <span class="text-base-content/40 font-normal">({{ report.summary.customers }})</span></h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="table table-sm">
+            <thead><tr><th>Name</th><th>Phone</th><th>County</th><th>Organization</th><th>Registered</th></tr></thead>
+            <tbody>
+                {% for c in report.customers %}
+                <tr>
+                    <td class="font-medium">{{ c.name }}</td>
+                    <td>{{ c.phone_number }}</td>
+                    <td>{{ c.county|default:"-" }}</td>
+                    <td>{{ c.organization.name }}</td>
+                    <td>{{ c.date|date:"j M Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-base-content/50 py-6">No customers added in this period.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if report.sections.sales %}
+<div class="bg-base-100 rounded-2xl border border-base-200 shadow-sm mb-6 overflow-hidden">
+    <div class="px-5 py-4 border-b border-base-200 flex items-center gap-2">
+        <i class="fa-solid fa-cart-shopping text-warning"></i>
+        <h3 class="font-bold">New sales <span class="text-base-content/40 font-normal">({{ report.summary.sales }})</span></h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="table table-sm">
+            <thead><tr><th>Customer</th><th>Product</th><th>Serial</th><th>Mode</th><th>Date</th></tr></thead>
+            <tbody>
+                {% for s in report.sales %}
+                <tr>
+                    <td class="font-medium">{{ s.customer.name }}</td>
+                    <td>{{ s.product_name }} {{ s.product_model }}</td>
+                    <td>{{ s.product_serial_number }}</td>
+                    <td>{{ s.get_purchase_mode_display }}</td>
+                    <td>{{ s.registration_date|date:"j M Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-base-content/50 py-6">No sales added in this period.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if report.sections.inventory %}
+<div class="bg-base-100 rounded-2xl border border-base-200 shadow-sm mb-6 overflow-hidden">
+    <div class="px-5 py-4 border-b border-base-200 flex items-center gap-2">
+        <i class="fa-solid fa-boxes-stacked text-info"></i>
+        <h3 class="font-bold">New inventory <span class="text-base-content/40 font-normal">({{ report.summary.inventory }})</span></h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="table table-sm">
+            <thead><tr><th>Item</th><th>Serial</th><th>Type</th><th>Qty</th><th>Warehouse</th><th>Added</th></tr></thead>
+            <tbody>
+                {% for i in report.inventory %}
+                <tr>
+                    <td class="font-medium">{{ i.name }}</td>
+                    <td>{{ i.serial_number }}</td>
+                    <td>{{ i.product_type }}</td>
+                    <td>{{ i.quantity }}</td>
+                    <td>{{ i.current_warehouse.name }}</td>
+                    <td>{{ i.date_added|date:"j M Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-base-content/50 py-6">No inventory added in this period.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if report.sections.devices %}
+<div class="bg-base-100 rounded-2xl border border-base-200 shadow-sm mb-6 overflow-hidden">
+    <div class="px-5 py-4 border-b border-base-200 flex items-center gap-2">
+        <i class="fa-solid fa-microchip text-secondary"></i>
+        <h3 class="font-bold">New devices <span class="text-base-content/40 font-normal">({{ report.summary.devices }})</span></h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="table table-sm">
+            <thead><tr><th>Device ID</th><th>MSISDN</th><th>Status</th><th>Organization</th><th>Onboarded</th></tr></thead>
+            <tbody>
+                {% for d in report.devices %}
+                <tr>
+                    <td class="font-medium">{{ d.deviceid }}</td>
+                    <td>{{ d.msisdn|default:"-" }}</td>
+                    <td>
+                        <span class="badge badge-sm {% if d.active %}badge-success{% else %}badge-ghost{% endif %}">
+                            {% if d.active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </td>
+                    <td>{{ d.organization.name }}</td>
+                    <td>{{ d.time|date:"j M Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-base-content/50 py-6">No devices added in this period.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if report.sections.transactions %}
+<div class="bg-base-100 rounded-2xl border border-base-200 shadow-sm mb-10 overflow-hidden">
+    <div class="px-5 py-4 border-b border-base-200 flex items-center gap-2">
+        <i class="fa-solid fa-credit-card text-success"></i>
+        <h3 class="font-bold">Transactions <span class="text-base-content/40 font-normal">({{ report.summary.transactions }})</span></h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="table table-sm">
+            <thead><tr><th>Txn ID</th><th>Name</th><th>Ref</th><th>Amount (KES)</th><th>Organization</th><th>Time</th></tr></thead>
+            <tbody>
+                {% for t in report.transactions %}
+                <tr>
+                    <td class="font-medium">{{ t.txn_id }}</td>
+                    <td>{{ t.name }}</td>
+                    <td>{{ t.ref|default:"-" }}</td>
+                    <td>{{ t.amount|floatformat:2|intcomma }}</td>
+                    <td>{{ t.org.name }}</td>
+                    <td>{{ t.time|date:"j M Y H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-base-content/50 py-6">No transactions in this period.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}

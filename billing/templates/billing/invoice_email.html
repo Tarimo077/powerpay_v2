@@ -1,11 +1,38 @@
-<h2>Invoice {{ invoice.invoice_number }}</h2>
+{% extends "emails/base_email.html" %}
+{% load humanize %}
 
-<p>Hello,</p>
+{% block title %}Invoice {{ invoice.invoice_number }}{% endblock %}
+{% block preheader %}Invoice {{ invoice.invoice_number }} from PowerPay Africa is attached.{% endblock %}
+{% block eyebrow %}Billing{% endblock %}
+{% block heading %}Invoice {{ invoice.invoice_number }}{% endblock %}
 
-<p>Please find your invoice attached.</p>
+{% block content %}
+  <p style="margin:0 0 18px 0;">Hello{% if invoice.organization %} {{ invoice.organization.name }}{% endif %},</p>
+  <p style="margin:0 0 22px 0;">Your invoice is attached to this email as a PDF.</p>
 
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+         style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:6px 14px;">
+    <tr>
+      <td style="padding:8px 6px; font-size:13px; color:#64748b;">Invoice number</td>
+      <td style="padding:8px 6px; font-size:13px; color:#0f172a; font-weight:700; text-align:right;">{{ invoice.invoice_number }}</td>
+    </tr>
+    {% if invoice.due_date %}
+    <tr>
+      <td style="padding:8px 6px; font-size:13px; color:#64748b;">Due date</td>
+      <td style="padding:8px 6px; font-size:13px; color:#0f172a; font-weight:700; text-align:right;">{{ invoice.due_date|date:"j M Y" }}</td>
+    </tr>
+    {% endif %}
+    {% if invoice.total %}
+    <tr>
+      <td style="padding:8px 6px; font-size:13px; color:#64748b;">Total</td>
+      <td style="padding:8px 6px; font-size:15px; color:#ea580c; font-weight:800; text-align:right;">KES {{ invoice.total|floatformat:2|intcomma }}</td>
+    </tr>
+    {% endif %}
+  </table>
+{% endblock %}
 
-<p>
-Thank you for choosing Powerpay Africa.<br>
-Appliances For The Next Billion
-</p>
+{% block footer_note %}
+  <p style="margin:0 0 10px 0; font-size:12px; color:#64748b;">
+    Thank you for choosing PowerPay Africa.
+  </p>
+{% endblock %}

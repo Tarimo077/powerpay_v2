@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Powerpay Africa | Report Schedules{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div id="page-content" class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0">
+
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <div>
+                <h2 class="text-2xl font-bold">Report Schedules</h2>
+                <p class="text-sm text-base-content/60">
+                    Automatic PDF reports emailed on your chosen schedule.
+                </p>
+            </div>
+            <div class="flex gap-2">
+                <a href="{% url 'reports:report_center' %}" class="btn btn-sm btn-ghost rounded-xl">
+                    <i class="fa-solid fa-arrow-left"></i> Report centre
+                </a>
+                <a href="{% url 'reports:schedule_create' %}" class="btn btn-sm btn-success text-white rounded-xl">
+                    <i class="fa-solid fa-plus"></i> New schedule
+                </a>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert rounded-2xl mb-4 {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
+                <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="bg-base-100 rounded-2xl border border-base-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Frequency</th>
+                            <th>Sections</th>
+                            <th>Recipients</th>
+                            <th>Next run</th>
+                            <th>Last run</th>
+                            <th>Status</th>
+                            <th class="text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in schedules %}
+                        <tr>
+                            <td class="font-semibold">{{ s.name }}</td>
+                            <td>
+                                {{ s.get_frequency_display }}
+                                {% if s.frequency == 'custom_days' %}
+                                    <span class="text-base-content/50">({{ s.interval_days }}d)</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-xs">
+                                {% if s.include_customers %}<span class="badge badge-ghost badge-sm">Customers</span>{% endif %}
+                                {% if s.include_sales %}<span class="badge badge-ghost badge-sm">Sales</span>{% endif %}
+                                {% if s.include_inventory %}<span class="badge badge-ghost badge-sm">Inventory</span>{% endif %}
+                                {% if s.include_devices %}<span class="badge badge-ghost badge-sm">Devices</span>{% endif %}
+                                {% if s.include_transactions %}<span class="badge badge-ghost badge-sm">Transactions</span>{% endif %}
+                            </td>
+                            <td class="text-xs max-w-[220px] truncate" title="{{ s.recipients }}">{{ s.recipients }}</td>
+                            <td>{{ s.next_run_at|date:"j M Y H:i" }}</td>
+                            <td>{{ s.last_run_at|date:"j M Y H:i"|default:"-" }}</td>
+                            <td>
+                                <span class="badge badge-sm {% if s.active %}badge-success{% else %}badge-ghost{% endif %}">
+                                    {% if s.active %}Active{% else %}Paused{% endif %}
+                                </span>
+                            </td>
+                            <td class="text-right whitespace-nowrap">
+                                <a href="{% url 'reports:schedule_run_now' s.pk %}" class="btn btn-xs btn-success text-white rounded-lg" title="Send now">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </a>
+                                <a href="{% url 'reports:schedule_toggle' s.pk %}" class="btn btn-xs rounded-lg" title="Pause / resume">
+                                    <i class="fa-solid {% if s.active %}fa-pause{% else %}fa-play{% endif %}"></i>
+                                </a>
+                                <a href="{% url 'reports:schedule_edit' s.pk %}" class="btn btn-xs btn-ghost rounded-lg" title="Edit">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <a href="{% url 'reports:schedule_delete' s.pk %}" class="btn btn-xs btn-ghost text-error rounded-lg" title="Delete">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-12">
+                                <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-50 flex items-center justify-center mb-3">
+                                    <i class="fa-solid fa-clock text-emerald-600 text-xl"></i>
+                                </div>
+                                <p class="font-bold">No schedules yet</p>
+                                <p class="text-sm text-base-content/60">
+                                    Create one to get PDF reports emailed daily, weekly or on your own interval.
+                                </p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
