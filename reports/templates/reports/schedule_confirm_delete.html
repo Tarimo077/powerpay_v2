@@ -21,8 +21,8 @@
 
                 <form method="post" class="flex justify-center gap-2 mt-6">
                     {% csrf_token %}
-                    <a href="{% url 'reports:schedule_list' %}" class="btn btn-ghost rounded-xl">Cancel</a>
-                    <button type="submit" class="btn btn-error text-white rounded-xl">
+                    <a href="{% url 'reports:schedule_list' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-error text-white flex items-center gap-1">
                         <i class="fa-solid fa-trash"></i> Delete
                     </button>
                 </form>

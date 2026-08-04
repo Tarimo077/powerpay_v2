@@ -11,15 +11,20 @@ from django.utils import timezone
 from django.utils.html import strip_tags
 from xhtml2pdf import pisa
 
+from core.energy_tariffs import get_tariff_for_date
 from core.org_checker import get_accessible_organizations
+from core.org_utils import get_user_devices
 from customers.models import Customer
-from devices.models import DeviceInfo
+from devices.models import DeviceData, DeviceInfo
 from inventory.models import InventoryItem
 from organizations.models import Organization
 from sales.models import Sale
 from transactions.models import Transaction
 
 ALL_SECTIONS = ("customers", "sales", "inventory", "devices", "transactions")
+
+# Same 20 minute inactivity gap used on the device detail page
+COOKING_GAP_SECONDS = 20 * 60
 
 PERIOD_CHOICES = [
     ("today", "Today"),
@@ -79,26 +84,143 @@ def resolve_period(preset, start=None, end=None):
 
 
 # ==========================================================
+# DEVICE USAGE
+# ==========================================================
+def build_device_usage(user, start, end, organization=None):
+    """
+    Per-device usage for devices that actually reported data in the period.
+
+    Returns (rows, totals). Devices with no readings are excluded.
+    Non-superadmins only see their accessible organizations' devices;
+    superadmins see every device.
+    """
+    devices = get_user_devices(user)
+
+    if organization is not None:
+        devices = devices.filter(
+            Q(organization_id=organization.id) | Q(organizations__id=organization.id)
+        ).distinct()
+
+    device_map = {d.deviceid: d for d in devices}
+    if not device_map:
+        return [], _empty_usage_totals()
+
+    readings = (
+        DeviceData.objects
+        .filter(deviceid__in=list(device_map.keys()), time__gte=start, time__lte=end)
+        .only("deviceid", "kwh", "time")
+        .order_by("deviceid", "time")
+    )
+
+    grouped = {}
+    for r in readings:
+        grouped.setdefault(r.deviceid, []).append(r)
+
+    rows = []
+    for deviceid, device_readings in grouped.items():
+        device = device_map.get(deviceid)
+
+        # ---- ENERGY + COST (same per-reading loop as device_detail) ----
+        total_kwh = 0.0
+        total_cost = 0.0
+        for r in device_readings:
+            kwh = float(r.kwh or 0)
+            rate = get_tariff_for_date(r.time.date())
+            total_kwh += kwh
+            total_cost += kwh * rate
+
+        # ---- COOKING EVENTS (20 minute gap rule, as device_detail) ----
+        events = []
+        current_event = []
+        prev_time = None
+
+        for r in device_readings:
+            if prev_time:
+                gap = (r.time - prev_time).total_seconds()
+                if gap > COOKING_GAP_SECONDS:
+                    if current_event:
+                        events.append(current_event)
+                    current_event = []
+            current_event.append(r)
+            prev_time = r.time
+
+        if current_event:
+            events.append(current_event)
+
+        cooking_minutes = 0.0
+        for event in events:
+            event_start = timezone.localtime(event[0].time)
+            event_end = timezone.localtime(event[-1].time)
+            cooking_minutes += (event_end - event_start).total_seconds() / 60
+
+        rows.append({
+            "deviceid": deviceid,
+            "device": device,
+            "organization": device.organization if device else None,
+            "readings": len(device_readings),
+            "kwh": total_kwh,
+            "events": len(events),
+            "cooking_minutes": cooking_minutes,
+            "cooking_hours": cooking_minutes / 60,
+            "cost": total_cost,
+            "first_seen": timezone.localtime(device_readings[0].time),
+            "last_seen": timezone.localtime(device_readings[-1].time),
+        })
+
+    rows.sort(key=lambda row: row["kwh"], reverse=True)
+
+    total_minutes = sum(r["cooking_minutes"] for r in rows)
+
+    totals = {
+        "devices": len(rows),
+        "kwh": sum(r["kwh"] for r in rows),
+        "events": sum(r["events"] for r in rows),
+        "cooking_minutes": total_minutes,
+        "cooking_hours": total_minutes / 60,
+        "cost": sum(r["cost"] for r in rows),
+    }
+
+    return rows, totals
+
+
+
+def _empty_usage_totals():
+    return {
+        "devices": 0,
+        "kwh": 0,
+        "events": 0,
+        "cooking_minutes": 0,
+        "cooking_hours": 0,
+        "cost": 0,
+    }
+
+
+# ==========================================================
 # DATA
 # ==========================================================
 def build_report_context(user, start, end, sections=None, organization=None):
     sections = sections or {name: True for name in ALL_SECTIONS}
+    is_superadmin = user_is_superadmin(user)
     org_ids = accessible_org_ids(user)
 
     if organization is not None:
         org_ids = [organization.id] if organization.id in org_ids else []
 
-    empty = not org_ids
+    # Superadmins see everything unless a specific organization is selected
+    unrestricted = is_superadmin and organization is None
+    empty = not unrestricted and not org_ids
 
     # ---- CUSTOMERS ----
     customers = Customer.objects.none()
     if sections.get("customers") and not empty:
         customers = (
             Customer.objects
-            .filter(organization_id__in=org_ids, date__gte=start, date__lte=end)
+            .filter(date__gte=start, date__lte=end)
             .select_related("organization")
             .order_by("-date")
         )
+        if not unrestricted:
+            customers = customers.filter(organization_id__in=org_ids)
 
     # ---- SALES ----
     sales = Sale.objects.none()
@@ -106,13 +228,14 @@ def build_report_context(user, start, end, sections=None, organization=None):
         sales = (
             Sale.objects
             .filter(
-                organization_id__in=org_ids,
                 registration_date__gte=start.date(),
                 registration_date__lte=end.date(),
             )
             .select_related("customer", "organization")
             .order_by("-registration_date")
         )
+        if not unrestricted:
+            sales = sales.filter(organization_id__in=org_ids)
 
     # ---- INVENTORY ----
     inventory = InventoryItem.objects.none()
@@ -120,27 +243,36 @@ def build_report_context(user, start, end, sections=None, organization=None):
         inventory = (
             InventoryItem.objects
             .filter(
-                current_warehouse__organization_id__in=org_ids,
                 date_added__gte=start.date(),
                 date_added__lte=end.date(),
             )
             .select_related("current_warehouse", "current_warehouse__organization")
             .order_by("-date_added")
         )
+        if not unrestricted:
+            inventory = inventory.filter(
+                current_warehouse__organization_id__in=org_ids
+            )
 
     # ---- DEVICES ----
     devices = DeviceInfo.objects.none()
+    device_usage = []
+    device_usage_totals = _empty_usage_totals()
     if sections.get("devices") and not empty:
         devices = (
             DeviceInfo.objects
-            .filter(
-                Q(organization_id__in=org_ids) | Q(organizations__id__in=org_ids),
-                time__gte=start,
-                time__lte=end,
-            )
+            .filter(time__gte=start, time__lte=end)
             .select_related("organization")
             .distinct()
             .order_by("-time")
+        )
+        if not unrestricted:
+            devices = devices.filter(
+                Q(organization_id__in=org_ids) | Q(organizations__id__in=org_ids)
+            )
+
+        device_usage, device_usage_totals = build_device_usage(
+            user, start, end, organization=organization
         )
 
     # ---- TRANSACTIONS ----
@@ -149,10 +281,12 @@ def build_report_context(user, start, end, sections=None, organization=None):
     if sections.get("transactions") and not empty:
         transactions = (
             Transaction.objects
-            .filter(org_id__in=org_ids, time__gte=start, time__lte=end)
+            .filter(time__gte=start, time__lte=end)
             .select_related("org")
             .order_by("-time")
         )
+        if not unrestricted:
+            transactions = transactions.filter(org_id__in=org_ids)
         transactions_total = transactions.aggregate(total=Sum("amount"))["total"] or 0
 
     customers = list(customers)
@@ -171,10 +305,13 @@ def build_report_context(user, start, end, sections=None, organization=None):
         "days": max((end.date() - start.date()).days + 1, 1),
         "sections": sections,
         "organization": organization,
+        "is_superadmin": is_superadmin,
         "customers": customers,
         "sales": sales,
         "inventory": inventory,
         "devices": devices,
+        "device_usage": device_usage,
+        "device_usage_totals": device_usage_totals,
         "transactions": transactions,
         "summary": {
             "customers": len(customers),
@@ -182,6 +319,11 @@ def build_report_context(user, start, end, sections=None, organization=None):
             "inventory": len(inventory),
             "inventory_units": inventory_units,
             "devices": len(devices),
+            "devices_used": device_usage_totals["devices"],
+            "kwh": device_usage_totals["kwh"],
+            "cooking_events": device_usage_totals["events"],
+            "cooking_hours": device_usage_totals["cooking_hours"],
+            "energy_cost": device_usage_totals["cost"],
             "transactions": len(transactions),
             "transactions_total": transactions_total,
         },

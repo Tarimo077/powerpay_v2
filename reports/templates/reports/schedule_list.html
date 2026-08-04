@@ -19,10 +19,10 @@
                 </p>
             </div>
             <div class="flex gap-2">
-                <a href="{% url 'reports:report_center' %}" class="btn btn-sm btn-ghost rounded-xl">
+                <a href="{% url 'reports:report_center' %}" class="btn btn-sm btn-success text-white flex items-center gap-1">
                     <i class="fa-solid fa-arrow-left"></i> Report centre
                 </a>
-                <a href="{% url 'reports:schedule_create' %}" class="btn btn-sm btn-success text-white rounded-xl">
+                <a href="{% url 'reports:schedule_create' %}" class="btn btn-sm btn-success text-white flex items-center gap-1">
                     <i class="fa-solid fa-plus"></i> New schedule
                 </a>
             </div>
@@ -38,17 +38,17 @@
 
         <div class="bg-base-100 rounded-2xl border border-base-200 shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="table">
-                    <thead>
+                <table class="table w-full">
+                    <thead class="bg-success text-success-content text-sm uppercase">
                         <tr>
-                            <th>Name</th>
-                            <th>Frequency</th>
-                            <th>Sections</th>
-                            <th>Recipients</th>
-                            <th>Next run</th>
-                            <th>Last run</th>
-                            <th>Status</th>
-                            <th class="text-right">Actions</th>
+                            <th class="px-4 py-3 text-left text-white">Name</th>
+                            <th class="px-4 py-3 text-left text-white">Frequency</th>
+                            <th class="px-4 py-3 text-left text-white">Sections</th>
+                            <th class="px-4 py-3 text-left text-white">Recipients</th>
+                            <th class="px-4 py-3 text-left text-white">Next run</th>
+                            <th class="px-4 py-3 text-left text-white">Last run</th>
+                            <th class="px-4 py-3 text-left text-white">Status</th>
+                            <th class="px-4 py-3 text-left text-white">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -77,16 +77,16 @@
                                 </span>
                             </td>
                             <td class="text-right whitespace-nowrap">
-                                <a href="{% url 'reports:schedule_run_now' s.pk %}" class="btn btn-xs btn-success text-white rounded-lg" title="Send now">
+                                <a href="{% url 'reports:schedule_run_now' s.pk %}" class="btn btn-xs btn-success text-white" title="Send now">
                                     <i class="fa-solid fa-paper-plane"></i>
                                 </a>
-                                <a href="{% url 'reports:schedule_toggle' s.pk %}" class="btn btn-xs rounded-lg" title="Pause / resume">
+                                <a href="{% url 'reports:schedule_toggle' s.pk %}" class="btn btn-xs" title="Pause / resume">
                                     <i class="fa-solid {% if s.active %}fa-pause{% else %}fa-play{% endif %}"></i>
                                 </a>
-                                <a href="{% url 'reports:schedule_edit' s.pk %}" class="btn btn-xs btn-ghost rounded-lg" title="Edit">
+                                <a href="{% url 'reports:schedule_edit' s.pk %}" class="btn btn-xs btn-ghost" title="Edit">
                                     <i class="fa-solid fa-pen"></i>
                                 </a>
-                                <a href="{% url 'reports:schedule_delete' s.pk %}" class="btn btn-xs btn-ghost text-error rounded-lg" title="Delete">
+                                <a href="{% url 'reports:schedule_delete' s.pk %}" class="btn btn-xs btn-error text-white" title="Delete">
                                     <i class="fa-solid fa-trash"></i>
                                 </a>
                             </td>

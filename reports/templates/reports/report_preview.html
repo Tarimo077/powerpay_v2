@@ -1,4 +1,5 @@
 {% load humanize %}
+{% load math_filters %}
 
 <!-- PERIOD BANNER -->
 <div class="rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white p-6 mb-6 shadow-sm">
@@ -14,7 +15,7 @@
         </div>
 
         <a href="{% url 'reports:report_download' %}?{{ query_string }}"
-           class="btn bg-white text-emerald-700 border-0 rounded-xl hover:bg-emerald-50">
+           class="btn btn-success text-white flex items-center gap-1">
             <i class="fa-solid fa-file-pdf"></i> Download PDF
         </a>
     </div>
@@ -30,11 +31,11 @@
                    title="New customers registered during the selected period."></i>
                 <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Customers</span>
             </div>
-            <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-50">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center">
                 <i class="fa-solid fa-users text-success text-sm"></i>
             </div>
         </div>
-        <p class="text-2xl font-bold">{{ report.summary.customers|intcomma }}</p>
+        <p class="text-2xl font-bold text-base-content">{{ report.summary.customers|intcomma }}</p>
     </div>
 
     <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
@@ -44,11 +45,11 @@
                    title="Sales registered during the selected period."></i>
                 <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Sales</span>
             </div>
-            <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-orange-50">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center">
                 <i class="fa-solid fa-cart-shopping text-warning text-sm"></i>
             </div>
         </div>
-        <p class="text-2xl font-bold">{{ report.summary.sales|intcomma }}</p>
+        <p class="text-2xl font-bold text-base-content">{{ report.summary.sales|intcomma }}</p>
     </div>
 
     <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
@@ -58,11 +59,11 @@
                    title="Inventory items added to your warehouses during the selected period."></i>
                 <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Inventory</span>
             </div>
-            <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-sky-50">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center">
                 <i class="fa-solid fa-boxes-stacked text-info text-sm"></i>
             </div>
         </div>
-        <p class="text-2xl font-bold">{{ report.summary.inventory|intcomma }}</p>
+        <p class="text-2xl font-bold text-base-content">{{ report.summary.inventory|intcomma }}</p>
         <p class="text-xs text-base-content/50 mt-1">{{ report.summary.inventory_units|intcomma }} units</p>
     </div>
 
@@ -73,11 +74,11 @@
                    title="Devices onboarded during the selected period."></i>
                 <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Devices</span>
             </div>
-            <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-violet-50">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center">
                 <i class="fa-solid fa-microchip text-secondary text-sm"></i>
             </div>
         </div>
-        <p class="text-2xl font-bold">{{ report.summary.devices|intcomma }}</p>
+        <p class="text-2xl font-bold text-base-content">{{ report.summary.devices|intcomma }}</p>
     </div>
 
     <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
@@ -87,11 +88,11 @@
                    title="Payments received during the selected period and their total value."></i>
                 <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Transactions</span>
             </div>
-            <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-50">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center">
                 <i class="fa-solid fa-credit-card text-success text-sm"></i>
             </div>
         </div>
-        <p class="text-2xl font-bold">{{ report.summary.transactions|intcomma }}</p>
+        <p class="text-2xl font-bold text-base-content">{{ report.summary.transactions|intcomma }}</p>
         <p class="text-xs text-base-content/50 mt-1">KES {{ report.summary.transactions_total|floatformat:2|intcomma }}</p>
     </div>
 </div>
@@ -103,9 +104,17 @@
         <i class="fa-solid fa-users text-success"></i>
         <h3 class="font-bold">New customers <span class="text-base-content/40 font-normal">({{ report.summary.customers }})</span></h3>
     </div>
-    <div class="overflow-x-auto">
-        <table class="table table-sm">
-            <thead><tr><th>Name</th><th>Phone</th><th>County</th><th>Organization</th><th>Registered</th></tr></thead>
+    <div class="bg-base-100 rounded-lg overflow-x-auto p-4">
+        <table class="table w-full">
+            <thead class="bg-success text-success-content text-sm uppercase">
+                <tr>
+                    <th class="px-4 py-3 text-left text-white">Name</th>
+                    <th class="px-4 py-3 text-left text-white">Phone</th>
+                    <th class="px-4 py-3 text-left text-white">County</th>
+                    <th class="px-4 py-3 text-left text-white">Organization</th>
+                    <th class="px-4 py-3 text-left text-white">Registered</th>
+                </tr>
+            </thead>
             <tbody>
                 {% for c in report.customers %}
                 <tr>
@@ -116,7 +125,7 @@
                     <td>{{ c.date|date:"j M Y" }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="text-center text-base-content/50 py-6">No customers added in this period.</td></tr>
+                <tr><td colspan="5" class="text-center py-6">No customers added in this period.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -130,9 +139,17 @@
         <i class="fa-solid fa-cart-shopping text-warning"></i>
         <h3 class="font-bold">New sales <span class="text-base-content/40 font-normal">({{ report.summary.sales }})</span></h3>
     </div>
-    <div class="overflow-x-auto">
-        <table class="table table-sm">
-            <thead><tr><th>Customer</th><th>Product</th><th>Serial</th><th>Mode</th><th>Date</th></tr></thead>
+    <div class="bg-base-100 rounded-lg overflow-x-auto p-4">
+        <table class="table w-full">
+            <thead class="bg-success text-success-content text-sm uppercase">
+                <tr>
+                    <th class="px-4 py-3 text-left text-white">Customer</th>
+                    <th class="px-4 py-3 text-left text-white">Product</th>
+                    <th class="px-4 py-3 text-left text-white">Serial</th>
+                    <th class="px-4 py-3 text-left text-white">Mode</th>
+                    <th class="px-4 py-3 text-left text-white">Date</th>
+                </tr>
+            </thead>
             <tbody>
                 {% for s in report.sales %}
                 <tr>
@@ -143,7 +160,7 @@
                     <td>{{ s.registration_date|date:"j M Y" }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="text-center text-base-content/50 py-6">No sales added in this period.</td></tr>
+                <tr><td colspan="5" class="text-center py-6">No sales added in this period.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -157,9 +174,18 @@
         <i class="fa-solid fa-boxes-stacked text-info"></i>
         <h3 class="font-bold">New inventory <span class="text-base-content/40 font-normal">({{ report.summary.inventory }})</span></h3>
     </div>
-    <div class="overflow-x-auto">
-        <table class="table table-sm">
-            <thead><tr><th>Item</th><th>Serial</th><th>Type</th><th>Qty</th><th>Warehouse</th><th>Added</th></tr></thead>
+    <div class="bg-base-100 rounded-lg overflow-x-auto p-4">
+        <table class="table w-full">
+            <thead class="bg-success text-success-content text-sm uppercase">
+                <tr>
+                    <th class="px-4 py-3 text-left text-white">Item</th>
+                    <th class="px-4 py-3 text-left text-white">Serial</th>
+                    <th class="px-4 py-3 text-left text-white">Type</th>
+                    <th class="px-4 py-3 text-left text-white">Qty</th>
+                    <th class="px-4 py-3 text-left text-white">Warehouse</th>
+                    <th class="px-4 py-3 text-left text-white">Added</th>
+                </tr>
+            </thead>
             <tbody>
                 {% for i in report.inventory %}
                 <tr>
@@ -171,7 +197,7 @@
                     <td>{{ i.date_added|date:"j M Y" }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6" class="text-center text-base-content/50 py-6">No inventory added in this period.</td></tr>
+                <tr><td colspan="6" class="text-center py-6">No inventory added in this period.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -180,14 +206,130 @@
 {% endif %}
 
 {% if report.sections.devices %}
+<div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+    <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-info cursor-pointer text-success text-sm"
+                   title="Number of devices that reported usage during the selected period."></i>
+                <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Devices used</span>
+            </div>
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                <i class="fa-solid fa-plug-circle-bolt text-success text-sm"></i>
+            </div>
+        </div>
+        <p class="text-2xl font-bold text-base-content">{{ report.device_usage_totals.devices|intcomma }}</p>
+    </div>
+
+    <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-info cursor-pointer text-success text-sm"
+                   title="Total energy consumed by all devices in the selected period."></i>
+                <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Energy used</span>
+            </div>
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                <i class="fa-solid fa-bolt text-warning text-sm"></i>
+            </div>
+        </div>
+        <p class="text-2xl font-bold text-base-content">{{ report.device_usage_totals.kwh|floatformat:2 }} <span class="text-sm font-medium">kWh</span></p>
+    </div>
+
+    <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-info cursor-pointer text-success text-sm"
+                   title="Number of cooking sessions detected across all devices, and the total cooking time in hours."></i>
+                <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Cooking events</span>
+            </div>
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                <i class="fa-solid fa-fire-burner text-error text-sm"></i>
+            </div>
+        </div>
+        <p class="text-2xl font-bold text-base-content">{{ report.device_usage_totals.events|intcomma }}</p>
+        <p class="text-xs text-base-content/50 mt-1">{{ report.device_usage_totals.cooking_minutes|divide:60|floatformat:2 }} hrs cooking time</p>
+    </div>
+
+    <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-info cursor-pointer text-success text-sm"
+                   title="Cost of the energy consumed, based on the Kenya tariff applicable on each reading's date."></i>
+                <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Energy cost</span>
+            </div>
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                <i class="fa-solid fa-coins text-success text-sm"></i>
+            </div>
+        </div>
+        <p class="text-2xl font-bold text-base-content">KES {{ report.device_usage_totals.cost|floatformat:2|intcomma }}</p>
+    </div>
+</div>
+
+<div class="bg-base-100 rounded-2xl border border-base-200 shadow-sm mb-6 overflow-hidden">
+    <div class="px-5 py-4 border-b border-base-200 flex items-center gap-2">
+        <i class="fa-solid fa-bolt text-warning"></i>
+        <h3 class="font-bold">Device usage <span class="text-base-content/40 font-normal">({{ report.device_usage_totals.devices }} device{{ report.device_usage_totals.devices|pluralize }} used)</span></h3>
+    </div>
+    <div class="bg-base-100 rounded-lg overflow-x-auto p-4">
+        <table class="table w-full">
+            <thead class="bg-success text-success-content text-sm uppercase">
+                <tr>
+                    <th class="px-4 py-3 text-left text-white">Device ID</th>
+                    <th class="px-4 py-3 text-left text-white">Organization</th>
+                    <th class="px-4 py-3 text-left text-white">kWh</th>
+                    <th class="px-4 py-3 text-left text-white">Cooking events</th>
+                    <th class="px-4 py-3 text-left text-white">Cooking time (hrs)</th>
+                    <th class="px-4 py-3 text-left text-white">Energy cost (KES)</th>
+                    <th class="px-4 py-3 text-left text-white">Last seen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in report.device_usage %}
+                <tr>
+                    <td class="font-medium">{{ u.deviceid }}</td>
+                    <td>{{ u.organization.name|default:"-" }}</td>
+                    <td>{{ u.kwh|floatformat:2 }}</td>
+                    <td>{{ u.events|intcomma }}</td>
+                    <td>{{ u.cooking_minutes|divide:60|floatformat:1 }}</td>
+                    <td>{{ u.cost|floatformat:1|intcomma }}</td>
+                    <td>{{ u.last_seen|date:"j M Y H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center py-6">No devices reported usage in this period.</td></tr>
+                {% endfor %}
+            </tbody>
+            {% if report.device_usage %}
+            <tfoot>
+                <tr class="font-semibold">
+                    <td colspan="2">Total</td>
+                    <td>{{ report.device_usage_totals.kwh|floatformat:2 }}</td>
+                    <td>{{ report.device_usage_totals.events|intcomma }}</td>
+                    <td>{{ report.device_usage_totals.cooking_minutes|divide:60|floatformat:1 }}</td>
+                    <td>{{ report.device_usage_totals.cost|floatformat:1|intcomma }}</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+            {% endif %}
+        </table>
+    </div>
+</div>
+
 <div class="bg-base-100 rounded-2xl border border-base-200 shadow-sm mb-6 overflow-hidden">
     <div class="px-5 py-4 border-b border-base-200 flex items-center gap-2">
         <i class="fa-solid fa-microchip text-secondary"></i>
         <h3 class="font-bold">New devices <span class="text-base-content/40 font-normal">({{ report.summary.devices }})</span></h3>
     </div>
-    <div class="overflow-x-auto">
-        <table class="table table-sm">
-            <thead><tr><th>Device ID</th><th>MSISDN</th><th>Status</th><th>Organization</th><th>Onboarded</th></tr></thead>
+    <div class="bg-base-100 rounded-lg overflow-x-auto p-4">
+        <table class="table w-full">
+            <thead class="bg-success text-success-content text-sm uppercase">
+                <tr>
+                    <th class="px-4 py-3 text-left text-white">Device ID</th>
+                    <th class="px-4 py-3 text-left text-white">MSISDN</th>
+                    <th class="px-4 py-3 text-left text-white">Status</th>
+                    <th class="px-4 py-3 text-left text-white">Organization</th>
+                    <th class="px-4 py-3 text-left text-white">Onboarded</th>
+                </tr>
+            </thead>
             <tbody>
                 {% for d in report.devices %}
                 <tr>
@@ -202,7 +344,7 @@
                     <td>{{ d.time|date:"j M Y" }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="text-center text-base-content/50 py-6">No devices added in this period.</td></tr>
+                <tr><td colspan="5" class="text-center py-6">No devices added in this period.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -216,9 +358,18 @@
         <i class="fa-solid fa-credit-card text-success"></i>
         <h3 class="font-bold">Transactions <span class="text-base-content/40 font-normal">({{ report.summary.transactions }})</span></h3>
     </div>
-    <div class="overflow-x-auto">
-        <table class="table table-sm">
-            <thead><tr><th>Txn ID</th><th>Name</th><th>Ref</th><th>Amount (KES)</th><th>Organization</th><th>Time</th></tr></thead>
+    <div class="bg-base-100 rounded-lg overflow-x-auto p-4">
+        <table class="table w-full">
+            <thead class="bg-success text-success-content text-sm uppercase">
+                <tr>
+                    <th class="px-4 py-3 text-left text-white">Txn ID</th>
+                    <th class="px-4 py-3 text-left text-white">Name</th>
+                    <th class="px-4 py-3 text-left text-white">Ref</th>
+                    <th class="px-4 py-3 text-left text-white">Amount (KES)</th>
+                    <th class="px-4 py-3 text-left text-white">Organization</th>
+                    <th class="px-4 py-3 text-left text-white">Time</th>
+                </tr>
+            </thead>
             <tbody>
                 {% for t in report.transactions %}
                 <tr>
@@ -230,7 +381,7 @@
                     <td>{{ t.time|date:"j M Y H:i" }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6" class="text-center text-base-content/50 py-6">No transactions in this period.</td></tr>
+                <tr><td colspan="6" class="text-center py-6">No transactions in this period.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

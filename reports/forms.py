@@ -7,15 +7,15 @@ from .models import ReportSchedule
 from .services import PERIOD_CHOICES
 
 INPUT = (
-    "input input-bordered w-full rounded-xl bg-base-100 focus:outline-none "
+    "input input-success w-full rounded-xl bg-base-100 focus:outline-none "
     "focus:border-emerald-500"
 )
 SELECT = (
-    "select select-bordered w-full rounded-xl bg-base-100 focus:outline-none "
+    "select select-success w-full rounded-xl bg-base-100 focus:outline-none "
     "focus:border-emerald-500"
 )
 TEXTAREA = (
-    "textarea textarea-bordered w-full rounded-xl bg-base-100 focus:outline-none "
+    "textarea textarea-success w-full rounded-xl bg-base-100 focus:outline-none "
     "focus:border-emerald-500"
 )
 CHECK = "checkbox checkbox-success checkbox-sm text-white"

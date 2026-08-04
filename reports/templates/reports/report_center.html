@@ -21,12 +21,12 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <a href="{% url 'reports:schedule_list' %}" class="btn btn-info rounded-xl text-white">
-                    <i class="fa-solid fa-clock text-white"></i> My Schedules
-                    <span class="badge badge-sm badge-outline">{{ schedule_count }}</span>
+                <a href="{% url 'reports:schedule_list' %}" class="btn btn-sm btn-success text-white flex items-center gap-1">
+                    <i class="fa-solid fa-clock"></i> Schedules
+                    <span class="badge badge-sm badge-success text-white">{{ schedule_count }}</span>
                 </a>
-                <a href="{% url 'reports:run_history' %}" class="btn btn-success rounded-xl text-white">
-                    <i class="fa-solid fa-clock-rotate-left"></i> My Reports
+                <a href="{% url 'reports:run_history' %}" class="btn btn-sm btn-info text-white flex items-center gap-1">
+                    <i class="fa-solid fa-clock-rotate-left"></i> History
                 </a>
             </div>
         </div>
@@ -63,7 +63,7 @@
                     {{ form.end_date }}
                 </div>
                 <div class="flex items-end">
-                    <button type="submit" class="btn btn-success text-white rounded-xl w-full">
+                    <button type="submit" class="btn btn-success text-white w-full flex items-center gap-1">
                         <i class="fa-solid fa-bolt"></i> Generate
                     </button>
                 </div>

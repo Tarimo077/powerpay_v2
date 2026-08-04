@@ -15,22 +15,22 @@
                 <h2 class="text-2xl font-bold">Report History</h2>
                 <p class="text-sm text-base-content/60">Every report you generated or that was emailed on schedule.</p>
             </div>
-            <a href="{% url 'reports:report_center' %}" class="btn btn-sm btn-ghost rounded-xl">
+            <a href="{% url 'reports:report_center' %}" class="btn btn-sm btn-success text-white flex items-center gap-1">
                 <i class="fa-solid fa-arrow-left"></i> Report centre
             </a>
         </div>
 
         <div class="bg-base-100 rounded-2xl border border-base-200 shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="table">
-                    <thead>
+                <table class="table w-full">
+                    <thead class="bg-success text-success-content text-sm uppercase">
                         <tr>
-                            <th>Generated</th>
-                            <th>Source</th>
-                            <th>Schedule</th>
-                            <th>Period</th>
-                            <th>Recipients</th>
-                            <th>Status</th>
+                            <th class="px-4 py-3 text-left text-white">Generated</th>
+                            <th class="px-4 py-3 text-left text-white">Source</th>
+                            <th class="px-4 py-3 text-left text-white">Schedule</th>
+                            <th class="px-4 py-3 text-left text-white">Period</th>
+                            <th class="px-4 py-3 text-left text-white">Recipients</th>
+                            <th class="px-4 py-3 text-left text-white">Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -63,11 +63,11 @@
         {% if page_obj.has_other_pages %}
         <div class="flex justify-center gap-2 my-6">
             {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm rounded-xl">Previous</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm btn-success text-white">Previous</a>
             {% endif %}
-            <span class="btn btn-sm btn-ghost rounded-xl">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            <span class="btn btn-sm btn-ghost">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
             {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm rounded-xl">Next</a>
+            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm btn-success text-white">Next</a>
             {% endif %}
         </div>
         {% endif %}

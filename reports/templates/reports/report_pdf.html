@@ -1,4 +1,5 @@
 {% load humanize %}
+{% load math_filters %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -138,6 +139,35 @@
     {% endif %}
 
     {% if sections.devices %}
+    <h2 class="section">DEVICE USAGE ({{ device_usage_totals.devices }} device{{ device_usage_totals.devices|pluralize }} used)</h2>
+    <table class="data">
+        <tr>
+            <th>Device ID</th><th>Organization</th><th>kWh</th>
+            <th>Cooking events</th><th>Cooking time (hrs)</th><th>Energy cost (KES)</th>
+        </tr>
+        {% for u in device_usage %}
+        <tr>
+            <td>{{ u.deviceid }}</td>
+            <td>{{ u.organization.name|default:"-" }}</td>
+            <td>{{ u.kwh|floatformat:3 }}</td>
+            <td>{{ u.events }}</td>
+            <td>{{ u.cooking_minutes|divide:60|floatformat:2 }}</td>
+            <td>{{ u.cost|floatformat:2|intcomma }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="empty">No devices reported usage in this period.</td></tr>
+        {% endfor %}
+        {% if device_usage %}
+        <tr>
+            <td colspan="2"><strong>Total</strong></td>
+            <td><strong>{{ device_usage_totals.kwh|floatformat:3 }}</strong></td>
+            <td><strong>{{ device_usage_totals.events }}</strong></td>
+            <td><strong>{{ device_usage_totals.cooking_minutes|divide:60|floatformat:2 }}</strong></td>
+            <td><strong>{{ device_usage_totals.cost|floatformat:2|intcomma }}</strong></td>
+        </tr>
+        {% endif %}
+    </table>
+
     <h2 class="section">NEW DEVICES ({{ summary.devices }})</h2>
     <table class="data">
         <tr><th>Device ID</th><th>MSISDN</th><th>Status</th><th>Organization</th><th>Onboarded</th></tr>
