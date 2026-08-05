@@ -868,6 +868,7 @@ def inventory_page(request):
             "unique_units": unique_units,
             "shared_rows": shared_rows,
             "shared_units": shared_units,
+            "is_superadmin": user_is_superadmin,
         },
     )
 

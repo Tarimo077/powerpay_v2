@@ -23,6 +23,8 @@
                 </p>
             </div>
 
+            {% if is_superadmin %}
+
             <div class="flex flex-wrap justify-end gap-2">
                 <a href="{% url 'inventory:bulk_move_items' %}" class="btn btn-warning text-white">
                     <i class="fa-solid fa-truck-moving"></i>
@@ -39,6 +41,8 @@
                     Add Item
                 </a>
             </div>
+            
+            {% endif %}
         </div>
 
         <!-- STATS -->
