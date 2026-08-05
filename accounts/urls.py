@@ -16,7 +16,7 @@ urlpatterns = [
     path("accept-terms/", accept_terms, name="accept-terms"),
     path("users/", user_list, name="user_list"),
     path("users/edit/<int:user_id>/", user_edit, name="user_edit"),
-    path("logout/", auth_views.LogoutView.as_view(next_page="/accounts/login"), name="logout"),
+    path("logout/", auth_views.LogoutView.as_view(next_page="/"), name="logout"),
     path("verify-otp/", verify_otp, name="verify_otp"),
     path("resend-otp/", resend_otp, name="resend_otp"),
     path(
