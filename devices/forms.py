@@ -405,7 +405,7 @@ class BulkDeviceCreateForm(forms.Form):
         devices = []
         seen = set()
 
-        for line in raw.replace(",", "\n").splitlines():
+        for line in raw.replace(";", "\n").splitlines():
             line = line.strip()
 
             if not line:

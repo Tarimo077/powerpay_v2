@@ -1369,7 +1369,7 @@ def device_bulk_create(request):
                     deviceid=deviceid,
                     active=active,
                     organization=primary_organization,
-                    msidn=msisdn if msisdn else None,
+                    msisdn=msisdn if msisdn else None,
                 )
 
                 device.organizations.set(organizations)
