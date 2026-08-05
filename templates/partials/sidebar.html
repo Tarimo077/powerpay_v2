@@ -14,7 +14,7 @@
 <nav id="sidebar"
      class="fixed top-0 left-0 h-screen bg-base-100 border-r border-base-200 flex flex-col
             transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] z-50
-            w-[272px] -translate-x-full lg:translate-x-0 shadow-xl lg:shadow-sm">
+            -translate-x-full lg:translate-x-0 shadow-xl lg:shadow-sm">
 
     <!-- Mobile Close -->
     <div class="flex justify-end p-3 lg:hidden shrink-0">
@@ -100,7 +100,7 @@
                     <span class="link-text flex-1 text-left">Devices</span>
                     <i class="link-text fas fa-chevron-down text-[10px] transition-transform duration-200" :class="open && 'rotate-180'"></i>
                 </button>
-                <div x-show="open" x-collapse class="ml-6 mt-1 space-y-2 border-l-2 border-base-200 pl-4">
+                <div x-show="open" x-collapse class="sidebar-sub ml-6 mt-1 space-y-2 border-l-2 border-base-200 pl-4">
                     <a href="{% url 'devices:device_list' %}"
                        class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-[12.5px] transition-all
                        {% if request.resolver_match.namespace == 'devices' and 'schedules' not in request.path and 'testing-batches' not in request.path %}
@@ -210,7 +210,7 @@
                     <span class="link-text flex-1 text-left">Inventory</span>
                     <i class="link-text fas fa-chevron-down text-[10px] transition-transform duration-200" :class="open && 'rotate-180'"></i>
                 </button>
-                <div x-show="open" x-collapse class="ml-6 mt-1 space-y-2 border-l-2 border-base-200 pl-4">
+                <div x-show="open" x-collapse class="sidebar-sub ml-6 mt-1 space-y-2 border-l-2 border-base-200 pl-4">
                     <a href="{% url 'inventory:inventory_page' %}"
                        class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-[12.5px] transition-all
                        {% if request.resolver_match.namespace == 'inventory' and 'warehouses' not in request.path and 'delivery-notes' not in request.path %}
@@ -319,7 +319,7 @@
                     <span class="link-text flex-1 text-left">Billing</span>
                     <i class="link-text fas fa-chevron-down text-[10px] transition-transform duration-200" :class="open && 'rotate-180'"></i>
                 </button>
-                <div x-show="open" x-collapse class="ml-6 mt-1 space-y-0.5 border-l-2 border-base-200 pl-4">
+                <div x-show="open" x-collapse class="sidebar-sub ml-6 mt-1 space-y-0.5 border-l-2 border-base-200 pl-4">
                     <a href="{% url 'billing:invoice_list' %}"
                        class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-[12.5px] transition-all
                        {% if 'invoice' in request.path %}
@@ -394,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     toggleBtn?.addEventListener('click', () => {
         if (!isDesktop()) return;
-        sidebar.classList.contains('w-20') ? expand(true) : collapse(true);
+        document.documentElement.classList.contains('sidebar-collapsed') ? expand(true) : collapse(true);
     });
     mobileBtn?.addEventListener('click', () => {
         expand(false);
@@ -409,31 +409,21 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.classList.add('hidden');
     }
     function collapse(save) {
-        if (isDesktop()) {
-            sidebar.classList.remove('w-[272px]');
-            sidebar.classList.add('w-20');
-            pageContent?.classList.remove('lg:ml-[272px]');
-            pageContent?.classList.add('lg:ml-20');
-            document.querySelectorAll('.link-text').forEach(e => e.classList.add('hidden'));
-            sidebarText?.classList.add('hidden');
-            sidebarImage?.classList.remove('hidden');
-            chevron?.classList.replace('fa-chevron-left', 'fa-chevron-right');
-            if (save) localStorage.setItem(SIDEBAR_KEY, 'collapsed');
-        }
+        if (!isDesktop()) return;
+        document.documentElement.classList.add('sidebar-collapsed');
+        sidebarText?.classList.add('hidden');
+        sidebarImage?.classList.remove('hidden');
+        chevron?.classList.replace('fa-chevron-left', 'fa-chevron-right');
+        if (save) localStorage.setItem(SIDEBAR_KEY, 'collapsed');
     }
     function expand(save) {
-        sidebar.classList.remove('w-20');
-        sidebar.classList.add('w-[272px]');
-        if (isDesktop()) {
-            pageContent?.classList.remove('lg:ml-20');
-            pageContent?.classList.add('lg:ml-[272px]');
-            if (save) localStorage.setItem(SIDEBAR_KEY, 'expanded');
-        }
-        document.querySelectorAll('.link-text').forEach(e => e.classList.remove('hidden'));
+        document.documentElement.classList.remove('sidebar-collapsed');
         sidebarText?.classList.remove('hidden');
         sidebarImage?.classList.add('hidden');
         chevron?.classList.replace('fa-chevron-right', 'fa-chevron-left');
+        if (isDesktop() && save) localStorage.setItem(SIDEBAR_KEY, 'expanded');
     }
+
     window.addEventListener('resize', () => {
         if (!isDesktop()) { closeMobile(); expand(false); }
         else {

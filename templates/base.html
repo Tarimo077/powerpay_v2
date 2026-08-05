@@ -28,10 +28,66 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
+    <script>
+        // Apply persisted sidebar state before first paint (desktop only)
+        try {
+            if (window.innerWidth >= 1024 && localStorage.getItem('sidebar_state') === 'collapsed') {
+                document.documentElement.classList.add('sidebar-collapsed');
+            }
+        } catch (e) {}
+    </script>
+
     <style>
+        /* ---- Sidebar layout ---- */
+        :root { --sidebar-w: 272px; }
+        html.sidebar-collapsed { --sidebar-w: 5rem; }
+
+        #sidebar {
+            width: var(--sidebar-w);
+            transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #page-content {
+            margin-left: 0 !important;
+            transition: margin-left 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @media (min-width: 1024px) {
+            #page-content { margin-left: var(--sidebar-w) !important; }
+        }
+
+        /* ---- Collapsed state (desktop only) ---- */
+        @media (min-width: 1024px) {
+            html.sidebar-collapsed #sidebar .sidebar-link {
+                justify-content: center;
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+                gap: 0;
+            }
+            html.sidebar-collapsed #sidebar .sidebar-link:hover {
+                transform: none;
+            }
+            /* flatten nested groups */
+            html.sidebar-collapsed #sidebar .sidebar-sub {
+                margin-left: 0 !important;
+                padding-left: 0 !important;
+                border-left: 0 !important;
+            }
+            html.sidebar-collapsed #sidebar .sidebar-sub .sidebar-link i {
+                width: auto;
+            }
+            /* hide labels, section headings and carets */
+            html.sidebar-collapsed #sidebar .link-text {
+                display: none !important;
+            }
+            html.sidebar-collapsed #sidebar {
+                overflow: visible;
+            }
+        }
+
         body {
             font-family: "Inter", system-ui, -apple-system, sans-serif;
         }
+
         @view-transition {
             navigation: auto;
         }
