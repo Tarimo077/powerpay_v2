@@ -86,7 +86,7 @@ Powerpay Africa | {{ batch.name }}
         </div>
 
         {% if batch.note %}
-        <div class="alert alert-info">
+        <div class="alert alert-info text-white">
             <i class="fa-solid fa-circle-info"></i>
             <span>{{ batch.note }}</span>
         </div>
@@ -130,7 +130,7 @@ Powerpay Africa | {{ batch.name }}
                                 <th class="text-center">Test 2</th>
                                 <th class="text-center">Packed</th>
                                 <th class="text-center">Status</th>
-                                <th class="text-center">Power / Debug</th>
+                                <th class="text-center">Power | Debug</th>
                                 <th>Notes</th>
                             </tr>
                         </thead>
@@ -159,7 +159,7 @@ Powerpay Africa | {{ batch.name }}
                                     <input type="checkbox"
                                            name="test_one_passed"
                                            value="{{ row.id }}"
-                                           class="checkbox checkbox-info test-one-checkbox"
+                                           class="checkbox text-white checkbox-info test-one-checkbox"
                                            {% if row.test_one_passed %}checked{% endif %}
                                            {% if batch.status == "dispatched" %}disabled{% endif %}>
                                 </td>
@@ -168,7 +168,7 @@ Powerpay Africa | {{ batch.name }}
                                     <input type="checkbox"
                                            name="test_two_passed"
                                            value="{{ row.id }}"
-                                           class="checkbox checkbox-warning test-two-checkbox"
+                                           class="checkbox text-white checkbox-warning test-two-checkbox"
                                            {% if row.test_two_passed %}checked{% endif %}
                                            {% if batch.status == "dispatched" %}disabled{% endif %}>
                                 </td>
@@ -177,7 +177,7 @@ Powerpay Africa | {{ batch.name }}
                                     <input type="checkbox"
                                            name="packed"
                                            value="{{ row.id }}"
-                                           class="checkbox checkbox-success packed-checkbox"
+                                           class="checkbox text-white checkbox-success packed-checkbox"
                                            {% if row.packed %}checked{% endif %}
                                            {% if batch.status == "dispatched" %}disabled{% endif %}>
                                 </td>
@@ -197,8 +197,10 @@ Powerpay Africa | {{ batch.name }}
                                 </td>
 
                                 <td class="text-center align-middle">
-                                    <div class="flex flex-col items-center gap-2">
+                                    <div class="flex flex-wrap justify-center items-center gap-2">
                                         {% include "partials/device_power_toggle.html" with device=row.device %}
+
+                                        <div class="divider divider-horizontal"></div>
 
                                         <button type="button"
                                                 id="debug-btn-{{ row.id }}"
