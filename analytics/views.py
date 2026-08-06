@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Sum, Avg, Q, F
-from django.db.models.functions import TruncMonth, TruncWeek, TruncDate, ExtractHour
+from django.db.models import Count, Sum, Avg, Q, Value
+from django.db.models.functions import TruncDate, ExtractHour, Upper, Trim, Replace
 from django.utils import timezone
 from django.core.paginator import Paginator
 from datetime import timedelta
@@ -177,13 +177,28 @@ def dashboard(request):
     gender_labels = json.dumps([dict(Customer.GENDER_CHOICES).get(g["gender"], g["gender"]) for g in customers_by_gender])
     gender_data = json.dumps([g["count"] for g in customers_by_gender])
 
-    customers_by_county = list(
-        customer_qs.exclude(county__isnull=True).exclude(county="")
-        .values("county")
+    customers_by_county = (
+        customer_qs
+        .exclude(county__isnull=True)
+        .exclude(county="")
+        .annotate(
+            normalized_county=Upper(
+                Replace(
+                    Replace(
+                        Trim("county"),
+                        Value(" "),
+                        Value("")
+                    ),
+                    Value("-"),
+                    Value("")
+                )
+            )
+        )
+        .values("normalized_county")
         .annotate(count=Count("id"))
         .order_by("-count")[:10]
     )
-    county_labels = json.dumps([c["county"] for c in customers_by_county])
+    county_labels = json.dumps([c["normalized_county"] for c in customers_by_county])
     county_data = json.dumps([c["count"] for c in customers_by_county])
 
     customer_growth = list(
