@@ -1,0 +1,27 @@
+<div class="flex items-center justify-center gap-2" id="power-{{ device.deviceid }}">
+    <input
+        type="checkbox"
+        class="toggle toggle-sm status-switch {% if device.active %}toggle-success{% else %}toggle-error{% endif %}"
+        {% if device.active %}checked{% endif %}
+
+        data-deviceid="{{ device.deviceid }}"
+
+        hx-post="{% url 'devices:change_device_status_partial' %}"
+        hx-trigger="change"
+        hx-disabled-elt="this"
+        hx-target="#power-{{ device.deviceid }}"
+        hx-swap="outerHTML transition:true"
+        hx-indicator="#power-spinner-{{ device.deviceid }}"
+        hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'
+        hx-vals='{
+            "deviceid": "{{ device.deviceid }}",
+            "active": "{{ device.active|yesno:"false,true" }}",
+            "partial": "compact"
+        }'
+    />
+
+    <span
+        class="htmx-indicator loading loading-spinner loading-xs text-primary"
+        id="power-spinner-{{ device.deviceid }}"
+    ></span>
+</div>

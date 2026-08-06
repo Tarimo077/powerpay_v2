@@ -1180,6 +1180,15 @@ def change_device_status_partial(request):
         device.active = new_status
         device.save(update_fields=["active"])
 
+        if request.POST.get("partial") == "compact":
+            return render(
+                request,
+                "partials/device_power_toggle.html",
+                {
+                    "device": device,
+                }
+            )
+
         return render(
             request,
             "partials/device_status_partial.html",
@@ -1188,6 +1197,7 @@ def change_device_status_partial(request):
                 "last_seen": last_energy_timestamp(device),
             }
         )
+
 
     except requests.exceptions.RequestException as e:
         return HttpResponse(f"API request failed: {e}", status=500)

@@ -130,9 +130,11 @@ Powerpay Africa | {{ batch.name }}
                                 <th class="text-center">Test 2</th>
                                 <th class="text-center">Packed</th>
                                 <th class="text-center">Status</th>
+                                <th class="text-center">Power / Debug</th>
                                 <th>Notes</th>
                             </tr>
                         </thead>
+
 
                         <tbody>
                             {% for row in items %}
@@ -194,6 +196,22 @@ Powerpay Africa | {{ batch.name }}
                                     {% endif %}
                                 </td>
 
+                                <td class="text-center align-middle">
+                                    <div class="flex flex-col items-center gap-2">
+                                        {% include "partials/device_power_toggle.html" with device=row.device %}
+
+                                        <button type="button"
+                                                id="debug-btn-{{ row.id }}"
+                                                class="btn btn-sm btn-info text-white"
+                                                onclick="toggleDebug('{{ row.id }}', '{{ row.device.deviceid }}')">
+                                            <i class="fa-solid fa-bug"></i>
+                                            <span id="debug-btn-label-{{ row.id }}">Debug</span>
+                                        </button>
+                                    </div>
+                                </td>
+
+
+
                                 <td class="align-middle min-w-96">
                                     <details class="collapse collapse-arrow bg-base-200">
                                         <summary class="collapse-title text-sm font-medium">
@@ -222,9 +240,76 @@ Powerpay Africa | {{ batch.name }}
                                     </details>
                                 </td>
                             </tr>
+
+                            <tr id="debug-row-{{ row.id }}" class="hidden">
+                                <td colspan="7" class="bg-base-200">
+                                    <div class="card bg-base-100 shadow border-t-2 border-success">
+                                        <div class="px-4 py-3 border-b border-base-200 flex flex-wrap justify-between items-center gap-2">
+                                            <div class="flex items-center gap-3">
+                                                <h4 class="font-bold text-sm">
+                                                    <i class="fa-solid fa-bug text-info"></i>
+                                                    Live Debug - <span class="font-mono">{{ row.device.deviceid }}</span>
+                                                </h4>
+                                                <div class="flex items-center gap-2">
+                                                    <div id="debug-status-dot-{{ row.id }}" class="w-3 h-3 rounded-full bg-error transition-all"></div>
+                                                    <span id="debug-status-text-{{ row.id }}" class="font-bold text-sm text-error">Offline</span>
+                                                </div>
+                                            </div>
+
+                                            <button type="button" class="btn btn-sm btn-error text-white"
+                                                    onclick="toggleDebug('{{ row.id }}', '{{ row.device.deviceid }}')">
+                                                <i class="fa-solid fa-xmark"></i>
+                                                Close
+                                            </button>
+                                        </div>
+
+                                        <div class="p-4 space-y-4">
+                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div class="card bg-base-200 shadow p-4">
+                                                    <p class="text-xs text-gray-500 uppercase">Energy (kWh)</p>
+                                                    <p id="debug-kwh-{{ row.id }}" class="text-lg font-bold text-primary mt-1">--</p>
+                                                </div>
+
+                                                <div class="card bg-base-200 shadow p-4">
+                                                    <p class="text-xs text-gray-500 uppercase">Last Sync</p>
+                                                    <p id="debug-last-update-{{ row.id }}" class="text-lg font-bold text-secondary mt-1">--</p>
+                                                </div>
+
+                                                <div class="card bg-base-200 shadow p-4">
+                                                    <p class="text-xs text-gray-500 uppercase">Reported</p>
+                                                    <p id="debug-device-status-{{ row.id }}" class="text-lg font-bold text-warning mt-1">--</p>
+                                                </div>
+                                            </div>
+
+                                            <div class="card bg-base-100 shadow overflow-hidden">
+                                                <div class="px-4 py-3 border-b border-base-200 flex justify-between items-center">
+                                                    <h4 class="font-bold text-sm">Live Message Log</h4>
+                                                    <span class="badge badge-ghost text-xs">Showing last 20 messages</span>
+                                                </div>
+
+                                                <div class="overflow-x-auto max-h-60">
+                                                    <table class="table table-zebra w-full">
+                                                        <thead class="bg-success text-white uppercase text-sm">
+                                                            <tr>
+                                                                <th>Time</th>
+                                                                <th>Payload</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="debug-log-body-{{ row.id }}">
+                                                            <tr id="debug-no-data-row-{{ row.id }}">
+                                                                <td colspan="2" class="text-center text-gray-400">Waiting for data...</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="6" class="text-center py-8">
+                                <td colspan="7" class="text-center py-8">
                                     No devices in this batch.
                                 </td>
                             </tr>
@@ -246,6 +331,220 @@ Powerpay Africa | {{ batch.name }}
 
     </div>
 </div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.body.addEventListener('htmx:confirm', function(event) {
+    const target = event.target;
+
+    if (!target.classList.contains("status-switch")) return;
+
+    event.preventDefault();
+
+    const deviceID = target.dataset.deviceid;
+    const isChecked = target.checked;
+    const action = isChecked ? "activate" : "deactivate";
+
+    Swal.fire({
+        title: "Confirm Action",
+        text: `Are you sure you want to ${action} ${deviceID}?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes",
+        cancelButtonText: "Cancel",
+        customClass: {
+            confirmButton: "swal-confirm-btn",
+            cancelButton: "swal-cancel-btn"
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            if (event.detail && typeof event.detail.issueRequest === "function") {
+                event.detail.issueRequest();
+            }
+        } else {
+            target.checked = !isChecked;
+        }
+    });
+});
+</script>
+
+<style>
+.swal-confirm-btn {
+    background-color: #28a745 !important;
+    color: white !important;
+    border-radius: 5px !important;
+    padding: 10px 20px !important;
+}
+
+.swal-cancel-btn {
+    background-color: #dc3545 !important;
+    color: white !important;
+    border-radius: 5px !important;
+    padding: 10px 20px !important;
+}
+
+.toggle.toggle-error:not(:checked) {
+    background-color: #ef4444 !important;
+    border-color: #ef4444 !important;
+    color: white !important;
+    --tglbg: white !important;
+}
+
+.htmx-indicator {
+    display: none;
+}
+
+.status-switch.htmx-request + .htmx-indicator,
+.status-switch.htmx-request ~ .htmx-indicator {
+    display: inline-flex;
+}
+</style>
+
+<script>
+const debugSessions = {};
+
+function debugFormatDateTime(raw) {
+    const str = raw.toString();
+    if (str.length !== 14) return str;
+    return `${str.slice(6,8)}/${str.slice(4,6)}/${str.slice(0,4)} ${str.slice(8,10)}:${str.slice(10,12)}:${str.slice(12,14)}`;
+}
+
+function debugSetOnline(rowId, isOnline) {
+    const dot = document.getElementById("debug-status-dot-" + rowId);
+    const text = document.getElementById("debug-status-text-" + rowId);
+    if (!dot || !text) return;
+
+    if (isOnline) {
+        dot.className = "w-3 h-3 rounded-full bg-success transition-all shadow-[0_0_8px_rgba(34,197,94,0.8)]";
+        text.innerText = "Online";
+        text.className = "font-bold text-sm text-success";
+    } else {
+        dot.className = "w-3 h-3 rounded-full bg-error transition-all";
+        text.innerText = "Offline";
+        text.className = "font-bold text-sm text-error";
+    }
+}
+
+function debugAppendLog(rowId, payload) {
+    const tbody = document.getElementById("debug-log-body-" + rowId);
+    if (!tbody) return;
+
+    const noDataRow = document.getElementById("debug-no-data-row-" + rowId);
+    if (noDataRow) noDataRow.remove();
+
+    const row = document.createElement("tr");
+    const now = new Date().toLocaleTimeString();
+
+    row.innerHTML = `
+        <td class="whitespace-nowrap font-mono text-xs"><span class="text-gray-400">${now}</span></td>
+        <td><code class="text-xs bg-base-200 p-1 rounded">${JSON.stringify(payload)}</code></td>
+    `;
+
+    tbody.insertBefore(row, tbody.firstChild);
+
+    if (tbody.children.length > 20) {
+        tbody.removeChild(tbody.lastChild);
+    }
+}
+
+function debugConnect(rowId) {
+    const session = debugSessions[rowId];
+    if (!session) return;
+
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const socket = new WebSocket(`${protocol}://${window.location.host}/ws/mqtt/${session.deviceId}/`);
+    session.socket = socket;
+
+    socket.onmessage = function(e) {
+        const current = debugSessions[rowId];
+        if (!current || current.socket !== socket) return;
+
+        const data = JSON.parse(e.data);
+        const payload = data.data;
+
+        if (payload.txtime && payload.txtime === current.lastTxTime) return;
+        current.lastTxTime = payload.txtime;
+
+        current.lastMessageTime = Date.now();
+        debugSetOnline(rowId, true);
+        debugAppendLog(rowId, payload);
+
+        if (payload.kwh !== undefined) {
+            const incomingKwh = parseFloat(payload.kwh);
+            if (!isNaN(incomingKwh)) {
+                current.totalKwh += incomingKwh;
+                document.getElementById("debug-kwh-" + rowId).innerText = current.totalKwh.toFixed(4) + " kWh";
+            }
+        }
+
+        if (payload.status) {
+            document.getElementById("debug-device-status-" + rowId).innerText = payload.status;
+        }
+
+        if (payload.txtime) {
+            document.getElementById("debug-last-update-" + rowId).innerText = debugFormatDateTime(payload.txtime);
+        }
+    };
+
+    socket.onclose = function() {
+        const current = debugSessions[rowId];
+        if (!current || current.socket !== socket) return;
+        setTimeout(function() {
+            if (debugSessions[rowId] === current) debugConnect(rowId);
+        }, 3000);
+    };
+}
+
+function toggleDebug(rowId, deviceId) {
+    const panel = document.getElementById("debug-row-" + rowId);
+    const label = document.getElementById("debug-btn-label-" + rowId);
+
+    if (debugSessions[rowId]) {
+        const session = debugSessions[rowId];
+        delete debugSessions[rowId];
+
+        if (session.socket) {
+            session.socket.onclose = null;
+            session.socket.close();
+        }
+
+        if (panel) panel.classList.add("hidden");
+        if (label) label.innerText = "Debug";
+        return;
+    }
+
+    debugSessions[rowId] = {
+        socket: null,
+        deviceId: deviceId,
+        totalKwh: 0.0,
+        lastTxTime: null,
+        lastMessageTime: null
+    };
+
+    document.getElementById("debug-kwh-" + rowId).innerText = "--";
+    document.getElementById("debug-last-update-" + rowId).innerText = "--";
+    document.getElementById("debug-device-status-" + rowId).innerText = "--";
+    document.getElementById("debug-log-body-" + rowId).innerHTML =
+        '<tr id="debug-no-data-row-' + rowId + '"><td colspan="2" class="text-center text-gray-400">Waiting for data...</td></tr>';
+
+    debugSetOnline(rowId, false);
+    if (panel) panel.classList.remove("hidden");
+    if (label) label.innerText = "Hide Debug";
+
+    debugConnect(rowId);
+}
+
+setInterval(function() {
+    Object.keys(debugSessions).forEach(function(rowId) {
+        const session = debugSessions[rowId];
+        if (session.lastMessageTime && (Date.now() - session.lastMessageTime > 120000)) {
+            debugSetOnline(rowId, false);
+        }
+    });
+}, 5000);
+</script>
+
 
 <script>
 function toggleColumn(name, checked) {
