@@ -13,7 +13,10 @@
         <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
             <div>
                 <h2 class="text-2xl font-bold">Report History</h2>
-                <p class="text-sm text-base-content/60">Every report you generated or that was emailed on schedule.</p>
+                <p class="text-sm text-base-content/60">
+                    Every report you generated or that was emailed on schedule. Long reports are prepared
+                    in the background and show as <span class="font-semibold">Queued</span> until they are emailed.
+                </p>
             </div>
             <a href="{% url 'reports:report_center' %}" class="btn btn-sm btn-success text-white flex items-center gap-1">
                 <i class="fa-solid fa-arrow-left"></i> Report centre
@@ -44,7 +47,7 @@
                                 {{ run.recipients|default:"Downloaded" }}
                             </td>
                             <td>
-                                <span class="badge badge-sm {% if run.status == 'success' %}badge-success{% else %}badge-error{% endif %}"
+                                <span class="badge badge-sm {% if run.status == 'success' %}badge-success{% elif run.status == 'queued' %}badge-warning{% else %}badge-error{% endif %}"
                                       title="{{ run.error }}">
                                     {{ run.get_status_display }}
                                 </span>

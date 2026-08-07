@@ -97,13 +97,16 @@ class ReportSchedule(models.Model):
 
 
 class ReportRun(models.Model):
+    STATUS_QUEUED = "queued"
     STATUS_SUCCESS = "success"
     STATUS_FAILED = "failed"
 
     STATUS_CHOICES = [
+        (STATUS_QUEUED, "Queued"),
         (STATUS_SUCCESS, "Success"),
         (STATUS_FAILED, "Failed"),
     ]
+
 
     SOURCE_MANUAL = "manual"
     SOURCE_SCHEDULED = "scheduled"
@@ -130,9 +133,12 @@ class ReportRun(models.Model):
     period_start = models.DateTimeField()
     period_end = models.DateTimeField()
     recipients = models.TextField(blank=True)
+    sections_snapshot = models.JSONField(default=dict, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_SUCCESS)
     error = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
 
     class Meta:
         db_table = "report_runs"

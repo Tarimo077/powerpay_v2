@@ -129,6 +129,11 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% if report.truncated.customers %}
+        <p class="text-xs text-base-content/50 px-4 pb-2">
+            Showing {{ report.truncated.customers.shown|intcomma }} of {{ report.truncated.customers.total|intcomma }} customers in this period.
+        </p>
+        {% endif %}
     </div>
 </div>
 {% endif %}
@@ -164,6 +169,11 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% if report.truncated.sales %}
+        <p class="text-xs text-base-content/50 px-4 pb-2">
+            Showing {{ report.truncated.sales.shown|intcomma }} of {{ report.truncated.sales.total|intcomma }} sales in this period.
+        </p>
+        {% endif %}
     </div>
 </div>
 {% endif %}
@@ -201,6 +211,11 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% if report.truncated.inventory %}
+        <p class="text-xs text-base-content/50 px-4 pb-2">
+            Showing {{ report.truncated.inventory.shown|intcomma }} of {{ report.truncated.inventory.total|intcomma }} inventory items in this period.
+        </p>
+        {% endif %}
     </div>
 </div>
 {% endif %}
@@ -288,10 +303,10 @@
                 <tr>
                     <td class="font-medium">{{ u.deviceid }}</td>
                     <td>{{ u.organization.name|default:"-" }}</td>
-                    <td>{{ u.kwh|floatformat:2 }}</td>
+                    <td>{{ u.kwh|floatformat:3 }}</td>
                     <td>{{ u.events|intcomma }}</td>
-                    <td>{{ u.cooking_minutes|divide:60|floatformat:1 }}</td>
-                    <td>{{ u.cost|floatformat:1|intcomma }}</td>
+                    <td>{{ u.cooking_minutes|divide:60|floatformat:2 }}</td>
+                    <td>{{ u.cost|floatformat:2|intcomma }}</td>
                     <td>{{ u.last_seen|date:"j M Y H:i" }}</td>
                 </tr>
                 {% empty %}
@@ -302,15 +317,20 @@
             <tfoot>
                 <tr class="font-semibold">
                     <td colspan="2">Total</td>
-                    <td>{{ report.device_usage_totals.kwh|floatformat:2 }}</td>
+                    <td>{{ report.device_usage_totals.kwh|floatformat:3 }}</td>
                     <td>{{ report.device_usage_totals.events|intcomma }}</td>
-                    <td>{{ report.device_usage_totals.cooking_minutes|divide:60|floatformat:1 }}</td>
-                    <td>{{ report.device_usage_totals.cost|floatformat:1|intcomma }}</td>
+                    <td>{{ report.device_usage_totals.cooking_minutes|divide:60|floatformat:2 }}</td>
+                    <td>{{ report.device_usage_totals.cost|floatformat:2|intcomma }}</td>
                     <td></td>
                 </tr>
             </tfoot>
             {% endif %}
         </table>
+        {% if report.truncated.device_usage %}
+        <p class="text-xs text-base-content/50 px-4 pb-2">
+            Showing {{ report.truncated.device_usage.shown|intcomma }} of {{ report.truncated.device_usage.total|intcomma }} devices in this period.
+        </p>
+        {% endif %}
     </div>
 </div>
 
@@ -348,6 +368,11 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% if report.truncated.devices %}
+        <p class="text-xs text-base-content/50 px-4 pb-2">
+            Showing {{ report.truncated.devices.shown|intcomma }} of {{ report.truncated.devices.total|intcomma }} devices in this period.
+        </p>
+        {% endif %}
     </div>
 </div>
 {% endif %}
@@ -385,6 +410,11 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% if report.truncated.transactions %}
+        <p class="text-xs text-base-content/50 px-4 pb-2">
+            Showing {{ report.truncated.transactions.shown|intcomma }} of {{ report.truncated.transactions.total|intcomma }} transactions in this period.
+        </p>
+        {% endif %}
     </div>
 </div>
 {% endif %}

@@ -17,15 +17,16 @@
                 <h2 class="text-2xl font-bold">Reports</h2>
                 <p class="text-sm text-base-content/60">
                     Generate a report for any period, download it as PDF, or schedule it to your inbox.
+                    Periods longer than a month are prepared in the background and emailed to you.
                 </p>
             </div>
 
             <div class="flex items-center gap-2">
                 <a href="{% url 'reports:schedule_list' %}" class="btn btn-sm btn-success text-white flex items-center gap-1">
                     <i class="fa-solid fa-clock"></i> Schedules
-                    <span class="badge badge-sm badge-success text-white">{{ schedule_count }}</span>
+                    <span class="badge badge-sm badge-success">{{ schedule_count }}</span>
                 </a>
-                <a href="{% url 'reports:run_history' %}" class="btn btn-sm btn-info text-white flex items-center gap-1">
+                <a href="{% url 'reports:run_history' %}" class="btn btn-sm btn-success text-white flex items-center gap-1">
                     <i class="fa-solid fa-clock-rotate-left"></i> History
                 </a>
             </div>
@@ -53,7 +54,11 @@
                 <div>
                     <label class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Period</label>
                     {{ form.period }}
+                    <p class="text-[11px] text-base-content/50 mt-1">
+                        31 days or less previews instantly. Longer ranges are emailed to you.
+                    </p>
                 </div>
+
                 <div>
                     <label class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Start date</label>
                     {{ form.start_date }}
@@ -85,7 +90,20 @@
 
         {% if report %}
             {% include "reports/report_preview.html" %}
+        {% elif too_long %}
+            <div class="bg-base-100 rounded-2xl border border-dashed border-base-300 p-12 text-center">
+                <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-50 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-envelope-circle-check text-emerald-600 text-xl"></i>
+                </div>
+                <h3 class="font-bold text-lg">This range is too long to preview on screen</h3>
+                <p class="text-sm text-base-content/60 mt-1">
+                    It is being prepared in the background and emailed to you - check
+                    <a href="{% url 'reports:run_history' %}" class="link link-success">Report history</a>
+                    for the status. Pick 31 days or less to preview instantly.
+                </p>
+            </div>
         {% else %}
+
             <div class="bg-base-100 rounded-2xl border border-dashed border-base-300 p-12 text-center">
                 <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-50 flex items-center justify-center mb-4">
                     <i class="fa-solid fa-file-lines text-emerald-600 text-xl"></i>

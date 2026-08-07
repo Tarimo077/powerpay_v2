@@ -8,15 +8,42 @@ from .forms import ReportRequestForm, ReportScheduleForm
 from .models import ReportRun, ReportSchedule
 from .services import (
     build_report_context,
+    period_needs_background,
     render_report_pdf,
     report_filename,
     resolve_period,
 )
-from .tasks import run_schedule
+from .tasks import generate_manual_report, run_report_schedule_now
+
+
+def _queue_report(request, start, end, sections):
+    """Create a queued run, hand it to the worker and flash a confirmation."""
+    run = ReportRun.objects.create(
+        user=request.user,
+        source=ReportRun.SOURCE_MANUAL,
+        period_start=start,
+        period_end=end,
+        recipients=request.user.email or "",
+        sections_snapshot=sections,
+        status=ReportRun.STATUS_QUEUED,
+    )
+    generate_manual_report.delay(run.id)
+    messages.success(
+        request,
+        "This report covers a long period, so it is being prepared in the "
+        f"background and will be emailed to {request.user.email or 'you'} "
+        "when it is ready.",
+    )
+    return run
 
 
 def _context_from_request(request):
-    """Build a report context from GET parameters. Returns (form, context)."""
+    """
+    Build a report context from GET parameters.
+
+    Returns (form, context, too_long). Long periods are never built here - the
+    caller queues them for the background worker instead.
+    """
     has_params = bool(request.GET.get("period"))
     form = ReportRequestForm(request.GET or None) if has_params else ReportRequestForm()
 
@@ -26,15 +53,27 @@ def _context_from_request(request):
             form.cleaned_data.get("start_date"),
             form.cleaned_data.get("end_date"),
         )
-        context = build_report_context(request.user, start, end, form.sections())
-        return form, context
+        if period_needs_background(start, end):
+            return form, None, True
 
-    return form, None
+        context = build_report_context(request.user, start, end, form.sections())
+        return form, context, False
+
+    return form, None, False
 
 
 @login_required
 def report_center(request):
-    form, report = _context_from_request(request)
+    form, report, too_long = _context_from_request(request)
+
+    if too_long:
+        start, end = resolve_period(
+            form.cleaned_data["period"],
+            form.cleaned_data.get("start_date"),
+            form.cleaned_data.get("end_date"),
+        )
+        _queue_report(request, start, end, form.sections())
+        return redirect("reports:run_history")
 
     return render(
         request,
@@ -42,6 +81,7 @@ def report_center(request):
         {
             "form": form,
             "report": report,
+            "too_long": too_long,
             "query_string": request.GET.urlencode(),
             "schedule_count": ReportSchedule.objects.filter(user=request.user).count(),
         },
@@ -61,6 +101,12 @@ def report_download(request):
         form.cleaned_data.get("start_date"),
         form.cleaned_data.get("end_date"),
     )
+    # Long periods can contain tens of thousands of rows - render them in the
+    # background and email the PDF instead of timing out the request.
+    if period_needs_background(start, end):
+        _queue_report(request, start, end, form.sections())
+        return redirect("reports:run_history")
+
     context = build_report_context(request.user, start, end, form.sections())
     pdf = render_report_pdf(context)
 
@@ -164,13 +210,13 @@ def schedule_toggle(request, pk):
 @login_required
 def schedule_run_now(request, pk):
     schedule = get_object_or_404(ReportSchedule, pk=pk, user=request.user)
-    run = run_schedule(schedule, source=ReportRun.SOURCE_MANUAL)
+    run_report_schedule_now.delay(schedule.id)
 
-    if run.status == ReportRun.STATUS_SUCCESS:
-        messages.success(request, f"Report emailed to {schedule.recipients}.")
-    else:
-        messages.error(request, f"The report could not be sent: {run.error}")
-
+    messages.success(
+        request,
+        f"'{schedule.name}' is being generated in the background and will be "
+        f"emailed to {schedule.recipients}.",
+    )
     return redirect("reports:schedule_list")
 
 
