@@ -42,9 +42,11 @@
                             id="customer-search"
                             class="input input-bordered w-full"
                             placeholder="Search customer..."
+                            value="{% if form.instance.customer_id %}{{ form.instance.customer.name }} - {{ form.instance.customer.phone_number }} - {{ form.instance.customer.location }}{% endif %}"
                             autocomplete="off">
 
-                        <input type="hidden" name="customer" id="customer-id">
+                        <input type="hidden" name="customer" id="customer-id"
+                               value="{{ form.customer.value|default_if_none:'' }}">
 
                         <!-- DROPDOWN -->
                         <ul id="customer-results"
@@ -61,15 +63,18 @@
                             id="referred-search"
                             class="input input-bordered w-full"
                             placeholder="Search referrer..."
+                            value="{% if form.instance.referred_by_id %}{{ form.instance.referred_by.name }} - {{ form.instance.referred_by.phone_number }} - {{ form.instance.referred_by.location }}{% endif %}"
                             autocomplete="off">
 
-                        <input type="hidden" name="referred_by" id="referred-id">
+                        <input type="hidden" name="referred_by" id="referred-id"
+                               value="{{ form.referred_by.value|default_if_none:'' }}">
 
                         <ul id="referred-results"
                             class="absolute z-50 bg-base-100 shadow rounded w-full mt-1 hidden max-h-60 overflow-auto">
                         </ul>
 
                     </div>
+
 
                     <div>
                         <label class="label">Registration Date</label>
@@ -176,9 +181,11 @@ function setupSearch(inputId, hiddenId, listId, url) {
         const query = this.value;
 
         if (!query) {
+            hidden.value = "";
             list.classList.add("hidden");
             return;
         }
+
 
         timer = setTimeout(() => {
             fetch(`${url}?q=${query}`)
