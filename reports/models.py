@@ -136,6 +136,8 @@ class ReportRun(models.Model):
     sections_snapshot = models.JSONField(default=dict, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_SUCCESS)
     error = models.TextField(blank=True)
+    attempts = models.PositiveSmallIntegerField(default=0)
+    last_dispatched_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
@@ -146,3 +148,16 @@ class ReportRun(models.Model):
 
     def __str__(self):
         return f"Report {self.period_start:%d %b %Y} - {self.period_end:%d %b %Y}"
+
+    @property
+    def is_stalled(self):
+        """A queued run the worker has not finished within the grace period."""
+        if self.status != self.STATUS_QUEUED:
+            return False
+
+        from .tasks import QUEUED_GRACE_MINUTES
+
+        reference = self.last_dispatched_at or self.created_at
+        if not reference:
+            return False
+        return timezone.now() - reference > timedelta(minutes=QUEUED_GRACE_MINUTES)

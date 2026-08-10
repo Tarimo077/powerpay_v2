@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from .forms import ReportRequestForm, ReportScheduleForm
 from .models import ReportRun, ReportSchedule
@@ -26,6 +27,7 @@ def _queue_report(request, start, end, sections):
         recipients=request.user.email or "",
         sections_snapshot=sections,
         status=ReportRun.STATUS_QUEUED,
+        last_dispatched_at=timezone.now(),
     )
     generate_manual_report.delay(run.id)
     messages.success(

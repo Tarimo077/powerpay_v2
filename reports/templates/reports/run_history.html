@@ -51,6 +51,16 @@
                                       title="{{ run.error }}">
                                     {{ run.get_status_display }}
                                 </span>
+                                {% if run.is_stalled %}
+                                <span class="block text-[11px] text-base-content/50 mt-1"
+                                      title="This run is being re-sent to the background worker automatically.">
+                                    <i class="fa-solid fa-rotate-right"></i> retrying
+                                </span>
+                                {% elif run.status == 'failed' and run.attempts > 1 %}
+                                <span class="block text-[11px] text-base-content/50 mt-1">
+                                    after {{ run.attempts }} attempts
+                                </span>
+                                {% endif %}
                             </td>
                         </tr>
                         {% empty %}

@@ -1,8 +1,18 @@
+from datetime import timedelta
+
 from celery import shared_task
+from django.db.models import Q
 from django.utils import timezone
 
 from .models import ReportRun, ReportSchedule
 from .services import build_report_context, send_report_email
+
+# How long a run may sit in "queued" before the sweeper assumes the dispatch
+# was lost (no worker listening, worker restarted mid-render, ...).
+QUEUED_GRACE_MINUTES = 15
+# How many times the sweeper re-dispatches a run before giving up on it.
+MAX_QUEUE_ATTEMPTS = 3
+
 
 
 def run_schedule(schedule, source=ReportRun.SOURCE_SCHEDULED):
@@ -51,6 +61,15 @@ def generate_manual_report(run_id):
     except ReportRun.DoesNotExist:
         return False
 
+    # A sweeper re-dispatch can race with a slow original task - never redo
+    # work that already succeeded.
+    if run.status == ReportRun.STATUS_SUCCESS:
+        return True
+
+    run.attempts = (run.attempts or 0) + 1
+    run.last_dispatched_at = timezone.now()
+    run.save(update_fields=["attempts", "last_dispatched_at"])
+
     try:
         context = build_report_context(
             user=run.user,
@@ -76,6 +95,50 @@ def generate_manual_report(run_id):
     run.completed_at = timezone.now()
     run.save(update_fields=["status", "error", "completed_at"])
     return run.status == ReportRun.STATUS_SUCCESS
+
+
+@shared_task
+def sweep_stuck_report_runs():
+    """
+    Re-drive queued reports the worker never finished.
+
+    A run can be left in "queued" forever if no worker was listening when it
+    was dispatched, or if the worker died mid-render before it could record
+    the failure. This runs on celery beat and either re-dispatches the run or,
+    after MAX_QUEUE_ATTEMPTS, marks it failed so the user sees the truth.
+    """
+    cutoff = timezone.now() - timedelta(minutes=QUEUED_GRACE_MINUTES)
+
+    stuck = ReportRun.objects.filter(
+        Q(last_dispatched_at__isnull=True) | Q(last_dispatched_at__lt=cutoff),
+        status=ReportRun.STATUS_QUEUED,
+        created_at__lt=cutoff,
+    )
+
+    requeued = 0
+    failed = 0
+
+    for run in stuck:
+        if (run.attempts or 0) >= MAX_QUEUE_ATTEMPTS:
+            run.status = ReportRun.STATUS_FAILED
+            run.error = (
+                "Report generation did not complete after "
+                f"{MAX_QUEUE_ATTEMPTS} attempts. Please try a shorter period "
+                "or contact support."
+            )
+            run.completed_at = timezone.now()
+            run.save(update_fields=["status", "error", "completed_at"])
+            failed += 1
+            continue
+
+        run.last_dispatched_at = timezone.now()
+        run.save(update_fields=["last_dispatched_at"])
+        generate_manual_report.delay(run.id)
+        requeued += 1
+
+    return {"requeued": requeued, "failed": failed}
+
+
 
 
 @shared_task
