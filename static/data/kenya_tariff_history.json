@@ -1,9 +1,47 @@
 {
   "source": "https://www.stimatracker.com/historic",
-  "scrape_date": "2026-07-02",
+  "scrape_date": "2026-08-11",
   "description": "Historical electricity tariff data for Kenya",
   "data": {
     "monthly_typical_costs": [
+      {
+        "Period": "2026-07",
+        "Average_electricity_cost_KES_kWh": "20.46",
+        "DL": "25.74",
+        "DL2": "28.24",
+        "DC": "20.63",
+        "SC1": "28.76",
+        "SC3": "22.03",
+        "CI1": "13.90",
+        "CI2": "20.49",
+        "CI3": "13.13",
+        "CI4": "19.90",
+        "CI5": "12.84",
+        "CI6": "19.59",
+        "EM": "12.68",
+        "IT": "19.28",
+        "DL_Peak": "12.52",
+        "DL_Off_peak": "17.87",
+        "DL2_Peak": "14.75",
+        "DL2_Off_peak": "25.13",
+        "DC_Peak": "15.45",
+        "DC_Off_peak": "-",
+        "SC1_Peak": "",
+        "SC1_Off_peak": "",
+        "SC3_Peak": "",
+        "SC3_Off_peak": "",
+        "CI1_Peak": "",
+        "CI1_Off_peak": "",
+        "CI4_Peak": "",
+        "CI4_Off_peak": "",
+        "CI5_Peak": "",
+        "CI5_Off_peak": "",
+        "EM_Peak": "",
+        "EM_Off_peak": "",
+        "IT_Peak": "",
+        "IT_Off_peak": "",
+        "Notes": ""
+      },
       {
         "Period": "2026-06",
         "Average_electricity_cost_KES_kWh": "19.60",
@@ -8024,6 +8062,13 @@
       }
     ],
     "monthly_surcharges": [
+      {
+        "Period": "2026-07",
+        "Fuel_Cost_Charge_KES": "3.20",
+        "Forex_Fluctuation_Adjustment_KES": "1.48",
+        "Inflation_Adjustment_KES": "0.48",
+        "WARMA_Levy_KES": "0.02"
+      },
       {
         "Period": "2026-06",
         "Fuel_Cost_Charge_KES": "3.14",
