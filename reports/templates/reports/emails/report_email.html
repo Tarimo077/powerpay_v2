@@ -63,7 +63,7 @@
       <td style="padding:9px 6px; font-size:14px; color:#0f172a; font-weight:800; text-align:right; border-bottom:1px solid #eef2f6;">
         {{ summary.kwh|floatformat:2 }} kWh
         <span style="display:block; font-size:12px; color:#ea580c; font-weight:700;">
-          KES {{ summary.energy_cost|floatformat:2|intcomma }}
+          KES {{ summary.energy_cost|floatformat:1|intcomma }}
         </span>
       </td>
     </tr>
@@ -72,7 +72,7 @@
       <td style="padding:9px 6px; font-size:14px; color:#0f172a; font-weight:800; text-align:right; border-bottom:1px solid #eef2f6;">
         {{ summary.cooking_events|intcomma }}
         <span style="display:block; font-size:12px; color:#64748b; font-weight:600;">
-          {{ summary.cooking_hours|floatformat:2 }} hrs cooking time
+          {{ summary.cooking_hours|floatformat:1|intcomma }} hrs cooking time
         </span>
       </td>
     </tr>
@@ -83,7 +83,7 @@
       <td style="padding:9px 6px; font-size:14px; color:#0f172a; font-weight:800; text-align:right;">
         {{ summary.transactions|intcomma }}
         <span style="display:block; font-size:12px; color:#ea580c; font-weight:700;">
-          KES {{ summary.transactions_total|floatformat:2|intcomma }}
+          KES {{ summary.transactions_total|floatformat:1|intcomma }}
         </span>
       </td>
     </tr>
