@@ -10,7 +10,7 @@
                 {{ report.period_start|date:"j M Y, H:i" }} &rarr; {{ report.period_end|date:"j M Y, H:i" }}
             </h3>
             <p class="text-sm opacity-90 mt-1">
-                {{ report.days }} day{{ report.days|pluralize }} &middot; generated {{ report.generated_at|date:"j M Y H:i" }}
+                {{ report.days }} day{{ report.days|pluralize }} &middot; {{ report.organization_label }} &middot; generated {{ report.generated_at|date:"j M Y H:i" }}
             </p>
         </div>
 
@@ -129,11 +129,6 @@
                 {% endfor %}
             </tbody>
         </table>
-        {% if report.truncated.customers %}
-        <p class="text-xs text-base-content/50 px-4 pb-2">
-            Showing {{ report.truncated.customers.shown|intcomma }} of {{ report.truncated.customers.total|intcomma }} customers in this period.
-        </p>
-        {% endif %}
     </div>
 </div>
 {% endif %}
@@ -169,11 +164,6 @@
                 {% endfor %}
             </tbody>
         </table>
-        {% if report.truncated.sales %}
-        <p class="text-xs text-base-content/50 px-4 pb-2">
-            Showing {{ report.truncated.sales.shown|intcomma }} of {{ report.truncated.sales.total|intcomma }} sales in this period.
-        </p>
-        {% endif %}
     </div>
 </div>
 {% endif %}
@@ -211,11 +201,6 @@
                 {% endfor %}
             </tbody>
         </table>
-        {% if report.truncated.inventory %}
-        <p class="text-xs text-base-content/50 px-4 pb-2">
-            Showing {{ report.truncated.inventory.shown|intcomma }} of {{ report.truncated.inventory.total|intcomma }} inventory items in this period.
-        </p>
-        {% endif %}
     </div>
 </div>
 {% endif %}
@@ -326,11 +311,6 @@
             </tfoot>
             {% endif %}
         </table>
-        {% if report.truncated.device_usage %}
-        <p class="text-xs text-base-content/50 px-4 pb-2">
-            Showing {{ report.truncated.device_usage.shown|intcomma }} of {{ report.truncated.device_usage.total|intcomma }} devices in this period.
-        </p>
-        {% endif %}
     </div>
 </div>
 
@@ -368,11 +348,6 @@
                 {% endfor %}
             </tbody>
         </table>
-        {% if report.truncated.devices %}
-        <p class="text-xs text-base-content/50 px-4 pb-2">
-            Showing {{ report.truncated.devices.shown|intcomma }} of {{ report.truncated.devices.total|intcomma }} devices in this period.
-        </p>
-        {% endif %}
     </div>
 </div>
 {% endif %}
@@ -410,11 +385,6 @@
                 {% endfor %}
             </tbody>
         </table>
-        {% if report.truncated.transactions %}
-        <p class="text-xs text-base-content/50 px-4 pb-2">
-            Showing {{ report.truncated.transactions.shown|intcomma }} of {{ report.truncated.transactions.total|intcomma }} transactions in this period.
-        </p>
-        {% endif %}
     </div>
 </div>
 {% endif %}

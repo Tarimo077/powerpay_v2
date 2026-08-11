@@ -128,6 +128,14 @@ class ReportRun(models.Model):
         on_delete=models.CASCADE,
         related_name="report_runs",
     )
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="report_runs",
+        help_text="Organization the report was scoped to. Blank means all accessible orgs.",
+    )
 
     source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default=SOURCE_MANUAL)
     period_start = models.DateTimeField()

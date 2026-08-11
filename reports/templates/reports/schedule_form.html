@@ -39,6 +39,17 @@
                     {% if form.name.errors %}<p class="text-error text-xs mt-1">{{ form.name.errors|join:", " }}</p>{% endif %}
                 </div>
 
+                {% if form.show_organization %}
+                <div>
+                    <label class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Organization</label>
+                    {{ form.organization }}
+                    <p class="text-xs text-base-content/50 mt-1">
+                        Leave on "All organizations" to report across every organization you can access.
+                    </p>
+                    {% if form.organization.errors %}<p class="text-error text-xs mt-1">{{ form.organization.errors|join:", " }}</p>{% endif %}
+                </div>
+                {% endif %}
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Frequency</label>

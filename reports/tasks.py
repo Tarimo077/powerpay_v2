@@ -38,6 +38,7 @@ def run_schedule(schedule, source=ReportRun.SOURCE_SCHEDULED):
         period_end=end,
         recipients=schedule.recipients,
         sections_snapshot=schedule.sections,
+        organization=schedule.organization,
     )
 
     try:
@@ -57,7 +58,7 @@ def run_schedule(schedule, source=ReportRun.SOURCE_SCHEDULED):
 def generate_manual_report(run_id):
     """Render a queued manual report in the background and email it."""
     try:
-        run = ReportRun.objects.select_related("user").get(pk=run_id)
+        run = ReportRun.objects.select_related("user", "organization").get(pk=run_id)
     except ReportRun.DoesNotExist:
         return False
 
@@ -76,6 +77,7 @@ def generate_manual_report(run_id):
             start=run.period_start,
             end=run.period_end,
             sections=run.sections_snapshot or None,
+            organization=run.organization,
             allow_long=True,
         )
         recipients = [e.strip() for e in (run.recipients or "").split(",") if e.strip()]

@@ -42,6 +42,7 @@
                     <thead class="bg-success text-success-content text-sm uppercase">
                         <tr>
                             <th class="px-4 py-3 text-left text-white">Name</th>
+                            <th class="px-4 py-3 text-left text-white">Organization</th>
                             <th class="px-4 py-3 text-left text-white">Frequency</th>
                             <th class="px-4 py-3 text-left text-white">Sections</th>
                             <th class="px-4 py-3 text-left text-white">Recipients</th>
@@ -55,6 +56,7 @@
                         {% for s in schedules %}
                         <tr>
                             <td class="font-semibold">{{ s.name }}</td>
+                            <td class="text-sm">{{ s.organization.name|default:"All organizations" }}</td>
                             <td>
                                 {{ s.get_frequency_display }}
                                 {% if s.frequency == 'custom_days' %}
@@ -93,7 +95,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="8" class="text-center py-12">
+                            <td colspan="9" class="text-center py-12">
                                 <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-50 flex items-center justify-center mb-3">
                                     <i class="fa-solid fa-clock text-emerald-600 text-xl"></i>
                                 </div>

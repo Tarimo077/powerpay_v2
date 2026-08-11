@@ -3,8 +3,10 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
+from organizations.models import Organization
+
 from .models import ReportSchedule
-from .services import PERIOD_CHOICES
+from .services import PERIOD_CHOICES, accessible_org_ids, user_is_superadmin
 
 INPUT = (
     "input input-success w-full rounded-xl bg-base-100 focus:outline-none "
@@ -36,6 +38,13 @@ class ReportRequestForm(forms.Form):
         widget=forms.DateInput(attrs={"type": "date", "class": INPUT}),
     )
 
+    organization = forms.ModelChoiceField(
+        queryset=Organization.objects.none(),
+        required=False,
+        empty_label="All organizations",
+        widget=forms.Select(attrs={"class": SELECT}),
+    )
+
     include_customers = forms.BooleanField(
         required=False, initial=True, label="Customers",
         widget=forms.CheckboxInput(attrs={"class": CHECK}),
@@ -56,6 +65,19 @@ class ReportRequestForm(forms.Form):
         required=False, initial=True, label="Transactions",
         widget=forms.CheckboxInput(attrs={"class": CHECK}),
     )
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.show_organization = bool(user and user_is_superadmin(user))
+
+        if self.show_organization:
+            self.fields["organization"].queryset = Organization.objects.filter(
+                id__in=accessible_org_ids(user)
+            ).order_by("name")
+        else:
+            # Everyone else stays scoped to their own accessible organizations.
+            self.fields.pop("organization")
 
     def clean(self):
         data = super().clean()
@@ -83,6 +105,12 @@ class ReportRequestForm(forms.Form):
 
         return data
 
+    def selected_organization(self):
+        """The chosen organization, or None for 'all organizations'."""
+        if not self.show_organization:
+            return None
+        return self.cleaned_data.get("organization")
+
     def sections(self):
         data = self.cleaned_data
         return {
@@ -99,6 +127,7 @@ class ReportScheduleForm(forms.ModelForm):
         model = ReportSchedule
         fields = [
             "name",
+            "organization",
             "frequency",
             "interval_days",
             "recipients",
@@ -113,6 +142,7 @@ class ReportScheduleForm(forms.ModelForm):
             "name": forms.TextInput(
                 attrs={"class": INPUT, "placeholder": "Weekly operations report"}
             ),
+            "organization": forms.Select(attrs={"class": SELECT}),
             "frequency": forms.Select(attrs={"class": SELECT}),
             "interval_days": forms.NumberInput(attrs={"class": INPUT, "min": 1}),
             "recipients": forms.Textarea(
@@ -130,9 +160,27 @@ class ReportScheduleForm(forms.ModelForm):
             "active": forms.CheckboxInput(attrs={"class": "toggle toggle-success"}),
         }
         labels = {
+            "organization": "Organization",
             "interval_days": "Interval (days) - used when frequency is 'Every N days'",
             "recipients": "Recipients (comma separated)",
         }
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.show_organization = bool(user and user_is_superadmin(user))
+
+        if self.show_organization:
+            self.fields["organization"].queryset = Organization.objects.filter(
+                id__in=accessible_org_ids(user)
+            ).order_by("name")
+            self.fields["organization"].required = False
+            self.fields["organization"].empty_label = "All organizations"
+            self.fields["organization"].help_text = (
+                "Leave as 'All organizations' to report on every organization you can access."
+            )
+        else:
+            self.fields.pop("organization")
 
     def clean_recipients(self):
         raw = self.cleaned_data.get("recipients", "")
@@ -172,6 +220,10 @@ class ReportScheduleForm(forms.ModelForm):
 
     def save(self, commit=True):
         schedule = super().save(commit=False)
+
+        if not self.show_organization:
+            # Non superadmins are always scoped to their own organization.
+            schedule.organization = getattr(self.user, "organization", None)
 
         if not schedule.pk and not schedule.next_run_at:
             schedule.next_run_at = timezone.now()

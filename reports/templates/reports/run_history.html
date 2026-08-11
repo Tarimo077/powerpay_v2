@@ -47,7 +47,7 @@
                                 {{ run.recipients|default:"Downloaded" }}
                             </td>
                             <td>
-                                <span class="badge badge-sm {% if run.status == 'success' %}badge-success{% elif run.status == 'queued' %}badge-warning{% else %}badge-error{% endif %}"
+                                <span class="badge badge-sm text-white {% if run.status == 'success' %}badge-success{% elif run.status == 'queued' %}badge-warning{% else %}badge-error{% endif %}"
                                       title="{{ run.error }}">
                                     {{ run.get_status_display }}
                                 </span>

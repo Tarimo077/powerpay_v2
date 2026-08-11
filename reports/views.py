@@ -17,7 +17,7 @@ from .services import (
 from .tasks import generate_manual_report, run_report_schedule_now
 
 
-def _queue_report(request, start, end, sections):
+def _queue_report(request, start, end, sections, organization=None):
     """Create a queued run, hand it to the worker and flash a confirmation."""
     run = ReportRun.objects.create(
         user=request.user,
@@ -26,6 +26,7 @@ def _queue_report(request, start, end, sections):
         period_end=end,
         recipients=request.user.email or "",
         sections_snapshot=sections,
+        organization=organization,
         status=ReportRun.STATUS_QUEUED,
         last_dispatched_at=timezone.now(),
     )
@@ -47,7 +48,11 @@ def _context_from_request(request):
     caller queues them for the background worker instead.
     """
     has_params = bool(request.GET.get("period"))
-    form = ReportRequestForm(request.GET or None) if has_params else ReportRequestForm()
+    form = (
+        ReportRequestForm(request.GET or None, user=request.user)
+        if has_params
+        else ReportRequestForm(user=request.user)
+    )
 
     if has_params and form.is_valid():
         start, end = resolve_period(
@@ -58,7 +63,13 @@ def _context_from_request(request):
         if period_needs_background(start, end):
             return form, None, True
 
-        context = build_report_context(request.user, start, end, form.sections())
+        context = build_report_context(
+            request.user,
+            start,
+            end,
+            form.sections(),
+            organization=form.selected_organization(),
+        )
         return form, context, False
 
     return form, None, False
@@ -74,7 +85,9 @@ def report_center(request):
             form.cleaned_data.get("start_date"),
             form.cleaned_data.get("end_date"),
         )
-        _queue_report(request, start, end, form.sections())
+        _queue_report(
+            request, start, end, form.sections(), form.selected_organization()
+        )
         return redirect("reports:run_history")
 
     return render(
@@ -92,7 +105,7 @@ def report_center(request):
 
 @login_required
 def report_download(request):
-    form = ReportRequestForm(request.GET or None)
+    form = ReportRequestForm(request.GET or None, user=request.user)
 
     if not form.is_valid():
         messages.error(request, "Choose a valid period before downloading the report.")
@@ -105,11 +118,15 @@ def report_download(request):
     )
     # Long periods can contain tens of thousands of rows - render them in the
     # background and email the PDF instead of timing out the request.
+    organization = form.selected_organization()
+
     if period_needs_background(start, end):
-        _queue_report(request, start, end, form.sections())
+        _queue_report(request, start, end, form.sections(), organization)
         return redirect("reports:run_history")
 
-    context = build_report_context(request.user, start, end, form.sections())
+    context = build_report_context(
+        request.user, start, end, form.sections(), organization=organization
+    )
     pdf = render_report_pdf(context)
 
     if not pdf:
@@ -121,7 +138,9 @@ def report_download(request):
         source=ReportRun.SOURCE_MANUAL,
         period_start=start,
         period_end=end,
+        organization=organization,
         status=ReportRun.STATUS_SUCCESS,
+        completed_at=timezone.now(),
     )
 
     response = HttpResponse(pdf, content_type="application/pdf")
@@ -145,12 +164,11 @@ def schedule_list(request):
 
 @login_required
 def schedule_create(request):
-    form = ReportScheduleForm(request.POST or None)
+    form = ReportScheduleForm(request.POST or None, user=request.user)
 
     if request.method == "POST" and form.is_valid():
         schedule = form.save(commit=False)
         schedule.user = request.user
-        schedule.organization = request.user.organization
         schedule.save()
         messages.success(request, f"Schedule '{schedule.name}' was created.")
         return redirect("reports:schedule_list")
@@ -165,7 +183,7 @@ def schedule_create(request):
 @login_required
 def schedule_edit(request, pk):
     schedule = get_object_or_404(ReportSchedule, pk=pk, user=request.user)
-    form = ReportScheduleForm(request.POST or None, instance=schedule)
+    form = ReportScheduleForm(request.POST or None, instance=schedule, user=request.user)
 
     if request.method == "POST" and form.is_valid():
         form.save()

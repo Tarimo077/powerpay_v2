@@ -68,7 +68,7 @@
         <strong>Reporting period:</strong>
         {{ period_start|date:"j M Y, H:i" }} &nbsp;to&nbsp; {{ period_end|date:"j M Y, H:i" }}
         ({{ days }} day{{ days|pluralize }})
-        {% if organization %}<br><strong>Organization:</strong> {{ organization.name }}{% endif %}
+        <br><strong>Organization:</strong> {{ organization_label }}
     </div>
 
     <table class="summary">
@@ -101,9 +101,6 @@
         <tr><td colspan="5" class="empty">No customers added in this period.</td></tr>
         {% endfor %}
     </table>
-    {% if truncated.customers %}
-    <p class="note">Showing {{ truncated.customers.shown }} of {{ truncated.customers.total }} customers in this period. Totals above cover the full period.</p>
-    {% endif %}
     {% endif %}
 
     {% if sections.sales %}
@@ -122,9 +119,6 @@
         <tr><td colspan="5" class="empty">No sales added in this period.</td></tr>
         {% endfor %}
     </table>
-    {% if truncated.sales %}
-    <p class="note">Showing {{ truncated.sales.shown }} of {{ truncated.sales.total }} sales in this period. Totals above cover the full period.</p>
-    {% endif %}
     {% endif %}
 
     {% if sections.inventory %}
@@ -144,9 +138,6 @@
         <tr><td colspan="6" class="empty">No inventory added in this period.</td></tr>
         {% endfor %}
     </table>
-    {% if truncated.inventory %}
-    <p class="note">Showing {{ truncated.inventory.shown }} of {{ truncated.inventory.total }} inventory items in this period. Totals above cover the full period.</p>
-    {% endif %}
     {% endif %}
 
     {% if sections.devices %}
@@ -178,9 +169,6 @@
         </tr>
         {% endif %}
     </table>
-    {% if truncated.device_usage %}
-    <p class="note">Showing {{ truncated.device_usage.shown }} of {{ truncated.device_usage.total }} devices in this period. Totals above cover the full period.</p>
-    {% endif %}
 
     <h2 class="section">NEW DEVICES ({{ summary.devices }})</h2>
     <table class="data">
@@ -197,9 +185,6 @@
         <tr><td colspan="5" class="empty">No devices added in this period.</td></tr>
         {% endfor %}
     </table>
-    {% if truncated.devices %}
-    <p class="note">Showing {{ truncated.devices.shown }} of {{ truncated.devices.total }} devices in this period. Totals above cover the full period.</p>
-    {% endif %}
     {% endif %}
 
     {% if sections.transactions %}
@@ -219,9 +204,6 @@
         <tr><td colspan="6" class="empty">No transactions in this period.</td></tr>
         {% endfor %}
     </table>
-    {% if truncated.transactions %}
-    <p class="note">Showing {{ truncated.transactions.shown }} of {{ truncated.transactions.total }} transactions in this period. Totals above cover the full period.</p>
-    {% endif %}
     {% endif %}
 
     <div class="footer">
