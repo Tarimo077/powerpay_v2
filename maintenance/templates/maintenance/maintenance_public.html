@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}
+Powerpay Africa | Maintenance {{ record.reference }}
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-base-200 px-4 py-8">
+    <div class="max-w-4xl mx-auto space-y-6">
+
+        <div class="bg-base-100 shadow rounded-lg p-6">
+            <div class="flex flex-wrap justify-between gap-3 items-start mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold">Maintenance Progress</h1>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Record {{ record.reference }} · {{ record.item_name }}
+                    </p>
+                </div>
+
+                <span class="badge {{ record.status_badge_class }} text-white badge-lg">
+                    {{ record.get_status_display }}
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="rounded-lg bg-base-200 p-4">
+                    <p class="text-sm text-gray-500">Item</p>
+                    <p class="font-semibold">{{ record.item_name }}</p>
+                    <p class="text-xs text-gray-500 font-mono">{{ record.serial_number }}</p>
+                </div>
+
+                <div class="rounded-lg bg-base-200 p-4">
+                    <p class="text-sm text-gray-500">Product Type</p>
+                    <p class="font-semibold">{{ record.product_type|default:"-" }}</p>
+                </div>
+
+                <div class="rounded-lg bg-base-200 p-4">
+                    <p class="text-sm text-gray-500">Received</p>
+                    <p class="font-semibold">{{ record.created_at|date:"j M Y H:i" }}</p>
+                </div>
+
+                <div class="rounded-lg bg-base-200 p-4">
+                    <p class="text-sm text-gray-500">Last Updated</p>
+                    <p class="font-semibold">{{ record.updated_at|date:"j M Y H:i" }}</p>
+                </div>
+            </div>
+
+            <div class="rounded-lg bg-base-200 p-4 mb-6">
+                <p class="text-sm text-gray-500">Reported Fault</p>
+                <p class="mt-1">{{ record.reported_fault|default:"-"|linebreaksbr }}</p>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg mb-6">
+                <table class="table w-full">
+                    <thead class="bg-success text-white">
+                        <tr>
+                            <th>Status</th>
+                            <th>Update</th>
+                            <th>When</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for update in status_updates %}
+                        <tr class="hover">
+                            <td>
+                                <span class="badge badge-ghost">{{ update.get_status_display }}</span>
+                            </td>
+                            <td>{{ update.note|default:"-" }}</td>
+                            <td>{{ update.created_at|date:"j M Y H:i" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center text-gray-500 py-6">
+                                No updates yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if comments %}
+            <h2 class="text-lg font-bold mb-3">Notes from the workshop</h2>
+            <div class="space-y-3 mb-6">
+                {% for comment in comments %}
+                <div class="rounded-lg bg-base-200 p-3">
+                    <p class="text-sm">{{ comment.body|linebreaksbr }}</p>
+                    <p class="text-[11px] text-gray-500 mt-1">{{ comment.created_at|date:"j M Y H:i" }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if photos %}
+            <h2 class="text-lg font-bold mb-3">Photos</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {% for photo in photos %}
+                <div class="rounded-lg overflow-hidden border border-base-200">
+                    <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:record.serial_number }}"
+                         class="w-full h-40 object-cover">
+                    <div class="p-2">
+                        <p class="text-xs">{{ photo.caption|default:"-" }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <p class="text-center text-xs text-gray-500">
+            This page is a read-only status tracker for the item above.
+        </p>
+    </div>
+</div>
+{% endblock %}

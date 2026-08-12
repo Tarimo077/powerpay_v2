@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}
+  Powerpay Africa | {{ record.reference }}
+{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0 space-y-6" id="page-content">
+
+        <div class="bg-base-100 shadow rounded-lg p-6 mt-4">
+            <div class="flex flex-wrap justify-between items-start gap-3 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">{{ record.reference }}</h2>
+                    <p class="text-sm text-gray-500 mt-1">
+                        {{ record.item_name }} · <span class="font-mono">{{ record.serial_number }}</span>
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-2 items-center">
+                    <span class="badge {{ record.status_badge_class }} text-white badge-lg">
+                        {{ record.get_status_display }}
+                    </span>
+                    <a href="{% url 'maintenance:maintenance_list' %}" class="btn btn-ghost btn-accent hover:text-white">
+                        <i class="fa-solid fa-backward-step"></i>
+                        Back
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="rounded-lg bg-base-200 p-4">
+                    <p class="text-sm text-gray-500">Organization</p>
+                    <p class="font-semibold">{{ record.organization.name|default:"-" }}</p>
+                </div>
+                <div class="rounded-lg bg-base-200 p-4">
+                    <p class="text-sm text-gray-500">Came From</p>
+                    <p class="font-semibold">{{ record.source_warehouse.name|default:"-" }}</p>
+                </div>
+                <div class="rounded-lg bg-base-200 p-4">
+                    <p class="text-sm text-gray-500">Currently In</p>
+                    <p class="font-semibold">{{ record.item.current_warehouse.name|default:"-" }}</p>
+                </div>
+                <div class="rounded-lg bg-base-200 p-4">
+                    <p class="text-sm text-gray-500">Priority</p>
+                    <span class="badge badge-info text-white badge-lg">{{ record.get_priority_display }}</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="rounded-lg bg-base-200 p-4">
+                    <p class="text-sm text-gray-500">Reported Fault</p>
+                    <p class="mt-1">{{ record.reported_fault|default:"-"|linebreaksbr }}</p>
+                </div>
+                <div class="rounded-lg bg-base-200 p-4">
+                    <p class="text-sm text-gray-500">Public Tracking Link</p>
+                    <p class="mt-1 text-xs break-all font-mono">{{ public_url }}</p>
+                    <a href="{{ public_url }}" target="_blank" class="btn btn-sm btn-success text-white mt-2">
+                        <i class="fa-solid fa-share-nodes"></i>
+                        Open Public Page
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {% if is_superadmin %}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-base-100 shadow rounded-lg p-6">
+                <h3 class="text-lg font-bold mb-4">Update Status</h3>
+                <form method="POST" action="{% url 'maintenance:maintenance_status_update' record.pk %}" class="space-y-4">
+                    {% csrf_token %}
+                    <div>
+                        <label class="label font-semibold">{{ status_form.status.label }}</label>
+                        {{ status_form.status }}
+                    </div>
+                    <div>
+                        <label class="label font-semibold">{{ status_form.note.label }}</label>
+                        {{ status_form.note }}
+                    </div>
+                    <div>
+                        <label class="label font-semibold">{{ status_form.return_warehouse.label }}</label>
+                        {{ status_form.return_warehouse }}
+                        <p class="text-xs text-gray-500 mt-1">{{ status_form.return_warehouse.help_text }}</p>
+                    </div>
+                    <button type="submit" class="btn btn-success text-white">
+                        <i class="fa-solid fa-rotate"></i>
+                        Update Status
+                    </button>
+                </form>
+            </div>
+
+            <div class="bg-base-100 shadow rounded-lg p-6 space-y-6">
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Add Comment</h3>
+                    <form method="POST" action="{% url 'maintenance:maintenance_comment_add' record.pk %}" class="space-y-3">
+                        {% csrf_token %}
+                        {{ comment_form.body }}
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            {{ comment_form.is_public }}
+                            <span class="text-sm">{{ comment_form.is_public.label }}</span>
+                        </label>
+                        <button type="submit" class="btn btn-success text-white">
+                            <i class="fa-solid fa-comment"></i>
+                            Add Comment
+                        </button>
+                    </form>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Add Photo</h3>
+                    <form method="POST" enctype="multipart/form-data"
+                          action="{% url 'maintenance:maintenance_photo_add' record.pk %}" class="space-y-3">
+                        {% csrf_token %}
+                        {{ photo_form.image }}
+                        {{ photo_form.caption }}
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            {{ photo_form.is_public }}
+                            <span class="text-sm">{{ photo_form.is_public.label }}</span>
+                        </label>
+                        <button type="submit" class="btn btn-success text-white">
+                            <i class="fa-solid fa-camera"></i>
+                            Upload Photo
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% include "maintenance/_timeline.html" %}
+
+        <div class="bg-base-100 shadow rounded-lg p-6 mb-6">
+            <h3 class="text-lg font-bold mb-4">Photos</h3>
+            {% if photos %}
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {% for photo in photos %}
+                <div class="rounded-lg overflow-hidden border border-base-200">
+                    <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:record.serial_number }}"
+                         class="w-full h-40 object-cover">
+                    <div class="p-2">
+                        <p class="text-xs">{{ photo.caption|default:"-" }}</p>
+                        <p class="text-[11px] text-gray-500">
+                            {{ photo.created_at|date:"j M Y H:i" }}
+                            {% if not photo.is_public %}· <span class="text-warning">internal</span>{% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500">No photos uploaded yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

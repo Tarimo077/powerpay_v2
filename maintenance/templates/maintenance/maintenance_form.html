@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Powerpay Africa | Send Item to Maintenance
+{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300 lg:ml-64 ml-0 space-y-6" id="page-content">
+
+        <div class="bg-base-100 shadow rounded-lg p-6 mt-4">
+            <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">Send Item to Maintenance</h2>
+                    <p class="text-sm text-gray-500 mt-1">
+                        A maintenance record covers exactly one item. The item will be moved
+                        from its current warehouse into the maintenance warehouse.
+                    </p>
+                </div>
+
+                <a href="{% url 'maintenance:maintenance_list' %}" class="btn btn-ghost btn-accent hover:text-white">
+                    <i class="fa-solid fa-backward-step"></i>
+                    Back to Maintenance
+                </a>
+            </div>
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-error text-white mb-4">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <form method="POST" class="space-y-5">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="label font-semibold">{{ form.item.label }}</label>
+                        {{ form.item }}
+                        <p class="text-xs text-gray-500 mt-1">{{ form.item.help_text }}</p>
+                        <p class="text-error text-sm">{{ form.item.errors|striptags }}</p>
+                    </div>
+
+                    <div>
+                        <label class="label font-semibold">{{ form.priority.label }}</label>
+                        {{ form.priority }}
+                        <p class="text-error text-sm">{{ form.priority.errors|striptags }}</p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="label font-semibold">{{ form.reported_fault.label }}</label>
+                    {{ form.reported_fault }}
+                    <p class="text-error text-sm">{{ form.reported_fault.errors|striptags }}</p>
+                </div>
+
+                <div class="alert alert-warning">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div>
+                        <p class="font-semibold">This item will be moved to the maintenance warehouse.</p>
+                        <label class="flex items-center gap-2 mt-2 cursor-pointer">
+                            {{ form.confirm_move }}
+                            <span class="text-sm">{{ form.confirm_move.label }}</span>
+                        </label>
+                        <p class="text-error text-sm">{{ form.confirm_move.errors|striptags }}</p>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2">
+                    <a href="{% url 'maintenance:maintenance_list' %}" class="btn btn-error text-white">
+                        <i class="fa-solid fa-xmark"></i>
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-success text-white">
+                        <i class="fa-solid fa-screwdriver-wrench"></i>
+                        Create Maintenance Record
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

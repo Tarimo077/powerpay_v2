@@ -128,6 +128,20 @@
                         Move Items
                     </button>
                 </div>
+
+                <div id="maintenance-warning" class="alert alert-warning text-white hidden">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div>
+                        <p class="font-semibold">This destination is the maintenance warehouse.</p>
+                        <p class="text-sm">A maintenance record will be created for each item that lands in the maintenance warehouse.</p>
+                        <label class="flex items-center gap-2 mt-2 cursor-pointer">
+                            {{ form.confirm_maintenance }}
+                            <span class="text-sm">{{ form.confirm_maintenance.label }}</span>
+                        </label>
+                        <p class="text-error text-sm">{{ form.confirm_maintenance.errors|striptags }}</p>
+                    </div>
+                </div>
+
             </form>
 
         </div>
@@ -148,4 +162,23 @@ document.addEventListener("DOMContentLoaded", function () {
     toggleDeliveryFields();
 });
 </script>
+
+<script>
+(function () {
+    const maintenanceId = "{{ maintenance_warehouse_id }}";
+    const select = document.getElementById("id_to_warehouse");
+    const warning = document.getElementById("maintenance-warning");
+
+    if (!select || !warning) return;
+
+    function sync() {
+        const isMaintenance = String(select.value) === String(maintenanceId);
+        warning.classList.toggle("hidden", !isMaintenance);
+    }
+
+    select.addEventListener("change", sync);
+    sync();
+})();
+</script>
+
 {% endblock %}

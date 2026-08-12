@@ -6,6 +6,8 @@ class AppAccessMiddleware:
     APP_MAP = {
         "/paygo": "paygo",
         "/inventory": "inventory",
+        "/maintenance": "inventory",
+
         "/transactions": "transactions",
         "/customers": "customers",
         "/sales": "sales",

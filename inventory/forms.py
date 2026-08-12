@@ -479,6 +479,14 @@ class InventoryMoveForm(DeliveryNoteFieldsMixin, forms.ModelForm):
         }),
     )
 
+    confirm_maintenance = forms.BooleanField(
+        required=False,
+        label="I understand a maintenance record will be created",
+        widget=forms.CheckboxInput(attrs={"class": "checkbox checkbox-info text-white"}),
+    )
+
+
+
     class Meta:
         model = InventoryMovement
         fields = ["to_warehouse", "note"]
@@ -540,7 +548,21 @@ class InventoryMoveForm(DeliveryNoteFieldsMixin, forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        return self.clean_delivery_note_fields(cleaned_data)
+        cleaned_data = self.clean_delivery_note_fields(cleaned_data)
+
+        from maintenance.services import is_maintenance_warehouse
+
+        to_warehouse = cleaned_data.get("to_warehouse")
+
+        if is_maintenance_warehouse(to_warehouse) and not cleaned_data.get("confirm_maintenance"):
+            self.add_error(
+                "confirm_maintenance",
+                "This destination is the maintenance warehouse. "
+                "Please confirm that a maintenance record should be created.",
+            )
+
+        return cleaned_data
+
 
 
 class BulkInventoryMoveForm(DeliveryNoteFieldsMixin, forms.Form):
@@ -694,6 +716,12 @@ class BulkInventoryMoveForm(DeliveryNoteFieldsMixin, forms.Form):
 
         return list(entries_by_serial.values())
 
+    confirm_maintenance = forms.BooleanField(
+        required=False,
+        label="I understand maintenance records will be created",
+        widget=forms.CheckboxInput(attrs={"class": "checkbox checkbox-info text-white"}),
+    )
+
     def clean(self):
         cleaned_data = super().clean()
         from_warehouse = cleaned_data.get("from_warehouse")
@@ -704,7 +732,17 @@ class BulkInventoryMoveForm(DeliveryNoteFieldsMixin, forms.Form):
                 "Source and destination warehouses cannot be the same."
             )
 
+        from maintenance.services import is_maintenance_warehouse
+
+        if is_maintenance_warehouse(to_warehouse) and not cleaned_data.get("confirm_maintenance"):
+            self.add_error(
+                "confirm_maintenance",
+                "This destination is the maintenance warehouse. "
+                "Please confirm that maintenance records should be created for these items.",
+            )
+
         return self.clean_delivery_note_fields(cleaned_data)
+
 
 
 class DeliveryNoteReceiveForm(forms.Form):

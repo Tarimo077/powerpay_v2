@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}
+  Powerpay Africa | Maintenance
+{% endblock %}
+
+{% block content %}
+{% include "partials/navbar.html" %}
+
+<div class="flex min-h-screen bg-base-200">
+    {% include "partials/sidebar.html" %}
+
+    <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
+            lg:ml-64 ml-0 space-y-6" id="page-content">
+
+        <!-- PAGE HEADER -->
+        <div class="flex flex-wrap justify-between items-start gap-4 mt-4">
+            <div>
+                <h2 class="text-2xl font-bold">Maintenance</h2>
+                <p class="text-sm text-gray-500 mt-1">
+                    Track inventory items that are under repair in the maintenance warehouse.
+                </p>
+            </div>
+
+            {% if is_superadmin %}
+            <div class="flex flex-wrap justify-end gap-2">
+                <a href="{% url 'maintenance:maintenance_create' %}" class="btn btn-success text-white">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                    Send Item to Maintenance
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- STATS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info cursor-pointer text-success text-sm"
+                           title="This represents the total number of maintenance records you can access."></i>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                            Total Records
+                        </span>
+                    </div>
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-clipboard-list text-blue-600 text-sm"></i>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold text-base-content">{{ total_count|default:0|intcomma }}</p>
+                <p class="text-xs text-base-content/60 mt-2">
+                    Maintenance records matching the current filters.
+                </p>
+            </div>
+
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info cursor-pointer text-success text-sm"
+                           title="This represents records that are still awaiting a resolution."></i>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                            Open
+                        </span>
+                    </div>
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-folder-open text-amber-600 text-sm"></i>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold text-base-content">{{ open_count|default:0|intcomma }}</p>
+                <p class="text-xs text-base-content/60 mt-2">
+                    Received, diagnosed, in progress or awaiting parts.
+                </p>
+            </div>
+
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info cursor-pointer text-success text-sm"
+                           title="This represents records currently being worked on by a technician."></i>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                            In Progress
+                        </span>
+                    </div>
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-screwdriver-wrench text-violet-600 text-sm"></i>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold text-base-content">{{ in_progress_count|default:0|intcomma }}</p>
+                <p class="text-xs text-base-content/60 mt-2">
+                    Active repairs on the workshop bench.
+                </p>
+            </div>
+
+            <div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info cursor-pointer text-success text-sm"
+                           title="This represents items that have been repaired successfully."></i>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                            Fixed
+                        </span>
+                    </div>
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold text-base-content">{{ fixed_count|default:0|intcomma }}</p>
+                <p class="text-xs text-base-content/60 mt-2">
+                    Repaired items ready to be returned to a warehouse.
+                </p>
+            </div>
+        </div>
+
+        <!-- FILTERS -->
+        <form method="get" class="flex flex-wrap gap-2 mt-2 mb-2">
+            <input name="q"
+                   value="{{ search_query }}"
+                   placeholder="Search serial, item, fault..."
+                   class="input input-success flex-1 min-w-40">
+
+            <select name="status" class="select select-success select-md">
+                <option value="">All Statuses</option>
+                <option value="open" {% if status_filter == "open" %}selected{% endif %}>Open Only</option>
+                <option value="closed" {% if status_filter == "closed" %}selected{% endif %}>Closed Only</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="priority" class="select select-success select-md">
+                <option value="">All Priorities</option>
+                {% for value, label in priority_choices %}
+                <option value="{{ value }}" {% if priority_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="period" class="select select-success select-md">
+                <option value="all" {% if period == "all" %}selected{% endif %}>All Time</option>
+                <option value="1d" {% if period == "1d" %}selected{% endif %}>Last 24 Hours</option>
+                <option value="7d" {% if period == "7d" %}selected{% endif %}>Last 1 Week</option>
+                <option value="30d" {% if period == "30d" %}selected{% endif %}>Last 1 Month</option>
+                <option value="90d" {% if period == "90d" %}selected{% endif %}>Last 3 Months</option>
+                <option value="365d" {% if period == "365d" %}selected{% endif %}>Last 1 Year</option>
+            </select>
+
+            {% if is_superadmin %}
+            <select name="org" class="select select-success select-md">
+                <option value="">All Organizations</option>
+                {% for org in organizations %}
+                <option value="{{ org.id }}" {% if org_filter|stringformat:"s" == org.id|stringformat:"s" %}selected{% endif %}>
+                    {{ org.name }}
+                </option>
+                {% endfor %}
+            </select>
+            {% endif %}
+
+            <button type="submit" class="btn btn-success text-white">
+                <i class="fa-solid fa-filter"></i>
+                Filter
+            </button>
+        </form>
+
+        <!-- TABLE -->
+        <div class="bg-base-100 shadow rounded-lg p-4 mb-6">
+            <div class="overflow-x-auto rounded-lg">
+                <table class="table w-full">
+                    <thead class="bg-success text-white">
+                        <tr>
+                            <th>Reference</th>
+                            <th>Item</th>
+                            <th>Serial</th>
+                            <th>Organization</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th class="text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr class="hover">
+                            <td class="font-semibold">{{ record.reference }}</td>
+                            <td>{{ record.item_name }}</td>
+                            <td class="font-mono">{{ record.serial_number }}</td>
+                            <td>{{ record.organization.name|default:"-" }}</td>
+                            <td>
+                                <span class="badge badge-ghost">{{ record.get_priority_display }}</span>
+                            </td>
+                            <td>
+                                <span class="badge {{ record.status_badge_class }} text-white">
+                                    {{ record.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ record.created_at|date:"j M Y H:i" }}</td>
+                            <td class="text-right">
+                                <a href="{% url 'maintenance:maintenance_detail' record.pk %}"
+                                   class="btn btn-sm btn-success text-white">
+                                    <i class="fa-solid fa-eye"></i>
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-gray-500 py-6">
+                                No maintenance records found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if page_obj.has_other_pages %}
+            <div class="flex justify-between items-center mt-4">
+                <p class="text-sm text-gray-500">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </p>
+                <div class="join">
+                    {% if page_obj.has_previous %}
+                    <a class="join-item btn btn-sm"
+                       href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}&priority={{ priority_filter }}&period={{ period }}&org={{ org_filter }}">
+                        Previous
+                    </a>
+                    {% endif %}
+                    {% if page_obj.has_next %}
+                    <a class="join-item btn btn-sm"
+                       href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ status_filter }}&priority={{ priority_filter }}&period={{ period }}&org={{ org_filter }}">
+                        Next
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

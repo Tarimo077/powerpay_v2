@@ -8,6 +8,7 @@ from inventory.models import Warehouse, InventoryItem, InventoryMovement
 from billing.models import Invoice, InvoiceItem, Receipt, SaaSBillingRule
 from paygo.models import PayGoSettings
 from support.models import Ticket, TicketMessage
+from maintenance.models import MaintenanceRecord, MaintenanceStatusUpdate
 import pytz
 from django.utils import timezone
 from smart_meters.models import MeterReading
@@ -290,3 +291,47 @@ class TrackKwhSerializer(serializers.ModelSerializer):
     class Meta:
         model = TrackKwh
         fields = "__all__"
+
+
+class MaintenanceRecordSerializer(serializers.ModelSerializer):
+    reference = serializers.CharField(read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    priority_display = serializers.CharField(source="get_priority_display", read_only=True)
+    organization_name = serializers.CharField(source="organization.name", read_only=True)
+    source_warehouse_name = serializers.CharField(source="source_warehouse.name", read_only=True)
+    current_warehouse_name = serializers.CharField(
+        source="item.current_warehouse.name", read_only=True
+    )
+
+    class Meta:
+        model = MaintenanceRecord
+        fields = [
+            "id",
+            "reference",
+            "item",
+            "item_name",
+            "serial_number",
+            "product_type",
+            "organization",
+            "organization_name",
+            "source_warehouse",
+            "source_warehouse_name",
+            "current_warehouse_name",
+            "status",
+            "status_display",
+            "priority",
+            "priority_display",
+            "reported_fault",
+            "resolution_notes",
+            "created_at",
+            "updated_at",
+            "closed_at",
+        ]
+
+
+class MaintenanceStatusUpdateSerializer(serializers.ModelSerializer):
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+
+    class Meta:
+        model = MaintenanceStatusUpdate
+        fields = ["id", "record", "status", "status_display", "note", "created_at"]

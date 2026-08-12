@@ -61,6 +61,7 @@ class CoordsRouter:
         "billing",
         "easyaudit",
         "reports",
+        "maintenance",
     }
 
     # Apps that already exist in Postgres (We use them, but don't migrate them)

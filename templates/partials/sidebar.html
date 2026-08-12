@@ -202,7 +202,7 @@
 
             <!-- Inventory Group -->
             {% if 'inventory' in allowed_apps %}
-            <div x-data="{ open: {% if request.resolver_match.namespace == 'inventory' %}true{% else %}false{% endif %} }" class="rounded-xl">
+            <div x-data="{ open: {% if request.resolver_match.namespace == 'inventory' or request.resolver_match.namespace == 'maintenance' %}true{% else %}false{% endif %} }" class="rounded-xl">
                 <button @click="open = !open" class="sidebar-link w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all text-base-content/70 hover:bg-base-200/80 hover:text-base-content">
                     <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-base-200/60">
                         <i class="fas fa-boxes-stacked text-sm"></i>
@@ -243,6 +243,17 @@
                         <span class="link-text">Delivery Notes</span>
                     </a>
                     {% endif %}
+                    <a href="{% url 'maintenance:maintenance_list' %}"
+                       class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-[12.5px] transition-all
+                       {% if request.resolver_match.namespace == 'maintenance' %}
+                            bg-emerald-50 text-emerald-700 font-semibold
+                       {% else %}
+                            text-base-content/60 hover:text-base-content hover:bg-base-200/60
+                       {% endif %}">
+                        <i class="fas fa-screwdriver-wrench text-[11px] w-4"></i>
+                        <span class="link-text">Maintenance</span>
+                    </a>
+
                 </div>
             </div>
             {% endif %}

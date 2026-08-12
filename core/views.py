@@ -28,7 +28,12 @@ from .forms import CustomerSalesImportForm, TransactionImportForm, ExportForm
 from decimal import Decimal
 from notifications.utils import notify
 from django.core.cache import cache
-from .tasks import cache_dashboard_for_user, cache_dashboard_superadmin, build_dashboard_context
+from .tasks import (
+    CACHE_TIMEOUT,
+    cache_dashboard_for_user,
+    cache_dashboard_superadmin,
+    build_dashboard_context,
+)
 from core.org_checker import get_accessible_organizations
 from easyaudit.models import CRUDEvent, RequestEvent, LoginEvent
 from django.utils import timezone
@@ -283,6 +288,10 @@ def index(request):
         period=period,
         org_id=org_id
     )
+
+    # Store what we just built so the next request hits the cache.
+    # Done before injecting request-specific UI values.
+    cache.set(cache_key, context, CACHE_TIMEOUT)
 
     # 🔥 Inject UI/global values
     context["organizations"] = request.accessible_orgs

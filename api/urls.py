@@ -28,6 +28,8 @@ from api.views import (
     TicketViewSet,
     TicketMessageViewSet,
     SmartMetersViewSet,
+    MaintenanceRecordViewSet,
+    MaintenanceStatusUpdateViewSet,
 )
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
@@ -51,6 +53,8 @@ router.register("paygo-settings", PayGoSettingsViewSet, basename="paygo-settings
 router.register("tickets", TicketViewSet, basename="tickets")
 router.register("ticket-messages", TicketMessageViewSet, basename="ticket-messages")
 router.register("smart-meters", SmartMetersViewSet, basename="smart-meters")
+router.register("maintenance-records", MaintenanceRecordViewSet, basename="maintenance-records")
+router.register("maintenance-status-updates", MaintenanceStatusUpdateViewSet, basename="maintenance-status-updates")
 
 app_name = "api"
 

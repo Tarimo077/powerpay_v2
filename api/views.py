@@ -13,6 +13,7 @@ from inventory.models import Warehouse, InventoryItem, InventoryMovement
 from billing.models import Invoice, InvoiceItem, Receipt, SaaSBillingRule
 from paygo.models import PayGoSettings
 from support.models import Ticket, TicketMessage
+from maintenance.models import MaintenanceRecord, MaintenanceStatusUpdate
 from api.serializers import (
     DeviceInfoSerializer,
     DeviceStatusSerializer,
@@ -36,6 +37,8 @@ from api.serializers import (
     TicketSerializer,
     TicketMessageSerializer,
     TrackKwhSerializer,
+    MaintenanceRecordSerializer,
+    MaintenanceStatusUpdateSerializer,
 )
 from rest_framework.views import APIView
 import requests
@@ -269,7 +272,36 @@ API_ENDPOINT_INSTRUCTIONS = [
         "access": "Authenticated users in organization id=1 only.",
         "query_params": ["meter_number", "time_start", "time_end"],
     },
+    {
+        "method": "GET",
+        "path": "/api/maintenance-records/ and /api/maintenance-records/{id}/",
+        "name": "Maintenance records",
+        "description": (
+            "Lists maintenance records for items sitting in the maintenance warehouse. "
+            "Query params: status (or open/closed), priority, serial_number, time_start, time_end, "
+            "and organization for superadmins."
+        ),
+        "access": "Limited to items in organizations visible to the user. Superadmins see all records.",
+    },
+    {
+        "method": "GET",
+        "path": "/api/maintenance-status-updates/",
+        "name": "Maintenance status history",
+        "description": "Lists status changes for visible maintenance records. Query params: record, time_start, time_end.",
+        "access": "Limited to maintenance records visible to the authenticated user.",
+    },
+    {
+        "method": "GET",
+        "path": "Global query parameters",
+        "name": "Common filters",
+        "description": (
+            "Most list endpoints accept time_start and time_end (applied to the record's natural date field), "
+            "deviceid where a device reference exists, and organization for superadmins."
+        ),
+        "access": "Authenticated users. Organization filtering is ignored for non-superadmins, who are always scoped to their own organizations.",
+    },
 ]
+
 
 
 class SmartMetersViewSet(viewsets.ViewSet):
@@ -454,6 +486,136 @@ class IsDjangoSuperUserOnly(BasePermission):
         return bool(user and user.is_authenticated and user.is_superuser)
 
 
+# ---------------------------------------------------------------------
+# Generic query filters (time, device, organization)
+# ---------------------------------------------------------------------
+
+DATE_FIELD_CANDIDATES = [
+    "time",
+    "created_at",
+    "date_moved",
+    "registration_date",
+    "date_added",
+    "scheduled_time",
+    "linked_at",
+    "timestamp",
+    "date",
+    "created",
+]
+
+ORG_FILTER_PATHS = {
+    "DeviceInfo": ["organization_id", "organizations__id"],
+    "Warehouse": ["organization_id"],
+    "InventoryItem": ["current_warehouse__organization_id"],
+    "InventoryMovement": [
+        "from_warehouse__organization_id",
+        "to_warehouse__organization_id",
+        "item__current_warehouse__organization_id",
+    ],
+    "Invoice": ["organization_id"],
+    "InvoiceItem": ["invoice__organization_id"],
+    "Receipt": ["invoice__organization_id", "transaction__org_id"],
+    "SaaSBillingRule": ["organization_id"],
+    "PayGoSettings": ["sale__organization_id"],
+    "Ticket": ["user__organization_id"],
+    "TicketMessage": ["ticket__user__organization_id"],
+    "Organization": ["id"],
+    "OrganizationAccess": ["source_org_id", "target_org_id"],
+    "OrganizationAppAccess": ["organization_id"],
+    "MaintenanceRecord": [
+        "organization_id",
+        "source_warehouse__organization_id",
+        "item__current_warehouse__organization_id",
+    ],
+}
+
+
+def _model_field_names(model):
+    return {field.name for field in model._meta.get_fields() if hasattr(field, "attname") or field.many_to_many}
+
+
+def _default_date_field(model):
+    names = _model_field_names(model)
+
+    for candidate in DATE_FIELD_CANDIDATES:
+        if candidate in names:
+            return candidate
+
+    return None
+
+
+def _org_filter_paths(model):
+    paths = ORG_FILTER_PATHS.get(model.__name__)
+
+    if paths:
+        return paths
+
+    names = _model_field_names(model)
+
+    if "organization" in names:
+        return ["organization_id"]
+
+    if "org" in names:
+        return ["org_id"]
+
+    return []
+
+
+def _apply_generic_filters(qs, request, *, user):
+    """
+    Applies optional query filters that are safe for every endpoint:
+
+    - time_start / time_end on the model's natural date field
+    - deviceid on models that carry a device reference
+    - organization, for superadmins only (other users are already scoped)
+    """
+    model = qs.model
+    params = request.query_params
+    names = _model_field_names(model)
+
+    date_field = params.get("date_field") or _default_date_field(model)
+    time_start = params.get("time_start")
+    time_end = params.get("time_end")
+
+    if date_field and date_field in names:
+        if time_start:
+            qs = qs.filter(**{f"{date_field}__gte": time_start})
+        if time_end:
+            qs = qs.filter(**{f"{date_field}__lte": time_end})
+
+    deviceid = params.get("deviceid")
+
+    if deviceid:
+        if "deviceid" in names:
+            qs = qs.filter(deviceid=deviceid)
+        elif "device" in names:
+            qs = qs.filter(device__deviceid=deviceid)
+        elif "devices" in names:
+            qs = qs.filter(devices__deviceid=deviceid).distinct()
+
+    organization = params.get("organization") or params.get("org")
+
+    if organization and _is_superadmin(user):
+        paths = _org_filter_paths(model)
+
+        if paths:
+            org_query = Q()
+
+            for path in paths:
+                org_query |= Q(**{path: organization})
+
+            qs = qs.filter(org_query).distinct()
+        elif model is DeviceData or model is TrackKwh:
+            device_ids = (
+                DeviceInfo.objects
+                .filter(Q(organization_id=organization) | Q(organizations__id=organization))
+                .values_list("deviceid", flat=True)
+            )
+            qs = qs.filter(deviceid__in=device_ids)
+
+    return qs
+
+
 class ReadOnlyOrgFilterMixin:
     """
     Generic read-only organization scoping.
@@ -469,6 +631,13 @@ class ReadOnlyOrgFilterMixin:
     """
 
     def get_queryset(self):
+        return _apply_generic_filters(
+            self._org_scoped_queryset(),
+            self.request,
+            user=self.request.user,
+        )
+
+    def _org_scoped_queryset(self):
         qs = super().get_queryset()
         user = self.request.user
 
@@ -704,12 +873,26 @@ class DeviceDataViewSet(ReadOnlyOrgFilterMixin, viewsets.GenericViewSet, mixins.
         if deviceid:
             qs = qs.filter(deviceid=deviceid)
 
+        organization = (
+            self.request.query_params.get("organization")
+            or self.request.query_params.get("org")
+        )
+
+        if organization and _is_superadmin(user):
+            org_device_ids = (
+                DeviceInfo.objects
+                .filter(Q(organization_id=organization) | Q(organizations__id=organization))
+                .values_list("deviceid", flat=True)
+            )
+            qs = qs.filter(deviceid__in=org_device_ids)
+
         time_start = self.request.query_params.get("time_start")
         time_end = self.request.query_params.get("time_end")
         if time_start:
             qs = qs.filter(time__gte=time_start)
         if time_end:
             qs = qs.filter(time__lte=time_end)
+
 
         return qs.values("deviceid").annotate(
             total_kwh=Sum("kwh"),
@@ -1110,3 +1293,105 @@ class DeviceWalletUpsertView(APIView):
             }, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# ---------------------------------------------------------------------
+# Maintenance
+# ---------------------------------------------------------------------
+
+@extend_schema_view(
+    list=extend_schema(
+        tags=["Maintenance"],
+        summary="List maintenance records",
+        description=(
+            "Lists maintenance records for inventory belonging to organizations visible to the "
+            "authenticated user. Superadmins see all records and may filter by organization. "
+            "Optional filters: status, priority, serial_number, time_start, time_end, organization."
+        ),
+        parameters=[
+            OpenApiParameter("status", str, description="Filter by maintenance status"),
+            OpenApiParameter("priority", str, description="Filter by priority"),
+            OpenApiParameter("serial_number", str, description="Filter by item serial number"),
+            OpenApiParameter("time_start", str, description="Created from (YYYY-MM-DD)"),
+            OpenApiParameter("time_end", str, description="Created to (YYYY-MM-DD)"),
+            OpenApiParameter("organization", int, description="Superadmin only: filter by organization ID"),
+        ],
+    ),
+    retrieve=extend_schema(
+        tags=["Maintenance"],
+        summary="Get one maintenance record",
+        description="Returns one maintenance record visible to the authenticated user.",
+    ),
+)
+class MaintenanceRecordViewSet(ReadOnlyOrgFilterMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = (
+        MaintenanceRecord.objects
+        .all()
+        .select_related("item", "item__current_warehouse", "organization", "source_warehouse")
+    )
+    serializer_class = MaintenanceRecordSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        params = self.request.query_params
+
+        status_param = params.get("status")
+        priority = params.get("priority")
+        serial_number = params.get("serial_number")
+
+        if status_param == "open":
+            qs = qs.filter(status__in=MaintenanceRecord.OPEN_STATUSES)
+        elif status_param == "closed":
+            qs = qs.filter(status__in=MaintenanceRecord.CLOSED_STATUSES)
+        elif status_param:
+            qs = qs.filter(status=status_param)
+
+        if priority:
+            qs = qs.filter(priority=priority)
+
+        if serial_number:
+            qs = qs.filter(serial_number__icontains=serial_number)
+
+        return qs
+
+
+@extend_schema_view(
+    list=extend_schema(
+        tags=["Maintenance"],
+        summary="List maintenance status updates",
+        description="Lists status history for maintenance records visible to the authenticated user.",
+        parameters=[
+            OpenApiParameter("record", int, description="Filter by maintenance record ID"),
+            OpenApiParameter("time_start", str, description="Created from (YYYY-MM-DD)"),
+            OpenApiParameter("time_end", str, description="Created to (YYYY-MM-DD)"),
+        ],
+    ),
+    retrieve=extend_schema(
+        tags=["Maintenance"],
+        summary="Get one maintenance status update",
+        description="Returns one maintenance status update by ID.",
+    ),
+)
+class MaintenanceStatusUpdateViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = MaintenanceStatusUpdateSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = MaintenanceStatusUpdate.objects.all().select_related("record")
+
+    def get_queryset(self):
+        from maintenance.services import get_user_maintenance_records
+
+        record_ids = get_user_maintenance_records(self.request.user).values_list("id", flat=True)
+
+        qs = (
+            MaintenanceStatusUpdate.objects
+            .filter(record_id__in=record_ids)
+            .select_related("record")
+        )
+
+        record = self.request.query_params.get("record")
+
+        if record:
+            qs = qs.filter(record_id=record)
+
+        return _apply_generic_filters(qs, self.request, user=self.request.user)

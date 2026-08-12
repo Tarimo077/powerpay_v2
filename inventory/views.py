@@ -36,6 +36,12 @@ from .forms import (
 )
 from notifications.utils import notify
 from organizations.models import Organization
+from maintenance.services import (
+    MAINTENANCE_WAREHOUSE_ID,
+    create_records_for_movements,
+    is_maintenance_warehouse,
+)
+
 
 
 # =========================
@@ -868,7 +874,6 @@ def inventory_page(request):
             "unique_units": unique_units,
             "shared_rows": shared_rows,
             "shared_units": shared_units,
-            "is_superadmin": user_is_superadmin,
         },
     )
 
@@ -993,6 +998,13 @@ def move_item(request, pk):
                         note=note,
                     )
 
+                    if is_maintenance_warehouse(to_warehouse):
+                        create_records_for_movements(
+                            movements=[movement],
+                            user=request.user,
+                            note=note,
+                        )
+
                     if form.cleaned_data.get("create_delivery_note"):
                         delivery_note = create_delivery_note_for_movements(
                             movements=[movement],
@@ -1000,6 +1012,7 @@ def move_item(request, pk):
                             created_by=request.user,
                             note=note,
                         )
+
 
                 notify(
                     request.user,
@@ -1041,8 +1054,10 @@ def move_item(request, pk):
         {
             "item": item,
             "form": form,
+            "maintenance_warehouse_id": MAINTENANCE_WAREHOUSE_ID,
         },
     )
+
 
 
 @login_required
@@ -1168,6 +1183,13 @@ def bulk_move_items(request):
                             moved_rows += 1
                             moved_quantity += quantity_to_move
 
+                        if is_maintenance_warehouse(to_warehouse):
+                            create_records_for_movements(
+                                movements=movements,
+                                user=request.user,
+                                note=note,
+                            )
+
                         if form.cleaned_data.get("create_delivery_note"):
                             delivery_note = create_delivery_note_for_movements(
                                 movements=movements,
@@ -1175,6 +1197,7 @@ def bulk_move_items(request):
                                 created_by=request.user,
                                 note=note,
                             )
+
 
                         notify(
                             request.user,
@@ -1208,8 +1231,10 @@ def bulk_move_items(request):
         "inventory/bulk_move_items.html",
         {
             "form": form,
+            "maintenance_warehouse_id": MAINTENANCE_WAREHOUSE_ID,
         },
     )
+
 
 # =========================
 # DELIVERY NOTES

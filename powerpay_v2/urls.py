@@ -13,6 +13,8 @@ urlpatterns = [
     path("paygo/", include("paygo.urls", namespace="paygo")),
     path("sales/", include("sales.urls", namespace="sales")),
     path("inventory/", include("inventory.urls", namespace="inventory")),
+    path("maintenance/", include("maintenance.urls", namespace="maintenance")),
+
     path("support/", include("support.urls", namespace="support")),
     path("organizations/", include("organizations.urls", namespace="organizations")),
     path("notifications/", include("notifications.urls", namespace="notifications")),
