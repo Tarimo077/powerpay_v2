@@ -1414,8 +1414,8 @@ def delivery_note_list(request):
         qs = qs.filter(
             Q(from_warehouse__organization=user.organization)
             | Q(to_warehouse__organization=user.organization)
-            | Q(created_by=user)
         ).distinct()
+
 
     search_query = request.GET.get("q", "").strip()
     status_filter = request.GET.get("status", "").strip()
