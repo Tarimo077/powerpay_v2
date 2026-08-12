@@ -13,7 +13,7 @@ from core.org_checker import get_accessible_organizations
 
 
 
-CACHE_TIMEOUT = 60 * 10  # 10 minutes
+CACHE_TIMEOUT = 60 * 20  # 20 minutes
 CO2_PER_KWH = 0.139972  # kg CO2 per kWh (adjust if needed) ~0.4999(grid emmission factor) x 0.28 (efficiency deficit of cookers)
 COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
 
