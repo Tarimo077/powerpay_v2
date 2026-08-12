@@ -7,42 +7,27 @@
 {% include "partials/navbar.html" %}
 
 <style>
-    :root {
-            --primary-color: #0ead00;
-            --primary-hover: #0a8a00;
-            --text-dark: #1a1a1b;
-            --text-light: #4a4a4b;
-            --bg-light: #f8f9fa;
-            --border-color: #e1e4e8;
-            --accent-yellow: #fffcf0;
-            --border-yellow: #e6c02a;
-        }
-
     .storyboard-page {
-        --guide-green: hsl(var(--su));
-        --guide-green-soft: rgba(34, 197, 94, .14);
-        --guide-ink: hsl(var(--bc));
+        --guide-green: oklch(var(--su));
+        --guide-green-soft: oklch(var(--su) / 0.14);
     }
 
     .glass-card {
-        background: linear-gradient(145deg, hsl(var(--b1)), hsl(var(--b2)));
-        border: 1px solid hsl(var(--b3));
-        box-shadow: 0 24px 70px rgba(15, 23, 42, .10);
+        background: linear-gradient(145deg, oklch(var(--b1)), oklch(var(--b2)));
+        border: 1px solid oklch(var(--b3));
+        box-shadow: 0 24px 70px oklch(var(--bc) / 0.08);
     }
 
-    .guide-hero {
-        position: relative;
-        overflow: hidden;
-    }
+    .guide-hero { position: relative; overflow: hidden; }
 
     .guide-hero::before {
         content: "";
         position: absolute;
         inset: -45%;
         background:
-            radial-gradient(circle at 20% 20%, rgba(34, 197, 94, .22), transparent 26%),
-            radial-gradient(circle at 78% 18%, rgba(59, 130, 246, .16), transparent 24%),
-            radial-gradient(circle at 65% 85%, rgba(251, 191, 36, .14), transparent 28%);
+            radial-gradient(circle at 20% 20%, oklch(var(--su) / .22), transparent 26%),
+            radial-gradient(circle at 78% 18%, oklch(var(--in) / .16), transparent 24%),
+            radial-gradient(circle at 65% 85%, oklch(var(--wa) / .14), transparent 28%);
         animation: softDrift 18s ease-in-out infinite alternate;
         pointer-events: none;
     }
@@ -60,30 +45,21 @@
     .toc-button.active {
         transform: translateY(-2px);
         border-color: var(--guide-green);
-        box-shadow: 0 14px 36px rgba(34, 197, 94, .16);
+        box-shadow: 0 14px 36px oklch(var(--su) / .16);
         background: var(--guide-green-soft);
     }
 
-    .tour-grid {
-        min-height: 680px;
-    }
-
-    .mock-shell {
-        position: relative;
-        overflow: hidden;
-    }
-
-    .mock-screen {
-        position: relative;
-        isolation: isolate;
-    }
+    .tour-grid { min-height: 680px; }
+    .mock-shell { position: relative; overflow: hidden; }
+    .mock-screen { position: relative; isolation: isolate; }
 
     .mock-nav-item,
     .mock-action,
     .mock-card,
     .mock-table-row,
     .mock-form-field,
-    .mock-tab {
+    .mock-tab,
+    .mock-extra {
         transition: all .28s ease;
     }
 
@@ -91,11 +67,11 @@
         position: relative;
         z-index: 3;
         border-color: var(--guide-green) !important;
-        background: rgba(34, 197, 94, .16) !important;
+        background: oklch(var(--su) / .16) !important;
         box-shadow:
-            0 0 0 9999px rgba(0, 0, 0, .43),
-            0 0 0 5px rgba(34, 197, 94, .28),
-            0 18px 50px rgba(0, 0, 0, .25) !important;
+            0 0 0 9999px oklch(0 0 0 / .43),
+            0 0 0 5px oklch(var(--su) / .28),
+            0 18px 50px oklch(0 0 0 / .25) !important;
         transform: translateY(-2px) scale(1.015);
     }
 
@@ -114,9 +90,7 @@
         100% { opacity: 0; transform: scale(1.08); }
     }
 
-    .coach-card {
-        animation: coachIn .3s ease both;
-    }
+    .coach-card { animation: coachIn .3s ease both; }
 
     @keyframes coachIn {
         from { opacity: 0; transform: translateY(12px) scale(.98); }
@@ -127,41 +101,49 @@
         width: .7rem;
         height: .7rem;
         border-radius: 999px;
-        background: hsl(var(--b3));
+        background: oklch(var(--b3));
         transition: all .2s ease;
     }
 
-    .progress-dot.active {
-        width: 2rem;
-        background: var(--guide-green);
+    .progress-dot.active { width: 2rem; background: var(--guide-green); }
+
+    .mobile-toc-scroll { scrollbar-width: thin; }
+
+    .mock-sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        border-radius: .9rem;
+        padding: .55rem .7rem;
+        font-size: .8rem;
+        border: 1px solid transparent;
     }
 
-    .mobile-toc-scroll {
-        scrollbar-width: thin;
+    .mock-sidebar-link.is-active {
+        background: var(--guide-green-soft);
+        color: oklch(var(--su));
+        font-weight: 700;
     }
 
     @media (max-width: 1023px) {
-        .tour-grid {
-            min-height: auto;
-        }
+        .tour-grid { min-height: auto; }
 
         .spotlight {
             box-shadow:
-                0 0 0 9999px rgba(0, 0, 0, .32),
-                0 0 0 4px rgba(34, 197, 94, .24),
-                0 12px 34px rgba(0, 0, 0, .22) !important;
+                0 0 0 9999px oklch(0 0 0 / .32),
+                0 0 0 4px oklch(var(--su) / .24),
+                0 12px 34px oklch(0 0 0 / .22) !important;
         }
     }
 
     .disclaimer-box {
-            background: var(--accent-yellow);
-            border: 1px solid var(--border-yellow);
-            padding: 30px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            color: #5c4d00;
-            line-height: 1.8;
-        }
+        background: oklch(var(--wa) / 0.12);
+        border: 1px solid oklch(var(--wa) / 0.45);
+        padding: 22px 26px;
+        border-radius: 1rem;
+        font-size: 0.85rem;
+        line-height: 1.7;
+    }
 </style>
 
 <div class="storyboard-page flex min-h-screen bg-base-200">
@@ -172,73 +154,52 @@
         <section class="guide-hero glass-card rounded-3xl p-6 sm:p-8">
             <div class="relative z-10">
                 <div class="badge badge-success text-white mb-3">Interactive storyboard</div>
-                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight">Learn To Use The Powerpay Portal One Click At A Time</h1>
-                <p class="mt-3 text-base sm:text-lg text-base-content/70">
-                    Choose a task from the table of contents. The guide will dim the screen, cast a spotlight on the exact place to click, then explain what happens next. One step appears at a time, with Previous, Next, and Start Again controls.
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight">Learn The Powerpay Portal One Click At A Time</h1>
+                <p class="mt-3 text-base sm:text-lg text-base-content/70 max-w-4xl">
+                    Every module in the portal has a guided walkthrough. Pick a task, and the guide dims the screen, spotlights the exact place to click, and explains what happens next — one step at a time with Previous, Next, and Start again.
                 </p>
                 <div class="mt-5 flex flex-wrap gap-2">
                     <a href="#tour" class="btn btn-success text-white"><i class="fa-solid fa-play"></i> Start tour</a>
                     <a href="#toc" class="btn btn-outline btn-success hover:text-white"><i class="fa-solid fa-list"></i> Table of contents</a>
                 </div>
+
+                <div class="mt-6">
+                    <div class="text-xs uppercase tracking-wide font-bold text-base-content/50 mb-2">What's new</div>
+                    <div class="flex flex-wrap gap-2" id="whats-new"></div>
+                </div>
             </div>
         </section>
 
         <section id="toc" class="glass-card rounded-3xl p-4 sm:p-6">
-            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
+            <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3 mb-5">
                 <div>
                     <h2 class="text-2xl font-bold">Table of contents</h2>
-                    <p class="text-sm text-base-content/60">Pick what the user wants to learn. Each card launches a step-by-step walkthrough.</p>
+                    <p class="text-sm text-base-content/60">Grouped exactly like the sidebar. Each card launches a step-by-step walkthrough.</p>
                 </div>
-                <div class="text-xs text-base-content/50">Works on mobile, tablet, and desktop.</div>
+                <label class="input input-bordered flex items-center gap-2 w-full lg:w-80">
+                    <i class="fa-solid fa-magnifying-glass text-base-content/40"></i>
+                    <input type="text" id="toc-search" class="grow" placeholder="Search walkthroughs...">
+                </label>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-                <button class="toc-button active text-left rounded-2xl border border-success bg-base-100 p-4" data-tour="overview">
-                    <div class="flex items-center gap-3"><i class="fa-solid fa-chart-line text-success text-xl"></i><span class="font-bold">Understand the dashboard</span></div>
-                    <p class="text-sm text-base-content/60 mt-2">Overview cards, filters, and activity signals.</p>
-                </button>
-                <button class="toc-button text-left rounded-2xl border border-success bg-base-100 p-4" data-tour="devices">
-                    <div class="flex items-center gap-3"><i class="fa-solid fa-plug text-success text-xl"></i><span class="font-bold">Add and manage devices</span></div>
-                    <p class="text-sm text-base-content/60 mt-2">Single add, bulk add, sorting, inventory option.</p>
-                </button>
-                <button class="toc-button text-left rounded-2xl border border-success bg-base-100 p-4" data-tour="orders">
-                    <div class="flex items-center gap-3"><i class="fa-solid fa-truck-ramp-box text-success text-xl"></i><span class="font-bold">Request new devices</span></div>
-                    <p class="text-sm text-base-content/60 mt-2">Submit, approve, reject, and fulfill orders.</p>
-                </button>
-                <button class="toc-button text-left rounded-2xl border border-success bg-base-100 p-4" data-tour="inventory">
-                    <div class="flex items-center gap-3"><i class="fa-solid fa-boxes-stacked text-success text-xl"></i><span class="font-bold">Track inventory</span></div>
-                    <p class="text-sm text-base-content/60 mt-2">Bulk stock, item type, quantity, warehouses.</p>
-                </button>
-                <button class="toc-button text-left rounded-2xl border border-success bg-base-100 p-4" data-tour="customers">
-                    <div class="flex items-center gap-3"><i class="fa-solid fa-users text-success text-xl"></i><span class="font-bold">Find and serve customers</span></div>
-                    <p class="text-sm text-base-content/60 mt-2">Search, sort, profile, customer activity.</p>
-                </button>
-                <button class="toc-button text-left rounded-2xl border border-success bg-base-100 p-4" data-tour="sales">
-                    <div class="flex items-center gap-3"><i class="fa-solid fa-cash-register text-success text-xl"></i><span class="font-bold">Create sales and PayGo</span></div>
-                    <p class="text-sm text-base-content/60 mt-2">Attach customer, device, receipts, payments.</p>
-                </button>
-                <button class="toc-button text-left rounded-2xl border border-success bg-base-100 p-4" data-tour="reports">
-                    <div class="flex items-center gap-3"><i class="fa-solid fa-file-export text-success text-xl"></i><span class="font-bold">Import and export data</span></div>
-                    <p class="text-sm text-base-content/60 mt-2">Upload files, validate, download reports.</p>
-                </button>
-                <button class="toc-button text-left rounded-2xl border border-success bg-base-100 p-4" data-tour="support">
-                    <div class="flex items-center gap-3"><i class="fa-solid fa-headset text-success text-xl"></i><span class="font-bold">Get support</span></div>
-                    <p class="text-sm text-base-content/60 mt-2">Create tickets and follow resolution.</p>
-                </button>
-            </div>
+            <div id="toc-groups" class="space-y-6"></div>
+            <p class="hidden text-sm text-base-content/60 mt-4" id="toc-empty">No walkthrough matches that search.</p>
         </section>
 
         <div class="disclaimer-box uppercase">
-            <strong class="text-warning text-2xl"><i class="fa-solid fa-triangle-exclamation"></i>DISCLAIMER</strong> <br><br>
-            <span class="text-xl">The window below may vary in style depending on your browser and screen size.</span> <br>
+            <strong class="text-warning text-xl"><i class="fa-solid fa-triangle-exclamation"></i> Disclaimer</strong><br><br>
+            <span class="text-base">The window below is a simplified illustration. Real pages may vary slightly with your browser, screen size, role and organization permissions.</span>
         </div>
 
         <section id="tour" class="glass-card rounded-3xl p-3 sm:p-5 lg:p-6">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
                 <div>
-                    <div class="badge badge-success text-white mb-2" id="tour-kicker">Dashboard</div>
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                        <span class="badge badge-success text-white" id="tour-kicker">Dashboard</span>
+                        <span class="badge badge-outline" id="tour-role">Any user</span>
+                    </div>
                     <h2 class="text-2xl sm:text-3xl font-bold" id="tour-title">Understand the dashboard</h2>
-                    <p class="text-sm sm:text-base text-base-content/60" id="tour-summary">Start from the overview, scan the numbers, then decide where to act.</p>
+                    <p class="text-sm sm:text-base text-base-content/60" id="tour-summary"></p>
                 </div>
                 <div class="flex items-center gap-2 overflow-x-auto mobile-toc-scroll pb-1" id="tour-mini-tabs"></div>
             </div>
@@ -250,92 +211,40 @@
                         <span class="w-3 h-3 rounded-full bg-warning"></span>
                         <span class="w-3 h-3 rounded-full bg-success"></span>
                         <div class="ml-2 flex-1 rounded-full bg-base-100 px-3 py-1.5 text-xs text-base-content/50 truncate">
-                            powerpay.local<span id="mock-url">/</span>
+                            portal.powerpayafrica.com<span id="mock-url">/</span>
                         </div>
                     </div>
 
-                    <div class="mock-screen grid grid-cols-12 min-h-[560px] lg:min-h-[620px]">
-                        <aside class="col-span-12 md:col-span-4 lg:col-span-3 bg-base-200/80 border-b md:border-b-0 md:border-r border-base-300 p-3 space-y-2">
-                            <!-- Logo -->
-                            <div class="flex items-center justify-center mt-4 shrink-0">
-
-                                <img class="h-16 w-auto"
-                                    src="{% static 'images/powerpaylogo.png' %}">
+                    <div class="mock-screen grid grid-cols-12 min-h-[560px] lg:min-h-[640px]">
+                        <aside class="col-span-12 md:col-span-4 lg:col-span-3 bg-base-200/80 border-b md:border-b-0 md:border-r border-base-300 p-3">
+                            <div class="flex items-center justify-center mt-2 mb-3 shrink-0">
+                                <img class="h-12 w-auto" src="{% static 'images/powerpaylogo.png' %}" alt="Powerpay Africa">
                             </div>
-                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-overview"><i class="fa-solid fa-chart-line text-success"></i> Overview</div>
-                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-devices"><i class="fa-solid fa-plug text-success"></i> Devices</div>
-                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-orders"><i class="fa-solid fa-truck-ramp-box text-success"></i> Device Orders</div>
-                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-customers"><i class="fa-solid fa-users text-success"></i> Customers</div>
-                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-sales"><i class="fa-solid fa-cash-register text-success"></i> All Sales</div>
-                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-paygo"><i class="fa-solid fa-mobile-screen text-success"></i> PayGo Sales</div>
-                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-inventory"><i class="fa-solid fa-boxes-stacked text-success"></i> Inventory</div>
-                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-warehouses"><i class="fa-solid fa-warehouse text-success"></i> Warehouses</div>
-                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-reports"><i class="fa-solid fa-file-export text-success"></i> Import / Export</div>
-                            <div class="mock-nav-item rounded-2xl border border-transparent p-3 text-sm flex items-center gap-2" data-highlight="nav-support"><i class="fa-solid fa-headset text-success"></i> Support</div>
+                            <div class="space-y-1" id="mock-sidebar"></div>
                         </aside>
 
                         <div class="col-span-12 md:col-span-8 lg:col-span-9 p-3 sm:p-5 space-y-4">
+                            <div class="text-xs text-base-content/50" id="mock-breadcrumb"></div>
+
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                 <div>
                                     <h3 class="text-xl font-bold" id="mock-page-title">Overview</h3>
-                                    <p class="text-sm text-base-content/60" id="mock-page-subtitle">Dashboard health and recent activity.</p>
+                                    <p class="text-sm text-base-content/60" id="mock-page-subtitle"></p>
                                 </div>
-                                <div class="flex flex-wrap gap-2">
-                                    <div class="mock-action rounded-2xl border border-base-300 bg-base-100 px-4 py-2 text-sm font-semibold" data-highlight="action-secondary" id="mock-secondary-action">Filter</div>
-                                    <div class="mock-action rounded-2xl border border-success/30 bg-success/10 text-success px-4 py-2 text-sm font-bold" data-highlight="action-primary" id="mock-primary-action">View metrics</div>
-                                </div>
+                                <div class="flex flex-wrap gap-2" id="mock-actions"></div>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div class="mock-card rounded-2xl bg-base-200 p-4 border border-transparent" data-highlight="card-one">
-                                    <div class="text-xs text-base-content/50" id="card-one-label">Devices</div>
-                                    <div class="text-2xl font-black" id="card-one-value">248</div>
-                                    <div class="text-xs text-success" id="card-one-help">Online and registered</div>
-                                </div>
-                                <div class="mock-card rounded-2xl bg-base-200 p-4 border border-transparent" data-highlight="card-two">
-                                    <div class="text-xs text-base-content/50" id="card-two-label">Sales</div>
-                                    <div class="text-2xl font-black" id="card-two-value">92</div>
-                                    <div class="text-xs text-success" id="card-two-help">Current period</div>
-                                </div>
-                                <div class="mock-card rounded-2xl bg-base-200 p-4 border border-transparent" data-highlight="card-three">
-                                    <div class="text-xs text-base-content/50" id="card-three-label">Energy</div>
-                                    <div class="text-2xl font-black" id="card-three-value">1.8M</div>
-                                    <div class="text-xs text-success" id="card-three-help">Usage snapshot</div>
-                                </div>
-                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="mock-cards"></div>
 
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                                <div class="mock-form-field rounded-2xl border border-base-300 bg-base-100 p-4" data-highlight="field-one">
-                                    <div class="text-xs text-base-content/50" id="field-one-label">Search or select</div>
-                                    <div class="mt-2 rounded-xl bg-base-200 px-3 py-2 text-sm" id="field-one-value">Organization / keyword</div>
-                                </div>
-                                <div class="mock-form-field rounded-2xl border border-base-300 bg-base-100 p-4" data-highlight="field-two">
-                                    <div class="text-xs text-base-content/50" id="field-two-label">Rows per page / status</div>
-                                    <div class="mt-2 rounded-xl bg-base-200 px-3 py-2 text-sm" id="field-two-value">10, 25, 50, 100</div>
-                                </div>
-                            </div>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3" id="mock-filters"></div>
 
-                            <div class="rounded-3xl border border-base-300 bg-base-100 overflow-hidden">
-                                <div class="grid grid-cols-4 bg-success text-white text-xs sm:text-sm font-bold">
-                                    <div class="mock-tab p-3" data-highlight="table-header-one" id="table-head-one">Name</div>
-                                    <div class="mock-tab p-3" data-highlight="table-header-two" id="table-head-two">Status</div>
-                                    <div class="mock-tab p-3" data-highlight="table-header-three" id="table-head-three">Updated</div>
-                                    <div class="mock-tab p-3" data-highlight="table-header-four" id="table-head-four">Action</div>
-                                </div>
-                                <div class="mock-table-row grid grid-cols-4 p-3 border-b border-base-300 text-xs sm:text-sm" data-highlight="row-one">
-                                    <div id="row-one-a">Dashboard cards</div><div id="row-one-b">Healthy</div><div id="row-one-c">Today</div><div class="text-success font-bold" id="row-one-d">Open</div>
-                                </div>
-                                <div class="mock-table-row grid grid-cols-4 p-3 border-b border-base-300 text-xs sm:text-sm" data-highlight="row-two">
-                                    <div id="row-two-a">Recent activity</div><div id="row-two-b">Live</div><div id="row-two-c">Now</div><div class="text-success font-bold" id="row-two-d">View</div>
-                                </div>
-                                <div class="mock-table-row grid grid-cols-4 p-3 text-xs sm:text-sm" data-highlight="pagination">
-                                    <div class="col-span-2">Page 1 of 8</div><div class="text-right">‹ Prev</div><div class="text-success font-bold">Next ›</div>
-                                </div>
-                            </div>
+                            <div class="rounded-3xl border border-base-300 bg-base-100 overflow-hidden" id="mock-table"></div>
+
+                            <div class="space-y-3" id="mock-extras"></div>
 
                             <div class="rounded-2xl border border-dashed border-success/40 bg-success/5 p-4">
                                 <div class="font-bold text-success text-sm">Expected result</div>
-                                <p class="text-sm text-base-content/70" id="expected-result">You get a quick health snapshot before opening operational pages.</p>
+                                <p class="text-sm text-base-content/70" id="expected-result"></p>
                             </div>
                         </div>
                     </div>
@@ -345,17 +254,17 @@
                     <div class="coach-card rounded-3xl bg-base-100 border border-base-300 shadow-xl p-5 sticky top-4">
                         <div class="flex items-start justify-between gap-3">
                             <div>
-                                <div class="badge badge-success text-white" id="step-counter">Step 1 of 4</div>
-                                <h3 class="mt-3 text-2xl font-bold" id="step-title">Open Overview</h3>
+                                <div class="badge badge-success text-white" id="step-counter">Step 1</div>
+                                <h3 class="mt-3 text-2xl font-bold" id="step-title"></h3>
                             </div>
                             <button class="btn btn-circle btn-sm btn-ghost" type="button" id="restart-top" title="Start again"><i class="fa-solid fa-rotate-left"></i></button>
                         </div>
 
-                        <p class="mt-3 text-base-content/70" id="step-body">Click Overview in the left sidebar to open the dashboard.</p>
+                        <p class="mt-3 text-base-content/70" id="step-body"></p>
 
                         <div class="mt-4 rounded-2xl bg-base-200 p-4">
                             <div class="text-xs uppercase tracking-wide text-base-content/50 font-bold">What this does</div>
-                            <p class="mt-1 text-sm" id="step-result">It shows the main operational picture: device totals, sales, usage, and recent activity.</p>
+                            <p class="mt-1 text-sm" id="step-result"></p>
                         </div>
 
                         <div class="mt-4 flex items-center gap-2" id="progress-dots"></div>
@@ -370,6 +279,11 @@
                             <i class="fa-solid fa-up-right-from-square"></i>
                             Open this real page
                         </a>
+
+                        <div class="mt-4">
+                            <div class="text-xs uppercase tracking-wide text-base-content/50 font-bold mb-2">Related pages</div>
+                            <div class="flex flex-wrap gap-2" id="related-links"></div>
+                        </div>
                     </div>
                 </aside>
             </div>
@@ -379,139 +293,833 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const U = {
+        dashboard: '{% url "core:index" %}',
+        analytics: '{% url "analytics:dashboard" %}',
+        notifications: '{% url "notifications:list" %}',
+        profile: '{% url "accounts:profile" %}',
+        devices: '{% url "devices:device_list" %}',
+        schedules: '{% url "devices:device_schedule_list" %}',
+        batches: '{% url "devices:testing_batch_list" %}',
+        orders: '{% url "device_orders:order_list" %}',
+        meters: '{% url "smart_meters:meter_list" %}',
+        customers: '{% url "customers:customers_page" %}',
+        sales: '{% url "sales:sales_page" %}',
+        paygo: '{% url "paygo:paygo_sales" %}',
+        transactions: '{% url "transactions:transactions_page" %}',
+        invoices: '{% url "billing:invoice_list" %}',
+        receipts: '{% url "billing:receipt_list" %}',
+        inventory: '{% url "inventory:inventory_page" %}',
+        warehouses: '{% url "inventory:warehouses_page" %}',
+        deliveryNotes: '{% url "inventory:delivery_note_list" %}',
+        maintenance: '{% url "maintenance:maintenance_list" %}',
+        reports: '{% url "reports:report_center" %}',
+        reportSchedules: '{% url "reports:schedule_list" %}',
+        runHistory: '{% url "reports:run_history" %}',
+        exportData: '{% url "core:export_data" %}',
+        importCenter: '{% url "core:import_center" %}',
+        auditLogs: '{% url "core:audit_logs" %}',
+        organizations: '{% url "organizations:organizations_page" %}',
+        users: '{% url "accounts:user_list" %}',
+        support: '{% url "support:support_ticket_list" %}',
+        apiDocs: '/api/docs/'
+    };
+
+    // Sidebar of the mock window, mirroring the real portal.
+    const NAV = [
+        { key: 'dashboard', label: 'Overview', icon: 'fa-chart-line' },
+        { key: 'analytics', label: 'Analytics', icon: 'fa-chart-pie' },
+        { key: 'organizations', label: 'Organizations', icon: 'fa-building' },
+        { key: 'devices', label: 'Devices', icon: 'fa-plug', group: ['Devices', ['devices', 'schedules', 'batches']] },
+        { key: 'schedules', label: 'Schedules', icon: 'fa-clock', child: true },
+        { key: 'batches', label: 'Testing Batches', icon: 'fa-flask', child: true },
+        { key: 'orders', label: 'Device Orders', icon: 'fa-truck-ramp-box' },
+        { key: 'meters', label: 'Smart Meters', icon: 'fa-gauge-high' },
+        { key: 'customers', label: 'Customers', icon: 'fa-users' },
+        { key: 'sales', label: 'All Sales', icon: 'fa-cash-register' },
+        { key: 'paygo', label: 'PayGo Sales', icon: 'fa-mobile-screen' },
+        { key: 'inventory', label: 'Inventory', icon: 'fa-boxes-stacked' },
+        { key: 'warehouses', label: 'Warehouses', icon: 'fa-warehouse', child: true },
+        { key: 'deliveryNotes', label: 'Delivery Notes', icon: 'fa-file-signature', child: true },
+        { key: 'maintenance', label: 'Maintenance', icon: 'fa-screwdriver-wrench', child: true },
+        { key: 'transactions', label: 'Transactions', icon: 'fa-money-bill-transfer' },
+        { key: 'reports', label: 'Reports', icon: 'fa-file-pdf' },
+        { key: 'invoices', label: 'Invoices', icon: 'fa-file-invoice-dollar' },
+        { key: 'exportData', label: 'Export Data', icon: 'fa-file-export' },
+        { key: 'importCenter', label: 'Import Center', icon: 'fa-file-import' },
+        { key: 'support', label: 'Support', icon: 'fa-headset' }
+    ];
+
+    const GROUPS = [
+        ['Getting started', ['overview', 'analytics', 'account']],
+        ['Devices', ['devices', 'schedules', 'batches', 'orders', 'meters']],
+        ['Commerce', ['customers', 'sales', 'paygo', 'transactions', 'billing']],
+        ['Inventory', ['inventory', 'warehouses', 'moves', 'delivery', 'maintenance']],
+        ['Insight', ['reports', 'schedulesreports', 'history', 'importexport', 'audit']],
+        ['Admin', ['organizations', 'users', 'support', 'api']]
+    ];
+
+    const NEW_TOURS = ['maintenance', 'delivery', 'reports', 'analytics', 'batches'];
+
+    const c = (label, value, help, tip) => ({ label, value, help, tip });
+    const f = (label, value) => ({ label, value });
+
     const tours = {
         overview: {
-            kicker: 'Dashboard', title: 'Understand the dashboard', summary: 'Start from the overview, scan the numbers, then decide where to act.', url: '/', pageTitle: 'Overview', pageSubtitle: 'Dashboard health and recent activity.', primary: 'View metrics', secondary: 'Filter', realUrl: '{% url "core:index" %}',
-            labels: { cardOne: ['Devices', '248', 'Online and registered'], cardTwo: ['Sales', '92', 'Current period'], cardThree: ['Energy', '1.8M', 'Usage snapshot'], fieldOne: ['Organization filter', 'Choose the org you want to inspect'], fieldTwo: ['Date filter', 'Choose the reporting period'], headers: ['Metric', 'Status', 'Updated', 'Action'], rowOne: ['Dashboard cards', 'Healthy', 'Today', 'Open'], rowTwo: ['Recent activity', 'Live', 'Now', 'View'], expected: 'You get a quick health snapshot before opening operational pages.' },
+            icon: 'fa-chart-line', nav: 'dashboard', kicker: 'Dashboard', role: 'Any user',
+            title: 'Understand the dashboard', tocHint: 'Summary cards, org scope, and recent activity.',
+            summary: 'Start from the overview, scan the numbers, then decide where to act.',
+            url: '/dashboard/', realUrl: U.dashboard, breadcrumb: 'Home / Overview',
+            pageTitle: 'Overview', pageSubtitle: 'Operational health and recent activity.',
+            actions: [['Filter', 'ghost'], ['Refresh', 'success']],
+            cards: [c('Devices', '248', 'Registered', 'All devices you can access'), c('Active Devices', '218', 'Reporting today', 'Seen in the last 24 hours'), c('Sales', '92', 'Current period', 'Sales recorded in the selected period'), c('Energy', '1.8M Wh', 'Usage snapshot', 'Total energy in the selected period')],
+            filters: [f('Organization', 'Choose the org you want to inspect'), f('Period', 'Today, this week, this month, custom')],
+            table: { headers: ['Metric', 'Status', 'Updated', 'Action'], rows: [['Device health', 'Healthy', 'Today', 'Open'], ['Recent sales', 'Live', 'Now', 'View'], ['Energy usage', 'Rising', '5 min ago', 'View']] },
+            expected: 'A quick health snapshot before opening operational pages. Dashboard data is cached, so repeat loads are fast.',
+            related: [['Analytics', U.analytics], ['Devices', U.devices], ['Reports', U.reports]],
             steps: [
-                ['nav-overview', 'Open Overview', 'Click Overview in the sidebar.', 'It opens the dashboard, which gives users the control-room view of operations.'],
-                ['field-one', 'Choose scope', 'Use the organization filter when users only want one branch, customer group, or operating unit.', 'The cards and tables narrow to the selected organization.'],
-                ['card-one', 'Read the cards', 'Start with the summary cards before diving into individual pages.', 'Users can quickly see whether devices, sales, or usage need attention.'],
-                ['row-one', 'Investigate details', 'Open rows or related pages when a number needs follow-up.', 'The user moves from a high-level signal to the exact page where work happens.']
+                ['nav-dashboard', 'Open Overview', 'Click Overview in the sidebar.', 'The dashboard opens with the control-room view of your operations.'],
+                ['filter-0', 'Choose your scope', 'Superadmins can switch organization. Everyone else automatically sees only their own organization.', 'Cards and tables narrow to the chosen organization.'],
+                ['card-0', 'Read the summary cards', 'Hover the small info icon on any card to see exactly what it counts.', 'You understand each number before acting on it.'],
+                ['row-0', 'Investigate a signal', 'Open the row or jump to the related page when a number needs follow-up.', 'You move from a high-level signal to the page where the work happens.']
+            ]
+        },
+        analytics: {
+            icon: 'fa-chart-pie', nav: 'analytics', kicker: 'Analytics', role: 'Any user',
+            title: 'Explore the analytics dashboard', tocHint: 'Charts, trends, and downloadable images.',
+            summary: 'Visual trends for energy, sales, and device activity across your organization.',
+            url: '/analytics/', realUrl: U.analytics, breadcrumb: 'Home / Analytics',
+            pageTitle: 'Analytics', pageSubtitle: 'Trends across devices, energy and revenue.',
+            actions: [['Period', 'ghost'], ['Download charts', 'success']],
+            cards: [c('Energy', '1.8M Wh', 'Selected period', 'Total energy across devices'), c('Cooking events', '2,410', 'Sessions', 'Cooking sessions detected'), c('Revenue', 'KES 1.2M', 'Selected period', 'Collected payments'), c('Active devices', '218', 'Reporting', 'Devices with recent readings')],
+            filters: [f('Period', 'Day, week, month, or a custom range'), f('Organization', 'Superadmins can compare organizations')],
+            table: { headers: ['Chart', 'What it shows', 'Period', 'Action'], rows: [['Energy trend', 'Wh over time', 'Last 30 days', 'Download'], ['Revenue trend', 'Payments over time', 'Last 30 days', 'Download'], ['Device activity', 'Active vs idle', 'Last 30 days', 'Download']] },
+            expected: 'You spot trends quickly and can download any chart as a clean image for a report or presentation.',
+            related: [['Overview', U.dashboard], ['Reports', U.reports], ['Devices', U.devices]],
+            steps: [
+                ['nav-analytics', 'Open Analytics', 'Click Analytics in the sidebar.', 'The charts dashboard loads for your organization.'],
+                ['filter-0', 'Pick a period', 'Choose day, week, month, or a custom range.', 'Every chart and card recalculates for that period.'],
+                ['action-1', 'Download a chart', 'Use the download control on any chart card.', 'The chart is saved as an image with a clean white card and no borders.'],
+                ['card-1', 'Compare the metrics', 'Read cooking events next to energy and revenue.', 'You see whether usage and income move together.']
+            ]
+        },
+        account: {
+            icon: 'fa-user-gear', nav: 'dashboard', kicker: 'Account', role: 'Any user',
+            title: 'Notifications, profile and password', tocHint: 'Alerts, profile details, password rules.',
+            summary: 'Keep your profile current, read alerts, and set a password that satisfies the security rules.',
+            url: '/accounts/profile/', realUrl: U.profile, breadcrumb: 'Home / Profile',
+            pageTitle: 'My Profile', pageSubtitle: 'Personal details, security and notifications.',
+            actions: [['Notifications', 'ghost'], ['Save changes', 'success']],
+            cards: [c('Unread alerts', '3', 'Needs attention', 'Notifications you have not opened'), c('Organization', 'Nairobi', 'Your scope', 'Determines which data you can see'), c('Role', 'Staff', 'Permissions', 'Superadmins see all organizations')],
+            filters: [f('New password', 'At least 8 characters, not all numbers'), f('Confirm password', 'Must match the new password exactly')],
+            table: { headers: ['Notification', 'Type', 'When', 'Action'], rows: [['Delivery note received', 'Inventory', '10 min ago', 'Open'], ['Report ready', 'Reports', '1 hour ago', 'Download'], ['Ticket answered', 'Support', 'Yesterday', 'View']] },
+            expected: 'Your account stays secure and you never miss an operational alert.',
+            related: [['Notifications', U.notifications], ['Support', U.support]],
+            steps: [
+                ['action-0', 'Read notifications', 'Open the bell in the top bar or the notifications page.', 'You see alerts for deliveries, reports, tickets and device events.'],
+                ['filter-0', 'Set a strong password', 'Enter a new password following the listed rules.', 'The rules require enough length, a mix of characters, and nothing too common.'],
+                ['filter-1', 'Confirm the password', 'Type the same password again in the confirmation field.', 'Invites and resets both require the two fields to match before saving.'],
+                ['card-2', 'Know your role', 'Check whether you are a normal user or a superadmin.', 'Your role decides whether you see one organization or all of them.']
             ]
         },
         devices: {
-            kicker: 'Devices', title: 'Add and manage devices', summary: 'Create one device, bulk add many, sort the table, and optionally create inventory records.', url: '/devices/', pageTitle: 'Devices', pageSubtitle: 'Registered hardware, status, last seen, and organization ownership.', primary: 'Add Device', secondary: 'Bulk Add', realUrl: '{% url "devices:device_list" %}',
-            labels: { cardOne: ['Active', '218', 'Sending readings'], cardTwo: ['Inactive', '30', 'Needs review'], cardThree: ['Last Seen', 'Today', 'Recent data'], fieldOne: ['Search devices', 'Search by device ID or organization'], fieldTwo: ['Rows per page', '10, 25, 50, 100'], headers: ['Device ID', 'Status', 'Last Seen', 'Main Org'], rowOne: ['APL-00091', 'Active', '2 minutes ago', 'Nairobi'], rowTwo: ['APL-00092', 'Inactive', 'Yesterday', 'Kisumu'], expected: 'New devices appear in the devices table. If inventory is selected, matching inventory items are created too.' },
+            icon: 'fa-plug', nav: 'devices', kicker: 'Devices', role: 'Any user',
+            title: 'Add and manage devices', tocHint: 'Single add, bulk add with MSISDN, live detail.',
+            summary: 'Create one device, bulk add many with their SIM numbers, sort the table, and open the live device view.',
+            url: '/devices/', realUrl: U.devices, breadcrumb: 'Home / Devices',
+            pageTitle: 'Devices', pageSubtitle: 'Registered hardware, status, last seen and owner.',
+            actions: [['Bulk Add', 'ghost'], ['Add Device', 'success']],
+            cards: [c('Active', '218', 'Sending readings', 'Devices seen recently'), c('Inactive', '30', 'Needs review', 'No recent readings'), c('Total energy', '1.8M Wh', 'All devices', 'Sum of readings'), c('Last sync', '2 min ago', 'Live feed', 'Most recent reading received')],
+            filters: [f('Search devices', 'Device ID, MSISDN or organization'), f('Rows per page', '10, 25, 50, 100')],
+            table: { headers: ['Device ID', 'Status', 'Last Seen', 'Organization'], rows: [['APL-00091', 'Active', '2 minutes ago', 'Nairobi'], ['APL-00092', 'Inactive', 'Yesterday', 'Kisumu'], ['APL-00093', 'Active', '9 minutes ago', 'Nairobi']] },
+            expected: 'Devices appear in the table with their SIM number, and each bulk line creates exactly one device.',
+            related: [['Schedules', U.schedules], ['Testing batches', U.batches], ['Inventory', U.inventory]],
             steps: [
-                ['nav-devices', 'Open Devices', 'Click Devices in the sidebar.', 'The user lands on the device table.'],
-                ['action-primary', 'Add one device', 'Click Add Device for a single device.', 'The form asks for device ID, organization, and optional inventory creation.'],
-                ['action-secondary', 'Bulk add many devices', 'Click Bulk Add when users have several device IDs.', 'They can paste one device per line or comma-separated values.'],
-                ['table-header-one', 'Sort the table', 'Click Device ID, Status, Last Seen, or Main Org in the header.', 'The table sorts ascending or descending without losing filters.'],
-                ['field-two', 'Choose rows per page', 'Use the rows selector to decide how many devices appear per page.', 'The page keeps search, filters, and sorting while changing page size.']
+                ['nav-devices', 'Open Devices', 'Click Devices in the sidebar.', 'You land on the device table for your organization.'],
+                ['action-1', 'Add one device', 'Click Add Device for a single unit.', 'The form asks for device ID, MSISDN, organization and an optional inventory record.'],
+                ['action-0', 'Bulk add many devices', 'Click Bulk Add and paste one device per line as deviceid,msisdn.', 'Each line creates a single device with its SIM number attached — never two separate records.'],
+                ['table-header', 'Sort the table', 'Click any sortable column header.', 'The list sorts without losing your search or filters.'],
+                ['row-0', 'Open the live view', 'Click a device to open its detail page.', 'You see energy, cooking sessions, power controls and a live data window.']
+            ]
+        },
+        schedules: {
+            icon: 'fa-clock', nav: 'schedules', kicker: 'Device Schedules', role: 'Any user',
+            title: 'Schedule device commands', tocHint: 'Automatic on/off commands per device.',
+            summary: 'Set commands that run automatically on a schedule, or trigger them straight away.',
+            url: '/devices/schedules/', realUrl: U.schedules, breadcrumb: 'Home / Devices / Schedules',
+            pageTitle: 'Device Schedules', pageSubtitle: 'Automated commands sent to devices.',
+            actions: [['Filter', 'ghost'], ['Add Schedule', 'success']],
+            cards: [c('Active', '12', 'Running', 'Schedules currently enabled'), c('Paused', '3', 'Disabled', 'Not sending commands'), c('Next run', '18:00', 'Upcoming', 'Next command dispatch')],
+            filters: [f('Device', 'Which device receives the command'), f('Repeat', 'Once, daily or weekly')],
+            table: { headers: ['Device', 'Command', 'Next run', 'Action'], rows: [['APL-00091', 'Power off', 'Today 18:00', 'Run now'], ['APL-00092', 'Power on', 'Tomorrow 06:00', 'Edit'], ['APL-00093', 'Power off', 'Paused', 'Enable']] },
+            expected: 'Devices switch on and off without anyone logging in, and you can still trigger a command manually.',
+            related: [['Devices', U.devices], ['Testing batches', U.batches]],
+            steps: [
+                ['nav-schedules', 'Open Schedules', 'Click Schedules under Devices.', 'You see every automated command and when it next runs.'],
+                ['action-1', 'Create a schedule', 'Click Add Schedule.', 'You pick the device, the command, the time, and how often it repeats.'],
+                ['filter-1', 'Choose the repeat', 'Set once, daily or weekly.', 'The scheduler keeps sending the command on that cadence.'],
+                ['row-0', 'Trigger it now', 'Use Run now on a row when you cannot wait for the schedule.', 'The command is dispatched to the device immediately.']
+            ]
+        },
+        batches: {
+            icon: 'fa-flask', nav: 'batches', kicker: 'Testing Batches', role: 'Superadmin', isNew: true,
+            title: 'Test a batch, toggle power, debug live', tocHint: 'Per-device power toggle and live debug window.',
+            summary: 'Group devices for testing, switch each one on or off in place, and watch live data without leaving the batch.',
+            url: '/devices/testing-batches/1/', realUrl: U.batches, breadcrumb: 'Home / Devices / Testing Batches / Batch #1',
+            pageTitle: 'Testing Batch #1', pageSubtitle: 'Devices under test, results and dispatch.',
+            actions: [['Update results', 'ghost'], ['Dispatch batch', 'success']],
+            cards: [c('Devices in batch', '24', 'Under test', 'Devices assigned to this batch'), c('Passed', '19', 'Ready', 'Devices that passed testing'), c('Failed', '2', 'Rework', 'Devices that need attention'), c('Pending', '3', 'Not tested', 'Awaiting a result')],
+            filters: [f('Search device', 'Find a device inside the batch'), f('Result', 'Passed, failed or pending')],
+            table: { headers: ['Device', 'Result', 'Power / Debug', 'Action'], rows: [['APL-00091', 'Passed', 'On · Debug', 'Update'], ['APL-00092', 'Pending', 'Off · Debug', 'Update'], ['APL-00093', 'Failed', 'On · Debug', 'Update']] },
+            extras: [{ type: 'console', title: 'Live debug window', lines: ['12:41:02  APL-00091  connected', '12:41:04  APL-00091  power=ON  voltage=232V', '12:41:09  APL-00091  energy=41.8 Wh', '12:41:14  APL-00092  connected'] }],
+            expected: 'You test, power-cycle and debug several devices at once, then dispatch the batch when the results are in.',
+            related: [['Devices', U.devices], ['Device orders', U.orders], ['Inventory', U.inventory]],
+            steps: [
+                ['nav-batches', 'Open Testing Batches', 'Click Testing Batches under Devices, then open a batch.', 'You see every device in the batch with its test result.'],
+                ['row-0', 'Toggle a device', 'Use the power toggle on the device row.', 'The device switches on or off in place — the same control used on the device page.'],
+                ['extra-0', 'Open the live debug window', 'Click Debug on a row and a live panel opens right below it.', 'You watch real-time messages from that device without leaving the batch.'],
+                ['row-1', 'Debug several devices', 'Click Debug on more rows.', 'Each device keeps its own live session, so you can compare them side by side.'],
+                ['action-0', 'Record the results', 'Use Update results to mark devices passed or failed.', 'The batch totals update immediately.'],
+                ['action-1', 'Dispatch the batch', 'Click Dispatch batch when testing is complete.', 'Tested devices move on to their destination and stay traceable.']
             ]
         },
         orders: {
-            kicker: 'Device Orders', title: 'Request new devices', summary: 'Users request Appliatrix Boards, admins approve, and fulfillment creates devices plus inventory.', url: '/device-orders/', pageTitle: 'Device Orders', pageSubtitle: 'Requests for new devices before they become real device records.', primary: 'New Order', secondary: 'Filter Status', realUrl: '{% url "device_orders:order_list" %}',
-            labels: { cardOne: ['Submitted', '6', 'Awaiting review'], cardTwo: ['Approved', '3', 'Ready to fulfill'], cardThree: ['Fulfilled', '18', 'Completed'], fieldOne: ['Product Type', 'Appliatrix Board'], fieldTwo: ['Quantity', 'Number requested'], headers: ['Order #', 'Product', 'Quantity', 'Status'], rowOne: ['#104', 'Appliatrix Board', '10', 'Submitted'], rowTwo: ['#103', 'Appliatrix Board', '5', 'Approved'], expected: 'Approved orders can be fulfilled with real device IDs, creating devices and inventory items.' },
+            icon: 'fa-truck-ramp-box', nav: 'orders', kicker: 'Device Orders', role: 'Any user',
+            title: 'Request new devices', tocHint: 'Submit, approve, reject and fulfill orders.',
+            summary: 'Users request devices, admins approve, and fulfillment creates the real devices plus inventory.',
+            url: '/device-orders/', realUrl: U.orders, breadcrumb: 'Home / Device Orders',
+            pageTitle: 'Device Orders', pageSubtitle: 'Requests for new devices before they exist as records.',
+            actions: [['Filter status', 'ghost'], ['New Order', 'success']],
+            cards: [c('Submitted', '6', 'Awaiting review', 'Orders waiting for an admin'), c('Approved', '3', 'Ready to fulfill', 'Approved but not yet fulfilled'), c('Fulfilled', '18', 'Completed', 'Devices created'), c('Rejected', '2', 'Declined', 'With a reason recorded')],
+            filters: [f('Product type', 'Which product is being requested'), f('Quantity', 'Number of units requested')],
+            table: { headers: ['Order', 'Product', 'Quantity', 'Status'], rows: [['#104', 'Appliatrix Board', '10', 'Submitted'], ['#103', 'Appliatrix Board', '5', 'Approved'], ['#102', 'Appliatrix Board', '8', 'Fulfilled']] },
+            expected: 'Approved orders are fulfilled with real device IDs, creating both devices and unique inventory items.',
+            related: [['Devices', U.devices], ['Inventory', U.inventory], ['Warehouses', U.warehouses]],
             steps: [
-                ['nav-orders', 'Open Device Orders', 'Click Device Orders in the sidebar.', 'Users see submitted, approved, rejected, fulfilled, and cancelled orders.'],
-                ['action-primary', 'Create a new order', 'Click New Order.', 'The user chooses Appliatrix Board, quantity, warehouse, and notes.'],
-                ['row-one', 'Admin reviews the request', 'Open a submitted order.', 'Admins can approve or reject and leave a clear audit trail.'],
-                ['row-two', 'Fulfill approved orders', 'Open an approved order and choose Fulfill.', 'The admin pastes exactly the requested number of device IDs.'],
-                ['card-three', 'Confirm completion', 'Once fulfilled, the order moves to Fulfilled.', 'The devices and unique inventory items now exist in the system.']
+                ['nav-orders', 'Open Device Orders', 'Click Device Orders in the sidebar.', 'You see submitted, approved, rejected, fulfilled and cancelled orders.'],
+                ['action-1', 'Create an order', 'Click New Order.', 'You choose the product, quantity, destination warehouse and notes.'],
+                ['row-0', 'Admin reviews it', 'Open a submitted order to approve or reject it.', 'Every decision is recorded with who made it and when.'],
+                ['row-1', 'Fulfill the order', 'Open an approved order and choose Fulfill.', 'You paste exactly the requested number of device IDs.'],
+                ['card-2', 'Confirm completion', 'The order moves to Fulfilled.', 'The devices and their inventory items now exist in the system.']
             ]
         },
-        inventory: {
-            kicker: 'Inventory', title: 'Track inventory', summary: 'Add unique serial items, shared stock items, bulk uploads, and warehouse movement.', url: '/inventory/', pageTitle: 'Inventory', pageSubtitle: 'Stock records, serial numbers, quantities, and warehouses.', primary: 'Add Item', secondary: 'Bulk Add Items', realUrl: '{% url "inventory:inventory_page" %}',
-            labels: { cardOne: ['Unique Items', '164', 'Quantity is one'], cardTwo: ['Shared Items', '24', 'Quantity entered'], cardThree: ['Warehouses', '5', 'Stock locations'], fieldOne: ['Item type', 'Unique serial or shared quantity'], fieldTwo: ['Warehouse', 'Where stock is kept'], headers: ['Serial', 'Type', 'Quantity', 'Warehouse'], rowOne: ['APL-00091', 'Unique', '1', 'Nairobi'], rowTwo: ['BATCH-2026-A', 'Shared', '60', 'Main Store'], expected: 'Inventory becomes visible by warehouse and can be linked during device workflows.' },
+        meters: {
+            icon: 'fa-gauge-high', nav: 'meters', kicker: 'Smart Meters', role: 'Any user',
+            title: 'Monitor smart meters', tocHint: 'Meter list, readings and consumption detail.',
+            summary: 'Follow meter readings and consumption for the meters in your organization.',
+            url: '/smart-meters/', realUrl: U.meters, breadcrumb: 'Home / Smart Meters',
+            pageTitle: 'Smart Meters', pageSubtitle: 'Meter numbers, latest readings and consumption.',
+            actions: [['Search', 'ghost'], ['Refresh readings', 'success']],
+            cards: [c('Meters', '64', 'Registered', 'Meters visible to you'), c('Reporting', '58', 'Recent data', 'Meters with a fresh reading'), c('Consumption', '96,400 Wh', 'Selected period', 'Total metered consumption')],
+            filters: [f('Search meter', 'Meter number or location'), f('Period', 'Reading window to display')],
+            table: { headers: ['Meter', 'Latest reading', 'Consumption', 'Updated'], rows: [['SM-1042', '2,481 Wh', '412 Wh', '10 min ago'], ['SM-1043', '1,905 Wh', '288 Wh', '25 min ago'], ['SM-1044', 'No data', '-', '2 days ago']] },
+            expected: 'You know which meters are reporting and how much energy each one is consuming.',
+            related: [['Analytics', U.analytics], ['Reports', U.reports]],
             steps: [
-                ['nav-inventory', 'Open Inventory', 'Click Inventory in the sidebar.', 'The user sees stock items, types, quantities, and warehouses.'],
-                ['action-primary', 'Add a single item', 'Click Add Item for one inventory record.', 'Unique serial items automatically stay at quantity one.'],
-                ['action-secondary', 'Bulk add items', 'Click Bulk Add Items for CSV or pasted lines.', 'Users can upload CSV, paste CSV rows, or enter one serial per line.'],
-                ['field-one', 'Choose item type', 'Select whether the item is unique or shared.', 'Unique means one serial equals one item. Shared means quantity must be entered.'],
-                ['nav-warehouses', 'Manage warehouses', 'Superusers can open Warehouses from the sidebar.', 'Warehouses define where inventory is stored or moved.']
+                ['nav-meters', 'Open Smart Meters', 'Click Smart Meters in the sidebar.', 'The meter list loads, scoped to your organization.'],
+                ['filter-0', 'Find a meter', 'Search by meter number.', 'The table narrows to the matching meter.'],
+                ['row-0', 'Open the meter', 'Click a meter row.', 'You see its readings history and consumption over time.'],
+                ['row-2', 'Spot silent meters', 'Look for meters with no recent data.', 'These need a field check before the next billing cycle.']
             ]
         },
         customers: {
-            kicker: 'Customers', title: 'Find and serve customers', summary: 'Search customer records, open profiles, and continue to sales or history.', url: '/customers/', pageTitle: 'Customers', pageSubtitle: 'Customer records and linked operational activity.', primary: 'Add Customer', secondary: 'Search', realUrl: '{% url "customers:customers_page" %}',
-            labels: { cardOne: ['Customers', '1,240', 'Registered'], cardTwo: ['Active', '875', 'Current'], cardThree: ['New', '12', 'This week'], fieldOne: ['Search', 'Name, phone, ID, or email'], fieldTwo: ['Rows per page', '10, 25, 50, 100'], headers: ['Customer', 'Phone', 'Status', 'Action'], rowOne: ['Mary Wanjiku', '+254...', 'Active', 'Profile'], rowTwo: ['Peter Otieno', '+254...', 'Pending', 'Profile'], expected: 'The user finds a customer quickly and opens their full profile for service.' },
+            icon: 'fa-users', nav: 'customers', kicker: 'Customers', role: 'Any user',
+            title: 'Find and serve customers', tocHint: 'Search, sort, profile and linked activity.',
+            summary: 'Search customer records, open profiles, and continue to their sales and history.',
+            url: '/customers/', realUrl: U.customers, breadcrumb: 'Home / Customers',
+            pageTitle: 'Customers', pageSubtitle: 'Customer records and linked operational activity.',
+            actions: [['Search', 'ghost'], ['Add Customer', 'success']],
+            cards: [c('Customers', '1,240', 'Registered', 'All customers you can access'), c('Active', '875', 'Currently served', 'Customers with active devices or plans'), c('New', '12', 'This week', 'Recently added customers'), c('With PayGo', '410', 'Payment plans', 'Customers on a PayGo plan')],
+            filters: [f('Search', 'Name, phone, ID or email'), f('Rows per page', '10, 25, 50, 100')],
+            table: { headers: ['Customer', 'Phone', 'Status', 'Action'], rows: [['Mary Wanjiku', '+254...', 'Active', 'Profile'], ['Peter Otieno', '+254...', 'Pending', 'Profile'], ['Grace Achieng', '+254...', 'Active', 'Profile']] },
+            expected: 'You find a customer quickly and open their full profile, including linked sales and devices.',
+            related: [['Sales', U.sales], ['PayGo', U.paygo], ['Transactions', U.transactions]],
             steps: [
-                ['nav-customers', 'Open Customers', 'Click Customers in the sidebar.', 'The customer table opens.'],
-                ['field-one', 'Search for a customer', 'Type a name, phone number, customer ID, or email.', 'The table narrows to matching customer records.'],
-                ['table-header-one', 'Sort customer columns', 'Click a sortable header.', 'Users can organize the list without losing filters.'],
-                ['row-one', 'Open the profile', 'Click the customer row or profile action.', 'The profile shows details, linked sales, and service history.']
+                ['nav-customers', 'Open Customers', 'Click Customers in the sidebar.', 'The customer table opens for your organization.'],
+                ['filter-0', 'Search for a customer', 'Type a name, phone number, ID or email.', 'The table narrows to matching records as you type.'],
+                ['table-header', 'Sort the columns', 'Click a sortable header.', 'You reorder the list without losing filters.'],
+                ['row-0', 'Open the profile', 'Click the customer row.', 'You see details, linked sales, devices and service history.']
             ]
         },
         sales: {
-            kicker: 'Sales and PayGo', title: 'Create sales and PayGo', summary: 'Record purchases, attach devices, issue receipts, and manage PayGo actions.', url: '/sales/', pageTitle: 'All Sales', pageSubtitle: 'Sales records, devices, customers, and payment activity.', primary: 'New Sale', secondary: 'PayGo Sales', realUrl: '{% url "sales:sales_page" %}',
-            labels: { cardOne: ['Sales', '92', 'This period'], cardTwo: ['PayGo', '41', 'Payment plans'], cardThree: ['Receipts', '88', 'Generated'], fieldOne: ['Customer', 'Select customer'], fieldTwo: ['Device', 'Attach device ID'], headers: ['Sale', 'Customer', 'Device', 'Status'], rowOne: ['#2101', 'Mary Wanjiku', 'APL-00091', 'Paid'], rowTwo: ['#2100', 'Peter Otieno', 'APL-00092', 'PayGo'], expected: 'Each sale links a customer, device, and payment workflow.' },
+            icon: 'fa-cash-register', nav: 'sales', kicker: 'Sales', role: 'Any user',
+            title: 'Record a sale and issue a receipt', tocHint: 'Customer, referrer, device, receipt PDF and email.',
+            summary: 'Create a sale, attach the customer and device, then send or download the receipt.',
+            url: '/sales/', realUrl: U.sales, breadcrumb: 'Home / All Sales',
+            pageTitle: 'All Sales', pageSubtitle: 'Sales records, devices, customers and payments.',
+            actions: [['Filter', 'ghost'], ['New Sale', 'success']],
+            cards: [c('Sales', '92', 'This period', 'Sales recorded in the period'), c('PayGo', '41', 'Payment plans', 'Sales sold on a plan'), c('Receipts', '88', 'Issued', 'Receipts generated'), c('Value', 'KES 1.2M', 'This period', 'Total sale value')],
+            filters: [f('Customer', 'Search and select the buyer'), f('Referred by', 'Search and select the referrer')],
+            table: { headers: ['Sale', 'Customer', 'Device', 'Status'], rows: [['#2101', 'Mary Wanjiku', 'APL-00091', 'Paid'], ['#2100', 'Peter Otieno', 'APL-00092', 'PayGo'], ['#2099', 'Grace Achieng', 'APL-00093', 'Paid']] },
+            expected: 'Each sale links a customer, a device and a payment workflow, with a receipt ready to email or download.',
+            related: [['Customers', U.customers], ['PayGo', U.paygo], ['Invoices', U.invoices]],
             steps: [
-                ['nav-sales', 'Open All Sales', 'Click All Sales in the sidebar.', 'The user sees the sales table.'],
-                ['action-primary', 'Create a sale', 'Click New Sale.', 'The form captures customer, device, pricing, and sale details.'],
-                ['field-one', 'Attach the customer', 'Choose the customer receiving the device.', 'The sale becomes connected to the customer profile.'],
-                ['field-two', 'Attach the device', 'Choose the device ID being sold.', 'The sale can now be traced to hardware.'],
-                ['nav-paygo', 'Manage PayGo', 'Open PayGo Sales for payment-plan actions.', 'Users can review PayGo records, payment status, and STK-related actions.']
+                ['nav-sales', 'Open All Sales', 'Click All Sales in the sidebar.', 'The sales table opens.'],
+                ['action-1', 'Create a sale', 'Click New Sale.', 'The form captures customer, referrer, device, price and payment type.'],
+                ['filter-0', 'Attach the customer', 'Search and pick the customer.', 'When you later edit the sale, the customer and referrer stay selected instead of resetting.'],
+                ['row-0', 'Issue the receipt', 'Open the sale and download or email the receipt.', 'The customer gets a branded PDF receipt by email.']
+            ]
+        },
+        paygo: {
+            icon: 'fa-mobile-screen', nav: 'paygo', kicker: 'PayGo', role: 'Any user',
+            title: 'Manage PayGo plans', tocHint: 'Plan status, auto-PayGo toggle, STK push.',
+            summary: 'Track payment plans, trigger a payment prompt, and control automatic unlocking.',
+            url: '/paygo/', realUrl: U.paygo, breadcrumb: 'Home / PayGo Sales',
+            pageTitle: 'PayGo Sales', pageSubtitle: 'Payment plans, balances and device unlocking.',
+            actions: [['Filter', 'ghost'], ['Send STK push', 'success']],
+            cards: [c('Active plans', '41', 'Being paid', 'Plans still in repayment'), c('Overdue', '6', 'Needs follow-up', 'Plans past their due date'), c('Completed', '132', 'Fully paid', 'Plans paid off'), c('Collected', 'KES 480k', 'This period', 'Payments received')],
+            filters: [f('Status', 'Active, overdue or completed'), f('Auto PayGo', 'Automatic unlocking on or off')],
+            table: { headers: ['Sale', 'Customer', 'Balance', 'Action'], rows: [['#2100', 'Peter Otieno', 'KES 4,500', 'STK push'], ['#2088', 'Grace Achieng', 'KES 1,200', 'Toggle auto'], ['#2074', 'John Kamau', 'Paid off', 'View']] },
+            expected: 'Payments are requested and recorded, and devices unlock automatically when a plan is up to date.',
+            related: [['Sales', U.sales], ['Transactions', U.transactions], ['Customers', U.customers]],
+            steps: [
+                ['nav-paygo', 'Open PayGo Sales', 'Click PayGo Sales in the sidebar.', 'You see every sale on a payment plan.'],
+                ['filter-0', 'Focus on overdue plans', 'Filter by status.', 'You get a short list of customers to chase.'],
+                ['row-0', 'Send a payment prompt', 'Use STK push on the row.', 'The customer receives a payment prompt on their phone.'],
+                ['filter-1', 'Control auto PayGo', 'Toggle automatic unlocking for a plan.', 'When on, the device unlocks itself as payments arrive.']
+            ]
+        },
+        transactions: {
+            icon: 'fa-money-bill-transfer', nav: 'transactions', kicker: 'Transactions', role: 'Any user',
+            title: 'Reconcile transactions', tocHint: 'Payment history, filters and export.',
+            summary: 'Review every payment recorded against your organization and reconcile it with sales.',
+            url: '/transactions/', realUrl: U.transactions, breadcrumb: 'Home / Transactions',
+            pageTitle: 'Transactions', pageSubtitle: 'Payments received and their matching records.',
+            actions: [['Filter', 'ghost'], ['Export', 'success']],
+            cards: [c('Transactions', '2,318', 'All time', 'Payments visible to you'), c('This period', '412', 'Recent', 'Payments in the selected period'), c('Value', 'KES 1.4M', 'This period', 'Total value received'), c('Unmatched', '7', 'Needs review', 'Payments not yet linked to a sale')],
+            filters: [f('Period', 'Start and end date'), f('Search', 'Reference, phone number or customer')],
+            table: { headers: ['Reference', 'Customer', 'Amount', 'Date'], rows: [['QF12ABZ9', 'Mary Wanjiku', 'KES 2,500', 'Today'], ['QF12ACC1', 'Peter Otieno', 'KES 1,000', 'Today'], ['QF11ZZZ4', 'Unmatched', 'KES 500', 'Yesterday']] },
+            expected: 'You can prove what was paid, by whom and when — and spot payments that still need matching.',
+            related: [['Sales', U.sales], ['Export data', U.exportData], ['Reports', U.reports]],
+            steps: [
+                ['nav-transactions', 'Open Transactions', 'Click Transactions in the sidebar.', 'You see payments for your organization only; superadmins see all of them.'],
+                ['filter-0', 'Set the period', 'Choose the start and end date.', 'The table and totals recalculate for that window.'],
+                ['card-3', 'Find unmatched payments', 'Check the unmatched card.', 'These payments need to be linked to a sale or customer.'],
+                ['action-1', 'Export the list', 'Click Export.', 'You get a CSV or Excel file for accounting and audits.']
+            ]
+        },
+        billing: {
+            icon: 'fa-file-invoice-dollar', nav: 'invoices', kicker: 'Billing', role: 'Superadmin',
+            title: 'Invoices and receipts', tocHint: 'SaaS billing rules, invoices, receipts, PDFs.',
+            summary: 'Generate invoices from billing rules, email them, and keep receipts for every payment.',
+            url: '/billing/invoices/', realUrl: U.invoices, breadcrumb: 'Home / Billing / Invoices',
+            pageTitle: 'Invoices', pageSubtitle: 'Organization billing, payment status and documents.',
+            actions: [['Billing rules', 'ghost'], ['New invoice', 'success']],
+            cards: [c('Open', '9', 'Unpaid', 'Invoices awaiting payment'), c('Paid', '54', 'Settled', 'Invoices fully paid'), c('Overdue', '3', 'Past due', 'Invoices past their due date'), c('Receipts', '54', 'Issued', 'Receipts generated from payments')],
+            filters: [f('Organization', 'Which organization is billed'), f('Status', 'Draft, sent, paid or overdue')],
+            table: { headers: ['Invoice', 'Organization', 'Amount', 'Status'], rows: [['INV-0091', 'Nairobi', 'KES 45,000', 'Paid'], ['INV-0092', 'Kisumu', 'KES 32,500', 'Sent'], ['INV-0093', 'Mombasa', 'KES 18,000', 'Overdue']] },
+            expected: 'Every organization has a clear billing trail: invoice, payment, receipt, all downloadable as PDFs.',
+            related: [['Receipts', U.receipts], ['Organizations', U.organizations], ['Transactions', U.transactions]],
+            steps: [
+                ['nav-invoices', 'Open Invoices', 'Click Invoices under Billing.', 'You see every invoice and its payment status.'],
+                ['action-0', 'Review billing rules', 'Open the SaaS billing rules.', 'Rules decide how much each organization is charged and how often.'],
+                ['action-1', 'Create an invoice', 'Click New invoice and add the line items.', 'The invoice can be emailed with a branded PDF attached.'],
+                ['row-2', 'Chase overdue invoices', 'Open an overdue invoice.', 'You can resend it and record the payment when it arrives.']
+            ]
+        },
+        inventory: {
+            icon: 'fa-boxes-stacked', nav: 'inventory', kicker: 'Inventory', role: 'Any user',
+            title: 'Track inventory items', tocHint: 'Unique serials, shared stock, bulk upload.',
+            summary: 'Add unique serial items and shared stock, upload in bulk, and see what sits in each warehouse.',
+            url: '/inventory/', realUrl: U.inventory, breadcrumb: 'Home / Inventory',
+            pageTitle: 'Inventory', pageSubtitle: 'Stock records, serial numbers, quantities and warehouses.',
+            actions: [['Bulk Add Items', 'ghost'], ['Add Item', 'success']],
+            cards: [c('Unique items', '164', 'Quantity is one', 'One serial equals one item'), c('Shared items', '24', 'Quantity entered', 'Stock counted in bulk'), c('Warehouses', '5', 'Locations', 'Places stock can sit'), c('In maintenance', '8', 'Being repaired', 'Items in the maintenance warehouse')],
+            filters: [f('Item type', 'Unique serial or shared quantity'), f('Warehouse', 'Where the stock is kept')],
+            table: { headers: ['Serial', 'Type', 'Quantity', 'Warehouse'], rows: [['APL-00091', 'Unique', '1', 'Nairobi'], ['BATCH-2026-A', 'Shared', '60', 'Main Store'], ['APL-00105', 'Unique', '1', 'Maintenance']] },
+            expected: 'Stock is visible per warehouse and stays linked to devices, orders and deliveries.',
+            related: [['Warehouses', U.warehouses], ['Delivery notes', U.deliveryNotes], ['Maintenance', U.maintenance]],
+            steps: [
+                ['nav-inventory', 'Open Inventory', 'Click Inventory in the sidebar.', 'You see stock items, types, quantities and warehouses for your organization.'],
+                ['action-1', 'Add a single item', 'Click Add Item.', 'Unique serial items always stay at quantity one.'],
+                ['action-0', 'Bulk add items', 'Click Bulk Add Items to upload a CSV or paste lines.', 'You can create many items in one go.'],
+                ['filter-0', 'Choose the item type', 'Select unique or shared.', 'Shared items require a quantity; unique items do not.'],
+                ['row-0', 'Open an item', 'Click an item row.', 'You see its movement history and where it sits today.']
+            ]
+        },
+        warehouses: {
+            icon: 'fa-warehouse', nav: 'warehouses', kicker: 'Warehouses', role: 'Superadmin',
+            title: 'Manage warehouses', tocHint: 'Create locations, including maintenance.',
+            summary: 'Define where stock lives, including the dedicated maintenance warehouse.',
+            url: '/inventory/warehouses/', realUrl: U.warehouses, breadcrumb: 'Home / Inventory / Warehouses',
+            pageTitle: 'Warehouses', pageSubtitle: 'Stock locations and their owning organization.',
+            actions: [['Filter', 'ghost'], ['Add Warehouse', 'success']],
+            cards: [c('Warehouses', '5', 'Locations', 'All stock locations'), c('Items held', '188', 'In stock', 'Items across all warehouses'), c('Maintenance', '1', 'Special location', 'Items here get a maintenance record')],
+            filters: [f('Name', 'Warehouse name'), f('Organization', 'Which organization owns it')],
+            table: { headers: ['Warehouse', 'Organization', 'Items', 'Action'], rows: [['Main Store', 'Nairobi', '96', 'Edit'], ['Field Store', 'Kisumu', '84', 'Edit'], ['Maintenance', 'Powerpay', '8', 'Edit']] },
+            expected: 'Every item has a home, and moving an item into the maintenance warehouse triggers a maintenance record.',
+            related: [['Inventory', U.inventory], ['Maintenance', U.maintenance]],
+            steps: [
+                ['nav-warehouses', 'Open Warehouses', 'Click Warehouses under Inventory.', 'You see every stock location.'],
+                ['action-1', 'Add a warehouse', 'Click Add Warehouse.', 'You give it a name and the organization that owns it.'],
+                ['row-2', 'Know the maintenance warehouse', 'Notice the dedicated maintenance location.', 'Any item moved here automatically starts a maintenance record.'],
+                ['card-1', 'Watch the stock balance', 'Check items held per location.', 'You can rebalance stock before it runs out in the field.']
+            ]
+        },
+        moves: {
+            icon: 'fa-arrows-turn-to-dots', nav: 'inventory', kicker: 'Inventory Moves', role: 'Any user',
+            title: 'Move stock, single or bulk', tocHint: 'Transfers, maintenance prompt, delivery note option.',
+            summary: 'Transfer one item or many between warehouses, with prompts for maintenance and delivery notes.',
+            url: '/inventory/items/bulk-move/', realUrl: U.inventory, breadcrumb: 'Home / Inventory / Move items',
+            pageTitle: 'Move Items', pageSubtitle: 'Transfer stock between warehouses.',
+            actions: [['Cancel', 'ghost'], ['Confirm move', 'success']],
+            cards: [c('Selected items', '12', 'To move', 'Items included in this move'), c('From', 'Main Store', 'Origin', 'Current warehouse'), c('To', 'Field Store', 'Destination', 'Where the stock is going')],
+            filters: [f('Destination warehouse', 'Where the items are going'), f('Note', 'Why the stock is moving')],
+            table: { headers: ['Serial', 'Type', 'From', 'To'], rows: [['APL-00091', 'Unique', 'Main Store', 'Field Store'], ['APL-00092', 'Unique', 'Main Store', 'Field Store'], ['BATCH-2026-A', 'Shared', 'Main Store', 'Field Store']] },
+            extras: [
+                { type: 'alert', tone: 'warning', title: 'Maintenance confirmation', body: 'When the destination is the maintenance warehouse, you are warned that a maintenance record will be created for each item and must tick the confirmation box.' },
+                { type: 'alert', tone: 'info', title: 'Delivery note option', body: 'Tick "create delivery note" and the move produces a delivery note you can email, download as PDF, and have the receiver confirm through a public link.' }
+            ],
+            expected: 'Stock moves are recorded with a full history, plus optional maintenance records and delivery notes.',
+            related: [['Inventory', U.inventory], ['Delivery notes', U.deliveryNotes], ['Maintenance', U.maintenance]],
+            steps: [
+                ['nav-inventory', 'Select the items', 'From Inventory, choose one item or tick several for a bulk move.', 'The move form opens with the selected items listed.'],
+                ['filter-0', 'Pick the destination', 'Choose the warehouse receiving the stock.', 'The move is validated against what you are allowed to access.'],
+                ['extra-0', 'Confirm maintenance moves', 'If the destination is the maintenance warehouse, tick the confirmation.', 'A maintenance record is created automatically for every item moved.'],
+                ['extra-1', 'Create a delivery note', 'Optionally tick create delivery note.', 'A delivery note is generated so the receiving side can confirm what arrived.'],
+                ['action-1', 'Confirm the move', 'Click Confirm move.', 'Stock levels change and every item gains a timeline entry.']
+            ]
+        },
+        delivery: {
+            icon: 'fa-file-signature', nav: 'deliveryNotes', kicker: 'Delivery Notes', role: 'Any user', isNew: true,
+            title: 'Send and confirm delivery notes', tocHint: 'PDF, email and a public receive link.',
+            summary: 'Send proof of what left the warehouse and let the receiver confirm it without an account.',
+            url: '/inventory/delivery-notes/', realUrl: U.deliveryNotes, breadcrumb: 'Home / Inventory / Delivery Notes',
+            pageTitle: 'Delivery Notes', pageSubtitle: 'Dispatch documents and receipt confirmations.',
+            actions: [['Download PDF', 'ghost'], ['Email note', 'success']],
+            cards: [c('Notes', '46', 'All time', 'Delivery notes you can see'), c('Awaiting receipt', '5', 'Not confirmed', 'Sent but not yet confirmed'), c('Received', '41', 'Confirmed', 'Confirmed by the receiver'), c('This month', '12', 'Recent', 'Notes created this month')],
+            filters: [f('Search', 'Note number, warehouse or recipient'), f('Status', 'Sent or received')],
+            table: { headers: ['Note', 'Destination', 'Items', 'Status'], rows: [['DN-0046', 'Field Store', '12', 'Awaiting receipt'], ['DN-0045', 'Kisumu Store', '8', 'Received'], ['DN-0044', 'Maintenance', '3', 'Received']] },
+            extras: [{ type: 'public', title: 'Public receive page', body: 'The recipient opens a link with a unique token, checks the listed items, and confirms receipt. No login and no account needed.' }],
+            expected: 'Everyone can see their own organization\'s delivery notes, and receipts are confirmed with a shareable link.',
+            related: [['Inventory', U.inventory], ['Warehouses', U.warehouses], ['Maintenance', U.maintenance]],
+            steps: [
+                ['nav-deliveryNotes', 'Open Delivery Notes', 'Click Delivery Notes under Inventory.', 'Every user can open this page; you see only your own organization\'s notes, while superadmins see all of them.'],
+                ['row-0', 'Open a note', 'Click a delivery note.', 'You see the sending warehouse, destination, items and current status.'],
+                ['action-0', 'Download the PDF', 'Click Download PDF.', 'You get a printable document to travel with the goods.'],
+                ['action-1', 'Email the note', 'Click Email note.', 'The recipient gets a branded email containing the public confirmation link.'],
+                ['extra-0', 'Receiver confirms', 'The recipient opens the link and confirms receipt.', 'The note flips to Received and the confirmation is stored against it.']
+            ]
+        },
+        maintenance: {
+            icon: 'fa-screwdriver-wrench', nav: 'maintenance', kicker: 'Maintenance', role: 'View: any user · Edit: superadmin', isNew: true,
+            title: 'Repair tracking end to end', tocHint: 'Send to maintenance, statuses, photos, public link.',
+            summary: 'Send faulty items to the maintenance warehouse and follow every repair from received to returned.',
+            url: '/maintenance/', realUrl: U.maintenance, breadcrumb: 'Home / Inventory / Maintenance',
+            pageTitle: 'Maintenance', pageSubtitle: 'Items being repaired and their progress.',
+            actions: [['Filter', 'ghost'], ['New maintenance record', 'success']],
+            cards: [c('In maintenance', '8', 'Currently held', 'Items sitting in the maintenance warehouse'), c('In progress', '3', 'Being worked on', 'Repairs actively underway'), c('Awaiting parts', '2', 'Blocked', 'Waiting for spares'), c('Fixed', '19', 'Repaired', 'Repairs completed')],
+            filters: [f('Status', 'Received, diagnosed, in progress, awaiting parts, fixed, returned'), f('Organization', 'Superadmins can filter by organization')],
+            table: { headers: ['Reference', 'Item', 'Status', 'Updated'], rows: [['MR-00021', 'APL-00105', 'In progress', 'Today'], ['MR-00020', 'APL-00098', 'Awaiting parts', 'Yesterday'], ['MR-00019', 'APL-00087', 'Fixed', '3 days ago']] },
+            extras: [
+                { type: 'timeline', title: 'Status timeline', items: [['Received', 'Item arrived at the workshop'], ['Diagnosed', 'Faulty power board identified'], ['In progress', 'Board replacement underway']] },
+                { type: 'gallery', title: 'Photos and comments', body: 'Superadmins attach repair photos and comments. Each one can be marked public or kept internal.' },
+                { type: 'public', title: 'Public progress link', body: 'Share a token link so the owner can follow the repair without an account. It shows only public comments and photos — no emails, phone numbers or organization names.' }
+            ],
+            expected: 'Every repair has a reference, a timeline, evidence, and a link the owner can follow.',
+            related: [['Inventory', U.inventory], ['Warehouses', U.warehouses], ['Delivery notes', U.deliveryNotes]],
+            steps: [
+                ['nav-maintenance', 'Open Maintenance', 'Click Maintenance under Inventory.', 'You see maintenance records for items belonging to your organization; superadmins see every organization.'],
+                ['action-1', 'Create a record', 'Superadmins click New maintenance record and pick an inventory item.', 'You are told the item will be moved into the maintenance warehouse, and the move is recorded in the item history.'],
+                ['filter-0', 'Follow the status', 'Filter by status to see what is stuck.', 'Statuses run from Received and Diagnosed through In progress and Awaiting parts to Fixed, Returned or Unrepairable.'],
+                ['extra-0', 'Read the timeline', 'Open a record to see every status change with its note and author.', 'Nothing about the repair is lost between shifts.'],
+                ['extra-1', 'Add photos and comments', 'Superadmins upload photos and leave comments.', 'Mark them public to show the owner, or internal to keep them for the workshop.'],
+                ['extra-2', 'Share progress publicly', 'Copy the public tracking link from the record.', 'The owner follows the repair without logging in, and only public details are shown.']
             ]
         },
         reports: {
-            kicker: 'Import and Export', title: 'Import and export data', summary: 'Upload operational data or download datasets for reporting and audits.', url: '/export/', pageTitle: 'Import / Export', pageSubtitle: 'Move data in and out of Powerpay safely.', primary: 'Export Data', secondary: 'Import Center', realUrl: '{% url "core:export_data" %}',
-            labels: { cardOne: ['Exports', 'CSV/XLSX', 'Reports'], cardTwo: ['Imports', 'Validated', 'Before save'], cardThree: ['Notifications', 'Done', 'After processing'], fieldOne: ['Dataset', 'Customers, sales, transactions'], fieldTwo: ['Format', 'CSV or Excel'], headers: ['File', 'Dataset', 'Status', 'Action'], rowOne: ['customers.xlsx', 'Customers', 'Ready', 'Download'], rowTwo: ['transactions.csv', 'Transactions', 'Imported', 'View'], expected: 'Users get clean imports and downloadable reports without touching the database directly.' },
+            icon: 'fa-file-pdf', nav: 'reports', kicker: 'Reports', role: 'Any user', isNew: true,
+            title: 'Generate a PDF report', tocHint: 'Sections, period, device usage, org scope.',
+            summary: 'Choose the sections and period, preview instantly for short ranges, and get long ranges emailed.',
+            url: '/reports/', realUrl: U.reports, breadcrumb: 'Home / Reports',
+            pageTitle: 'Report Center', pageSubtitle: 'Build a report and download or email the PDF.',
+            actions: [['Schedules', 'ghost'], ['Generate report', 'success']],
+            cards: [c('Devices used', '86', 'In the period', 'Devices with readings in the period'), c('Energy', '412k Wh', 'Total', 'Energy across all devices'), c('Cooking hours', '318 h', 'Total', 'Cooking time converted to hours'), c('Energy cost', 'KES 92,400', 'Estimated', 'Cost from the configured tariffs')],
+            filters: [f('Sections', 'Sales, transactions, customers, device usage'), f('Period', '14 days or less previews instantly; longer ranges are emailed')],
+            table: { headers: ['Device', 'Energy (Wh)', 'Cooking events', 'Cooking hours'], rows: [['APL-00091', '5,420', '31', '12.4'], ['APL-00092', '4,905', '27', '10.8'], ['APL-00093', '3,110', '19', '7.2']] },
+            extras: [{ type: 'alert', tone: 'info', title: 'Organization scope', body: 'Superadmins get an organization picker with an "All organizations" option. Everyone else is scoped automatically to their own organization.' }],
+            expected: 'You get a branded PDF with the sections you asked for, either straight away or by email.',
+            related: [['Report schedules', U.reportSchedules], ['Run history', U.runHistory], ['Analytics', U.analytics]],
             steps: [
-                ['nav-reports', 'Open Import or Export', 'Click Import / Export in the sidebar.', 'The user chooses whether to upload or download data.'],
-                ['action-secondary', 'Import files', 'Use Import Center for customer, sale, or transaction files.', 'The app validates uploaded files before saving records.'],
-                ['action-primary', 'Export records', 'Use Export Data to choose a dataset and format.', 'The user receives a CSV or Excel file for reporting.'],
-                ['row-two', 'Review results', 'Check the import or export result row.', 'Users can see whether processing succeeded and what to do next.']
+                ['nav-reports', 'Open the Report Center', 'Click Reports in the sidebar.', 'The report builder opens.'],
+                ['filter-0', 'Pick the sections', 'Choose sales, transactions, customers and device usage.', 'Only the sections you tick appear in the PDF.'],
+                ['filter-1', 'Pick the period', 'Choose the start and end date.', 'Short ranges preview immediately; longer ranges are queued and emailed so nothing times out.'],
+                ['extra-0', 'Choose the organization', 'Superadmins choose one organization or all of them.', 'Other users are always scoped to their own organization.'],
+                ['card-0', 'Check device usage', 'Read the device usage numbers.', 'Energy, cooking events, cooking hours and energy cost are calculated the same way as on the device page.'],
+                ['action-1', 'Generate the report', 'Click Generate report.', 'You download the PDF or receive it by email when it finishes.']
+            ]
+        },
+        schedulesreports: {
+            icon: 'fa-calendar-check', nav: 'reports', kicker: 'Report Schedules', role: 'Any user', isNew: true,
+            title: 'Schedule reports by email', tocHint: 'Daily, weekly, monthly or custom delivery.',
+            summary: 'Set a report to build itself on a schedule and land in the right inboxes.',
+            url: '/reports/schedules/', realUrl: U.reportSchedules, breadcrumb: 'Home / Reports / Schedules',
+            pageTitle: 'Report Schedules', pageSubtitle: 'Automatic report delivery.',
+            actions: [['Run now', 'ghost'], ['New schedule', 'success']],
+            cards: [c('Active', '6', 'Sending', 'Schedules currently enabled'), c('Paused', '2', 'Disabled', 'Not sending right now'), c('Recipients', '14', 'Email addresses', 'People receiving reports'), c('Next run', 'Tomorrow 06:00', 'Upcoming', 'Next scheduled delivery')],
+            filters: [f('Frequency', 'Daily, weekly, monthly or custom'), f('Recipients', 'Email addresses to send to')],
+            table: { headers: ['Schedule', 'Frequency', 'Next run', 'Status'], rows: [['Weekly operations', 'Weekly', 'Monday 06:00', 'Active'], ['Monthly energy', 'Monthly', '1st 06:00', 'Active'], ['Daily sales', 'Daily', 'Paused', 'Paused']] },
+            expected: 'The right people receive the right report without anyone remembering to run it.',
+            related: [['Report center', U.reports], ['Run history', U.runHistory]],
+            steps: [
+                ['nav-reports', 'Open Schedules', 'Click Reports, then Schedules.', 'You see every automated report.'],
+                ['action-1', 'Create a schedule', 'Click New schedule.', 'You pick the sections, frequency, recipients and organization scope.'],
+                ['row-2', 'Pause or resume', 'Toggle a schedule.', 'A paused schedule keeps its settings but stops sending.'],
+                ['action-0', 'Run it now', 'Use Run now for an immediate copy.', 'The report is queued and emailed without changing the schedule.']
+            ]
+        },
+        history: {
+            icon: 'fa-clock-rotate-left', nav: 'reports', kicker: 'Run History', role: 'Any user', isNew: true,
+            title: 'Track report runs', tocHint: 'Queued, completed, failed and retried runs.',
+            summary: 'See every report that has been generated, whether it succeeded, and download it again.',
+            url: '/reports/history/', realUrl: U.runHistory, breadcrumb: 'Home / Reports / History',
+            pageTitle: 'Run History', pageSubtitle: 'Generated reports and their outcome.',
+            actions: [['Filter', 'ghost'], ['Refresh', 'success']],
+            cards: [c('Completed', '128', 'Delivered', 'Reports generated successfully'), c('Queued', '2', 'In progress', 'Being built in the background'), c('Failed', '1', 'Needs attention', 'Runs that could not finish'), c('Retried', '3', 'Recovered', 'Stalled runs picked up again')],
+            filters: [f('Status', 'Queued, completed or failed'), f('Period', 'When the run was created')],
+            table: { headers: ['Run', 'Period covered', 'Status', 'Action'], rows: [['#312', '1 - 31 July', 'Completed', 'Download'], ['#313', '1 Jan - 31 Jul', 'Queued', 'Waiting'], ['#311', 'June', 'Failed', 'Retry']] },
+            expected: 'Long reports finish in the background, and stalled runs are picked up automatically instead of hanging forever.',
+            related: [['Report center', U.reports], ['Schedules', U.reportSchedules]],
+            steps: [
+                ['nav-reports', 'Open Run History', 'Click Reports, then History.', 'Every generated report is listed with its outcome.'],
+                ['row-1', 'Watch a queued run', 'Find a run marked Queued.', 'Long periods build in the background so the page never times out.'],
+                ['card-3', 'Understand retries', 'Look at the retried count.', 'A sweeper re-dispatches runs that stall, and gives up only after several attempts.'],
+                ['row-0', 'Download again', 'Use Download on a completed run.', 'You get the same PDF without regenerating it.']
+            ]
+        },
+        importexport: {
+            icon: 'fa-file-import', nav: 'importCenter', kicker: 'Import and Export', role: 'Any user',
+            title: 'Import and export data', tocHint: 'Upload files, validate, download datasets.',
+            summary: 'Bring customer, sale and transaction data in, or take clean datasets out.',
+            url: '/import/', realUrl: U.importCenter, breadcrumb: 'Home / Import Center',
+            pageTitle: 'Import Center', pageSubtitle: 'Move data in and out of Powerpay safely.',
+            actions: [['Export data', 'ghost'], ['Upload file', 'success']],
+            cards: [c('Imports', 'Validated', 'Before saving', 'Files are checked before any record is created'), c('Exports', 'CSV / XLSX', 'Formats', 'Choose the format you need'), c('Datasets', '6', 'Available', 'Customers, sales, transactions and more')],
+            filters: [f('Dataset', 'Customers, sales or transactions'), f('Format', 'CSV or Excel')],
+            table: { headers: ['File', 'Dataset', 'Status', 'Action'], rows: [['customers.xlsx', 'Customers', 'Ready', 'Download'], ['transactions.csv', 'Transactions', 'Imported', 'View'], ['sales.csv', 'Sales', 'Rejected', 'Fix errors']] },
+            expected: 'Clean imports with clear errors, and downloadable datasets for reporting and audits.',
+            related: [['Export data', U.exportData], ['Reports', U.reports], ['Audit logs', U.auditLogs]],
+            steps: [
+                ['nav-importCenter', 'Open Import Center', 'Click Import Center in the sidebar.', 'You choose which dataset you are uploading.'],
+                ['action-1', 'Upload the file', 'Upload a CSV or Excel file.', 'The app validates the rows before saving anything.'],
+                ['row-2', 'Fix rejected rows', 'Open a rejected file.', 'You see which rows failed and why, so you can correct and retry.'],
+                ['action-0', 'Export a dataset', 'Switch to Export data and pick a dataset and format.', 'You get a CSV or Excel file for reporting.']
+            ]
+        },
+        audit: {
+            icon: 'fa-shield-halved', nav: 'dashboard', kicker: 'Audit Logs', role: 'Superadmin',
+            title: 'Review the audit trail', tocHint: 'Who did what, and when.',
+            summary: 'Trace changes across the portal for compliance and troubleshooting.',
+            url: '/audit-logs/', realUrl: U.auditLogs, breadcrumb: 'Home / Audit Logs',
+            pageTitle: 'Audit Logs', pageSubtitle: 'Recorded actions across the platform.',
+            actions: [['Filter', 'ghost'], ['Export', 'success']],
+            cards: [c('Events today', '312', 'Recorded', 'Actions logged today'), c('Users', '18', 'Active', 'People who acted today'), c('Critical', '2', 'Review', 'Sensitive changes')],
+            filters: [f('User', 'Who performed the action'), f('Period', 'When it happened')],
+            table: { headers: ['User', 'Action', 'Object', 'When'], rows: [['admin@…', 'Moved item', 'APL-00105', '10:41'], ['ops@…', 'Created sale', '#2101', '10:12'], ['admin@…', 'Changed status', 'MR-00021', '09:58']] },
+            expected: 'You can answer "who changed this and when" without guessing.',
+            related: [['Organizations', U.organizations], ['Users', U.users]],
+            steps: [
+                ['nav-dashboard', 'Open Audit Logs', 'Open Audit Logs from the admin area.', 'You see recorded actions across the platform.'],
+                ['filter-0', 'Filter by user', 'Pick the person you are investigating.', 'You see only their actions.'],
+                ['filter-1', 'Narrow the period', 'Set the date range.', 'The list focuses on the window that matters.'],
+                ['action-1', 'Export the trail', 'Click Export.', 'You get a file to attach to an incident or compliance report.']
+            ]
+        },
+        organizations: {
+            icon: 'fa-building', nav: 'organizations', kicker: 'Organizations', role: 'Superadmin',
+            title: 'Organizations and module access', tocHint: 'Create orgs, grant modules, cross-org visibility.',
+            summary: 'Create organizations, decide which modules they can open, and control cross-organization visibility.',
+            url: '/organizations/', realUrl: U.organizations, breadcrumb: 'Home / Organizations',
+            pageTitle: 'Organizations', pageSubtitle: 'Tenants, plans and module access.',
+            actions: [['Filter', 'ghost'], ['Add organization', 'success']],
+            cards: [c('Organizations', '9', 'Registered', 'Tenants on the platform'), c('Premium', '4', 'Plan', 'Organizations on a premium plan'), c('Cross-org access', '2', 'Granted', 'Organizations that can view others'), c('Modules', '10', 'Grantable', 'Modules you can switch on per organization')],
+            filters: [f('Plan', 'Standard, premium or premium plus'), f('Modules', 'Which apps this organization can open')],
+            table: { headers: ['Organization', 'Plan', 'Modules', 'Action'], rows: [['Nairobi', 'Premium', 'All', 'Edit'], ['Kisumu', 'Standard', 'Inventory, Sales', 'Edit'], ['Mombasa', 'Standard', 'Devices', 'Edit']] },
+            expected: 'Each organization sees only its own data and only the modules it has been granted.',
+            related: [['Users', U.users], ['Billing', U.invoices], ['API', U.apiDocs]],
+            steps: [
+                ['nav-organizations', 'Open Organizations', 'Click Organizations in the sidebar.', 'You see every tenant on the platform.'],
+                ['action-1', 'Add an organization', 'Click Add organization.', 'You set the name, contact details, logo and plan.'],
+                ['filter-1', 'Grant modules', 'Tick the modules the organization may open.', 'Users from that organization are blocked from any module you leave off — inventory access also covers maintenance.'],
+                ['card-2', 'Allow cross-org viewing', 'Enable cross-organization visibility where a group needs it.', 'That organization can see the data of the organizations it is linked to.']
+            ]
+        },
+        users: {
+            icon: 'fa-user-plus', nav: 'organizations', kicker: 'Users', role: 'Superadmin',
+            title: 'Invite and manage users', tocHint: 'Invites, roles, password rules.',
+            summary: 'Invite people into an organization, set their role, and let them set a valid password.',
+            url: '/accounts/users/', realUrl: U.users, breadcrumb: 'Home / Users',
+            pageTitle: 'Users', pageSubtitle: 'People, roles and organizations.',
+            actions: [['Filter', 'ghost'], ['Invite user', 'success']],
+            cards: [c('Users', '48', 'Total', 'Accounts on the platform'), c('Pending invites', '4', 'Not accepted', 'Invitations still open'), c('Superadmins', '3', 'Full access', 'Users who see all organizations')],
+            filters: [f('Organization', 'Which organization the user belongs to'), f('Role', 'Staff or superadmin')],
+            table: { headers: ['User', 'Organization', 'Role', 'Status'], rows: [['mary@…', 'Nairobi', 'Staff', 'Active'], ['peter@…', 'Kisumu', 'Staff', 'Invited'], ['admin@…', 'Powerpay', 'Superadmin', 'Active']] },
+            expected: 'New users join the right organization with the right role and a password that meets the rules.',
+            related: [['Organizations', U.organizations], ['Profile', U.profile]],
+            steps: [
+                ['nav-organizations', 'Open Users', 'Open the users page from the admin area.', 'You see everyone and which organization they belong to.'],
+                ['action-1', 'Send an invite', 'Click Invite user and enter the email and organization.', 'They receive a branded invitation email with a secure link.'],
+                ['row-1', 'Watch pending invites', 'Look for the Invited status.', 'You can follow up on anyone who has not accepted.'],
+                ['filter-1', 'Set the role', 'Choose staff or superadmin.', 'Only superadmins see other organizations and can edit maintenance records.']
             ]
         },
         support: {
-            kicker: 'Support', title: 'Get support', summary: 'Create tickets, track progress, and keep an issue history.', url: '/support/my-tickets/', pageTitle: 'Support Tickets', pageSubtitle: 'Help requests and resolution workflow.', primary: 'Create Ticket', secondary: 'My Tickets', realUrl: '{% url "support:support_ticket_list" %}',
-            labels: { cardOne: ['Open', '4', 'Needs response'], cardTwo: ['In Progress', '2', 'Being handled'], cardThree: ['Resolved', '37', 'Closed'], fieldOne: ['Issue', 'Describe the problem'], fieldTwo: ['Priority', 'Low, normal, urgent'], headers: ['Ticket', 'Subject', 'Status', 'Action'], rowOne: ['#55', 'Device not seen', 'Open', 'View'], rowTwo: ['#54', 'Payment question', 'Resolved', 'View'], expected: 'Issues are tracked from reported to resolved with a clear support history.' },
+            icon: 'fa-headset', nav: 'support', kicker: 'Support', role: 'Any user',
+            title: 'Raise and resolve tickets', tocHint: 'Create tickets, reply, track resolution.',
+            summary: 'Report an issue, follow the conversation, and keep a searchable history.',
+            url: '/support/my-tickets/', realUrl: U.support, breadcrumb: 'Home / Support',
+            pageTitle: 'Support Tickets', pageSubtitle: 'Help requests and resolution workflow.',
+            actions: [['My tickets', 'ghost'], ['Create ticket', 'success']],
+            cards: [c('Open', '4', 'Needs response', 'Tickets awaiting a reply'), c('In progress', '2', 'Being handled', 'Tickets under investigation'), c('Resolved', '37', 'Closed', 'Tickets completed'), c('Avg response', '3 h', 'This month', 'Typical first reply time')],
+            filters: [f('Issue', 'Describe what went wrong'), f('Priority', 'Low, normal or urgent')],
+            table: { headers: ['Ticket', 'Subject', 'Status', 'Action'], rows: [['#55', 'Device not seen', 'Open', 'View'], ['#54', 'Payment question', 'Resolved', 'View'], ['#53', 'Report not received', 'In progress', 'View']] },
+            expected: 'Issues are tracked from reported to resolved with a clear, searchable history.',
+            related: [['Profile', U.profile], ['Notifications', U.notifications]],
             steps: [
-                ['nav-support', 'Open Support', 'Click Support in the sidebar or support area.', 'The user sees their tickets and current status.'],
-                ['action-primary', 'Create a ticket', 'Click Create Ticket.', 'The form captures the problem, priority, and details.'],
-                ['row-one', 'Track progress', 'Open a ticket row to see updates.', 'Users and admins can follow the issue until it is resolved.'],
-                ['card-three', 'Confirm resolution', 'Resolved tickets remain visible for history.', 'Teams keep a searchable record of support work.']
+                ['nav-support', 'Open Support', 'Click Support in the sidebar.', 'You see your tickets and their current status.'],
+                ['action-1', 'Create a ticket', 'Click Create ticket.', 'You describe the problem and set a priority.'],
+                ['row-0', 'Follow the thread', 'Open a ticket to read replies and add more detail.', 'Admins and users share one conversation per issue.'],
+                ['card-2', 'Keep the history', 'Resolved tickets stay visible.', 'Your team keeps a searchable record of past fixes.']
+            ]
+        },
+        api: {
+            icon: 'fa-code', nav: 'dashboard', kicker: 'API', role: 'Any user with API access',
+            title: 'Use the API safely', tocHint: 'Tokens, org scoping, filters, docs.',
+            summary: 'Authenticate, call the endpoints, and rely on filters — every response is scoped to your organization.',
+            url: '/api/docs/', realUrl: U.apiDocs, breadcrumb: 'Home / API',
+            pageTitle: 'API', pageSubtitle: 'Programmatic access to your Powerpay data.',
+            actions: [['Instructions', 'ghost'], ['Open docs', 'success']],
+            cards: [c('Endpoints', '30+', 'Available', 'Devices, sales, inventory, maintenance and more'), c('Auth', 'JWT token', 'Required', 'Obtain and refresh a token'), c('Scope', 'Your org', 'Enforced', 'Superadmins can request another organization'), c('Filters', 'Rich', 'Per endpoint', 'Time, device, status, warehouse and more')],
+            filters: [f('time_start / time_end', 'Filter any time-stamped record'), f('organization', 'Honoured for superadmins, ignored for everyone else')],
+            table: { headers: ['Endpoint', 'Returns', 'Scope', 'Filters'], rows: [['/api/devices/', 'Devices and readings', 'Your organization', 'deviceid, time, active'], ['/api/inventory-items/', 'Stock items', 'Your organization', 'warehouse, serial, type'], ['/api/maintenance-records/', 'Repairs', 'Your organization', 'status, organization, time']] },
+            expected: 'Integrations get exactly the data they are allowed to see, with filters that keep responses small.',
+            related: [['Organizations', U.organizations], ['Reports', U.reports]],
+            steps: [
+                ['nav-dashboard', 'Get a token', 'Request a token with your account credentials.', 'You send it as a bearer token on every request.'],
+                ['action-1', 'Read the docs', 'Open the interactive API docs.', 'Every endpoint lists its parameters and response shape.'],
+                ['card-2', 'Understand scoping', 'Note that responses are limited to your organization.', 'Only superadmins can request another organization, and the parameter never widens access for anyone else.'],
+                ['filter-0', 'Use the filters', 'Add time, device, status or warehouse filters.', 'You pull just the slice of data you need instead of everything.']
             ]
         }
     };
 
-    const tocButtons = document.querySelectorAll('.toc-button');
+    const tocGroups = document.getElementById('toc-groups');
+    const tocEmpty = document.getElementById('toc-empty');
+    const whatsNew = document.getElementById('whats-new');
     const miniTabs = document.getElementById('tour-mini-tabs');
     const progressDots = document.getElementById('progress-dots');
-    const highlightables = document.querySelectorAll('[data-highlight]');
+    const search = document.getElementById('toc-search');
+
     let currentTour = 'overview';
     let currentStep = 0;
 
     function setText(id, value) {
         const el = document.getElementById(id);
-        if (el) el.textContent = value;
+        if (el) el.textContent = value == null ? '' : value;
     }
 
-    function clearSpotlight() {
-        highlightables.forEach(el => el.classList.remove('spotlight'));
+    function el(tag, className, html) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (html != null) node.innerHTML = html;
+        return node;
     }
 
-    function applyLabels(tour) {
-        const labels = tour.labels;
-        setText('mock-url', tour.url);
-        setText('mock-page-title', tour.pageTitle);
-        setText('mock-page-subtitle', tour.pageSubtitle);
-        setText('mock-primary-action', tour.primary);
-        setText('mock-secondary-action', tour.secondary);
-        setText('card-one-label', labels.cardOne[0]); setText('card-one-value', labels.cardOne[1]); setText('card-one-help', labels.cardOne[2]);
-        setText('card-two-label', labels.cardTwo[0]); setText('card-two-value', labels.cardTwo[1]); setText('card-two-help', labels.cardTwo[2]);
-        setText('card-three-label', labels.cardThree[0]); setText('card-three-value', labels.cardThree[1]); setText('card-three-help', labels.cardThree[2]);
-        setText('field-one-label', labels.fieldOne[0]); setText('field-one-value', labels.fieldOne[1]);
-        setText('field-two-label', labels.fieldTwo[0]); setText('field-two-value', labels.fieldTwo[1]);
-        setText('table-head-one', labels.headers[0]); setText('table-head-two', labels.headers[1]); setText('table-head-three', labels.headers[2]); setText('table-head-four', labels.headers[3]);
-        setText('row-one-a', labels.rowOne[0]); setText('row-one-b', labels.rowOne[1]); setText('row-one-c', labels.rowOne[2]); setText('row-one-d', labels.rowOne[3]);
-        setText('row-two-a', labels.rowTwo[0]); setText('row-two-b', labels.rowTwo[1]); setText('row-two-c', labels.rowTwo[2]); setText('row-two-d', labels.rowTwo[3]);
-        setText('expected-result', labels.expected);
-        document.getElementById('real-page-link').setAttribute('href', tour.realUrl);
+    function esc(value) {
+        return String(value).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+    }
+
+    // ---------- table of contents ----------
+    function buildToc() {
+        GROUPS.forEach(([groupName, keys]) => {
+            const section = el('div', 'toc-group');
+            section.appendChild(el('div', 'text-xs uppercase tracking-wide font-bold text-base-content/50 mb-2', esc(groupName)));
+            const grid = el('div', 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3');
+            keys.forEach(key => {
+                const tour = tours[key];
+                if (!tour) return;
+                const btn = el('button', 'toc-button text-left rounded-2xl border border-base-300 bg-base-100 p-4');
+                btn.type = 'button';
+                btn.dataset.tour = key;
+                btn.dataset.search = (groupName + ' ' + tour.title + ' ' + tour.tocHint + ' ' + tour.kicker).toLowerCase();
+                btn.innerHTML =
+                    '<div class="flex items-center gap-3">' +
+                        '<i class="fa-solid ' + tour.icon + ' text-success text-xl"></i>' +
+                        '<span class="font-bold">' + esc(tour.title) + '</span>' +
+                        (tour.isNew ? '<span class="badge badge-success badge-sm text-white ml-auto">New</span>' : '') +
+                    '</div>' +
+                    '<p class="text-sm text-base-content/60 mt-2">' + esc(tour.tocHint) + '</p>' +
+                    '<p class="text-xs text-base-content/40 mt-2"><i class="fa-solid fa-user-shield"></i> ' + esc(tour.role) + '</p>';
+                btn.addEventListener('click', () => selectTour(key));
+                grid.appendChild(btn);
+            });
+            section.appendChild(grid);
+            tocGroups.appendChild(section);
+        });
+
+        NEW_TOURS.forEach(key => {
+            const tour = tours[key];
+            if (!tour) return;
+            const chip = el('button', 'btn btn-sm btn-outline btn-success hover:text-white');
+            chip.type = 'button';
+            chip.innerHTML = '<i class="fa-solid ' + tour.icon + '"></i> ' + esc(tour.title);
+            chip.addEventListener('click', () => selectTour(key, true));
+            whatsNew.appendChild(chip);
+        });
+    }
+
+    function filterToc(term) {
+        const value = term.trim().toLowerCase();
+        let visible = 0;
+        document.querySelectorAll('.toc-group').forEach(group => {
+            let groupVisible = 0;
+            group.querySelectorAll('.toc-button').forEach(btn => {
+                const match = !value || btn.dataset.search.includes(value);
+                btn.classList.toggle('hidden', !match);
+                if (match) groupVisible++;
+            });
+            group.classList.toggle('hidden', groupVisible === 0);
+            visible += groupVisible;
+        });
+        tocEmpty.classList.toggle('hidden', visible !== 0);
+    }
+
+    // ---------- mock window ----------
+    function renderSidebar(tour) {
+        const wrap = document.getElementById('mock-sidebar');
+        wrap.innerHTML = '';
+        NAV.forEach(item => {
+            const node = el('div', 'mock-nav-item mock-sidebar-link' + (item.child ? ' ml-4 text-base-content/70' : '') + (item.key === tour.nav ? ' is-active' : ''));
+            node.dataset.highlight = 'nav-' + item.key;
+            node.innerHTML = '<i class="fa-solid ' + item.icon + ' text-success w-4 text-center"></i><span>' + esc(item.label) + '</span>';
+            wrap.appendChild(node);
+        });
+    }
+
+    function renderActions(tour) {
+        const wrap = document.getElementById('mock-actions');
+        wrap.innerHTML = '';
+        (tour.actions || []).forEach(([label, tone], index) => {
+            const cls = tone === 'success'
+                ? 'mock-action rounded-xl border border-success/30 bg-success/10 text-success px-4 py-2 text-sm font-bold'
+                : 'mock-action rounded-xl border border-base-300 bg-base-100 px-4 py-2 text-sm font-semibold';
+            const node = el('div', cls, esc(label));
+            node.dataset.highlight = 'action-' + index;
+            wrap.appendChild(node);
+        });
+    }
+
+    function renderCards(tour) {
+        const wrap = document.getElementById('mock-cards');
+        wrap.innerHTML = '';
+        (tour.cards || []).forEach((card, index) => {
+            const node = el('div', 'mock-card stat-card rounded-2xl bg-base-200 p-4 border border-transparent');
+            node.dataset.highlight = 'card-' + index;
+            node.innerHTML =
+                '<div class="flex items-center gap-2">' +
+                    '<span class="text-xs text-base-content/50">' + esc(card.label) + '</span>' +
+                    '<i class="fa-solid fa-circle-info text-[10px] text-base-content/40" title="' + esc(card.tip || card.help) + '"></i>' +
+                '</div>' +
+                '<div class="text-2xl font-black mt-1">' + esc(card.value) + '</div>' +
+                '<div class="text-xs text-success">' + esc(card.help) + '</div>';
+            wrap.appendChild(node);
+        });
+    }
+
+    function renderFilters(tour) {
+        const wrap = document.getElementById('mock-filters');
+        wrap.innerHTML = '';
+        (tour.filters || []).forEach((field, index) => {
+            const node = el('div', 'mock-form-field rounded-2xl border border-base-300 bg-base-100 p-4');
+            node.dataset.highlight = 'filter-' + index;
+            node.innerHTML =
+                '<div class="text-xs text-base-content/50">' + esc(field.label) + '</div>' +
+                '<div class="mt-2 rounded-xl bg-base-200 px-3 py-2 text-sm">' + esc(field.value) + '</div>';
+            wrap.appendChild(node);
+        });
+    }
+
+    function renderTable(tour) {
+        const wrap = document.getElementById('mock-table');
+        wrap.innerHTML = '';
+        const table = tour.table;
+        if (!table) { wrap.classList.add('hidden'); return; }
+        wrap.classList.remove('hidden');
+
+        const head = el('div', 'mock-tab grid grid-cols-4 bg-success text-white text-xs sm:text-sm font-bold');
+        head.dataset.highlight = 'table-header';
+        table.headers.forEach(header => head.appendChild(el('div', 'p-3', esc(header))));
+        wrap.appendChild(head);
+
+        table.rows.forEach((row, index) => {
+            const node = el('div', 'mock-table-row grid grid-cols-4 p-3 border-b border-base-300 text-xs sm:text-sm items-center');
+            node.dataset.highlight = 'row-' + index;
+            row.forEach((cell, cellIndex) => {
+                const isLast = cellIndex === row.length - 1;
+                node.appendChild(el('div', isLast ? 'text-success font-bold' : '', esc(cell)));
+            });
+            wrap.appendChild(node);
+        });
+
+        wrap.appendChild(el('div', 'grid grid-cols-4 p-3 text-xs sm:text-sm text-base-content/60',
+            '<div class="col-span-2">Page 1 of 8</div><div class="text-right">&lsaquo; Prev</div><div class="text-success font-bold">Next &rsaquo;</div>'));
+    }
+
+    function renderExtras(tour) {
+        const wrap = document.getElementById('mock-extras');
+        wrap.innerHTML = '';
+        (tour.extras || []).forEach((extra, index) => {
+            let node;
+            if (extra.type === 'timeline') {
+                node = el('div', 'mock-extra rounded-2xl border border-base-300 bg-base-100 p-4');
+                node.innerHTML = '<div class="font-bold text-sm mb-3">' + esc(extra.title) + '</div>' +
+                    extra.items.map(([label, note], i) =>
+                        '<div class="flex gap-3 pb-3 ' + (i === extra.items.length - 1 ? '' : 'border-l border-base-300 ml-2 pl-4') + '">' +
+                            '<span class="badge badge-success text-white badge-sm shrink-0">' + esc(label) + '</span>' +
+                            '<span class="text-sm text-base-content/70">' + esc(note) + '</span>' +
+                        '</div>').join('');
+            } else if (extra.type === 'gallery') {
+                node = el('div', 'mock-extra rounded-2xl border border-base-300 bg-base-100 p-4');
+                node.innerHTML = '<div class="font-bold text-sm">' + esc(extra.title) + '</div>' +
+                    '<p class="text-sm text-base-content/70 mt-1">' + esc(extra.body) + '</p>' +
+                    '<div class="grid grid-cols-4 gap-2 mt-3">' +
+                        Array.from({ length: 4 }).map(() => '<div class="h-14 rounded-xl bg-base-200 flex items-center justify-center text-base-content/40"><i class="fa-solid fa-image"></i></div>').join('') +
+                    '</div>';
+            } else if (extra.type === 'console') {
+                node = el('div', 'mock-extra rounded-2xl border border-base-300 bg-neutral text-neutral-content p-4 font-mono text-xs');
+                node.innerHTML = '<div class="font-bold mb-2"><i class="fa-solid fa-terminal"></i> ' + esc(extra.title) + '</div>' +
+                    extra.lines.map(line => '<div>' + esc(line) + '</div>').join('');
+            } else if (extra.type === 'public') {
+                node = el('div', 'mock-extra rounded-2xl border border-success/40 bg-success/5 p-4');
+                node.innerHTML = '<div class="font-bold text-sm text-success"><i class="fa-solid fa-link"></i> ' + esc(extra.title) + '</div>' +
+                    '<p class="text-sm text-base-content/70 mt-1">' + esc(extra.body) + '</p>';
+            } else {
+                const tone = extra.tone === 'warning' ? 'border-warning/50 bg-warning/10' : 'border-info/40 bg-info/10';
+                node = el('div', 'mock-extra rounded-2xl border ' + tone + ' p-4');
+                node.innerHTML = '<div class="font-bold text-sm">' + esc(extra.title) + '</div>' +
+                    '<p class="text-sm text-base-content/70 mt-1">' + esc(extra.body) + '</p>';
+            }
+            node.dataset.highlight = 'extra-' + index;
+            wrap.appendChild(node);
+        });
+    }
+
+    function renderRelated(tour) {
+        const wrap = document.getElementById('related-links');
+        wrap.innerHTML = '';
+        (tour.related || []).forEach(([label, href]) => {
+            const link = el('a', 'btn btn-xs btn-outline btn-success hover:text-white', esc(label));
+            link.setAttribute('href', href);
+            wrap.appendChild(link);
+        });
     }
 
     function renderMiniTabs(tour) {
         miniTabs.innerHTML = '';
         tour.steps.forEach((step, index) => {
-            const btn = document.createElement('button');
+            const btn = el('button', 'btn btn-xs ' + (index === currentStep ? 'btn-success text-white' : 'btn-outline btn-success'), String(index + 1));
             btn.type = 'button';
-            btn.className = 'btn btn-xs ' + (index === currentStep ? 'btn-success text-white' : 'btn-outline btn-success');
-            btn.textContent = index + 1;
-            btn.addEventListener('click', () => {
-                currentStep = index;
-                render();
-            });
+            btn.addEventListener('click', () => { currentStep = index; render(); });
             miniTabs.appendChild(btn);
         });
     }
@@ -519,27 +1127,71 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderDots(tour) {
         progressDots.innerHTML = '';
         tour.steps.forEach((step, index) => {
-            const dot = document.createElement('button');
+            const dot = el('button', 'progress-dot ' + (index === currentStep ? 'active' : ''));
             dot.type = 'button';
-            dot.className = 'progress-dot ' + (index === currentStep ? 'active' : '');
             dot.setAttribute('aria-label', 'Go to step ' + (index + 1));
-            dot.addEventListener('click', () => {
-                currentStep = index;
-                render();
-            });
+            dot.addEventListener('click', () => { currentStep = index; render(); });
             progressDots.appendChild(dot);
         });
+    }
+
+    function clearSpotlight() {
+        document.querySelectorAll('[data-highlight]').forEach(node => node.classList.remove('spotlight'));
+    }
+
+    function saveProgress() {
+        try {
+            localStorage.setItem('storyboard_state', JSON.stringify({ tour: currentTour, step: currentStep }));
+        } catch (e) { /* storage unavailable */ }
+    }
+
+    function restoreProgress() {
+        try {
+            const raw = localStorage.getItem('storyboard_state');
+            if (!raw) return;
+            const state = JSON.parse(raw);
+            if (state && tours[state.tour]) {
+                currentTour = state.tour;
+                const max = tours[state.tour].steps.length - 1;
+                currentStep = Math.min(Math.max(0, state.step || 0), max);
+            }
+        } catch (e) { /* ignore */ }
+    }
+
+    function selectTour(key, scroll) {
+        if (!tours[key]) return;
+        currentTour = key;
+        currentStep = 0;
+        render();
+        if (scroll !== false) {
+            document.getElementById('tour').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     }
 
     function render() {
         const tour = tours[currentTour];
         const step = tour.steps[currentStep];
 
-        tocButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tour === currentTour));
+        document.querySelectorAll('.toc-button').forEach(btn => btn.classList.toggle('active', btn.dataset.tour === currentTour));
+
         setText('tour-kicker', tour.kicker);
+        setText('tour-role', tour.role);
         setText('tour-title', tour.title);
         setText('tour-summary', tour.summary);
-        applyLabels(tour);
+        setText('mock-url', tour.url);
+        setText('mock-breadcrumb', tour.breadcrumb);
+        setText('mock-page-title', tour.pageTitle);
+        setText('mock-page-subtitle', tour.pageSubtitle);
+        setText('expected-result', tour.expected);
+        document.getElementById('real-page-link').setAttribute('href', tour.realUrl);
+
+        renderSidebar(tour);
+        renderActions(tour);
+        renderCards(tour);
+        renderFilters(tour);
+        renderTable(tour);
+        renderExtras(tour);
+        renderRelated(tour);
         renderMiniTabs(tour);
         renderDots(tour);
 
@@ -558,38 +1210,30 @@ document.addEventListener('DOMContentLoaded', function () {
         setText('step-result', step[3]);
 
         document.getElementById('prev-step').disabled = currentStep === 0;
-        const nextButton = document.getElementById('next-step');
-        nextButton.innerHTML = currentStep === tour.steps.length - 1 ? '<span class="hidden sm:inline">Done</span><i class="fa-solid fa-check"></i>' : '<span class="hidden sm:inline">Next</span><i class="fa-solid fa-arrow-right"></i>';
+        document.getElementById('next-step').disabled = currentStep === tour.steps.length - 1;
+
+        saveProgress();
     }
-
-    function chooseTour(name) {
-        currentTour = name;
-        currentStep = 0;
-        render();
-        document.getElementById('tour').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    tocButtons.forEach(btn => btn.addEventListener('click', () => chooseTour(btn.dataset.tour)));
-
-    document.getElementById('prev-step').addEventListener('click', () => {
-        if (currentStep > 0) currentStep -= 1;
-        render();
-    });
 
     document.getElementById('next-step').addEventListener('click', () => {
         const tour = tours[currentTour];
-        if (currentStep < tour.steps.length - 1) currentStep += 1;
-        render();
+        if (currentStep < tour.steps.length - 1) { currentStep++; render(); }
+    });
+    document.getElementById('prev-step').addEventListener('click', () => {
+        if (currentStep > 0) { currentStep--; render(); }
+    });
+    document.getElementById('restart-step').addEventListener('click', () => { currentStep = 0; render(); });
+    document.getElementById('restart-top').addEventListener('click', () => { currentStep = 0; render(); });
+    search.addEventListener('input', event => filterToc(event.target.value));
+
+    document.addEventListener('keydown', event => {
+        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return;
+        if (event.key === 'ArrowRight') document.getElementById('next-step').click();
+        if (event.key === 'ArrowLeft') document.getElementById('prev-step').click();
     });
 
-    function restart() {
-        currentStep = 0;
-        render();
-    }
-
-    document.getElementById('restart-step').addEventListener('click', restart);
-    document.getElementById('restart-top').addEventListener('click', restart);
-
+    buildToc();
+    restoreProgress();
     render();
 });
 </script>
