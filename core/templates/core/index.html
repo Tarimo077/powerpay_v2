@@ -33,11 +33,9 @@
                         class="select select-sm bg-base-100 border-base-300 text-sm font-medium rounded-lg focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20"
                         onchange="this.form.submit()">
                     <option value="1d" {% if period == "1d" %}selected{% endif %}>Last 24 Hours</option>
-                    <option value="3d" {% if period == "3d" %}selected{% endif %}>Last 3 Days</option>
                     <option value="7d" {% if period == "7d" %}selected{% endif %}>Last 1 Week</option>
                     <option value="14d" {% if period == "14d" %}selected{% endif %}>Last 2 Weeks</option>
                     <option value="30d" {% if period == "30d" %}selected{% endif %}>Last 1 Month</option>
-                    <option value="60d" {% if period == "60d" %}selected{% endif %}>Last 2 Months</option>
                     <option value="90d" {% if period == "90d" %}selected{% endif %}>Last 3 Months</option>
                     <option value="180d" {% if period == "180d" %}selected{% endif %}>Last 6 Months</option>
                     <option value="365d" {% if period == "365d" %}selected{% endif %}>Last 1 Year</option>

@@ -9,7 +9,11 @@ from devices.models import DeviceInfo
 from transactions.models import Transaction
 from devices.models import DeviceData
 from django.contrib.auth import get_user_model
-from core.org_checker import get_accessible_organizations
+from core.org_checker import (
+    get_accessible_organizations,
+    get_accessible_organizations_for_org,
+)
+
 
 
 
@@ -52,7 +56,7 @@ def devices_for_organizations(org_ids):
 
 
 # -------- CORE CONTEXT BUILDER --------
-def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=None): 
+def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=None, viewer_org=None): 
     today = timezone.now().date()
     today_dt = timezone.localtime(timezone.now())
 
@@ -67,9 +71,12 @@ def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=
     # -------- ACCESSIBLE ORGS --------
     if is_superadmin:
         accessible_orgs = Organization.objects.all()
+    elif viewer_org is not None:
+        accessible_orgs = get_accessible_organizations_for_org(viewer_org)
     else:
         accessible_orgs = get_accessible_organizations(user)
     accessible_ids = list(accessible_orgs.values_list("id", flat=True))
+
 
     # -------- SELECTED ORG --------
     if org_id:
@@ -326,46 +333,54 @@ def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=
 
     return context
 
-DASHBOARD_PERIODS = ["1d", "3d", "7d", "14d", "30d", "60d", "90d", "180d", "365d", "all"]
+DASHBOARD_PERIODS = ["1d", "7d", "14d", "30d", "90d", "180d", "365d", "all"]
 
 
 # -------- DASHBOARD CACHE --------
 @shared_task
-def cache_dashboard(user_id=None, fanout=False):
+def cache_dashboard(viewer_org_id=None, fanout=False):
     """
     Warm the dashboard cache.
 
-    user_id=None  -> superadmin scope (all organizations)
-    user_id given -> that user's accessible organizations
-    fanout=True   -> after the superadmin scope, queue one job per user
-                     (this is what Celery beat should call)
+    Caches are keyed per organization + role, not per user: dashboard access
+    only depends on the viewer's organization (or superadmin status).
+
+    viewer_org_id=None  -> superadmin scope (all organizations)
+    viewer_org_id given -> that organization's accessible organizations
+    fanout=True         -> after the superadmin scope, queue one job per org
+                           (this is what Celery beat should call)
     """
-    if user_id is None:
+    if viewer_org_id is None:
         is_superadmin = True
-        user = None
+        viewer_org = None
         key_prefix = "dashboard_context_superadmin"
         org_ids = list(Organization.objects.values_list("id", flat=True))
     else:
         is_superadmin = False
-        User = get_user_model()
-        user = User.objects.get(id=user_id)
-        key_prefix = f"dashboard_context_user_{user.id}"
-        org_ids = list(get_accessible_organizations(user).values_list("id", flat=True))
+        viewer_org = Organization.objects.get(id=viewer_org_id)
+        key_prefix = f"dashboard_context_org_{viewer_org.id}"
+        org_ids = list(
+            get_accessible_organizations_for_org(viewer_org).values_list("id", flat=True)
+        )
 
     for period in DASHBOARD_PERIODS:
         # ALL ORGS
-        context = build_dashboard_context(is_superadmin, user, period, None)
+        context = build_dashboard_context(
+            is_superadmin, None, period, None, viewer_org=viewer_org
+        )
         cache.set(f"{key_prefix}_all_{period}", context, CACHE_TIMEOUT)
 
         # EACH ORG
         for org_id in org_ids:
-            context = build_dashboard_context(is_superadmin, user, period, org_id)
+            context = build_dashboard_context(
+                is_superadmin, None, period, org_id, viewer_org=viewer_org
+            )
             cache.set(f"{key_prefix}_org_{org_id}_{period}", context, CACHE_TIMEOUT)
 
     if fanout:
-        User = get_user_model()
-        for uid in User.objects.values_list("id", flat=True):
-            cache_dashboard.delay(uid)
+        for oid in Organization.objects.values_list("id", flat=True):
+            cache_dashboard.delay(oid)
+
 
 
 def build_transaction_context(user=None, is_superadmin=False, organization=None):

@@ -1455,13 +1455,20 @@ Billing automation:
 billing.tasks.run_due_saas_billing_rules
 ```
 
-Dashboard caching:
+Dashboard caching (single beat entry):
 
 ```python
-core.tasks.cache_dashboard_superadmin
-core.tasks.cache_dashboard_for_user
-core.tasks.refresh_all_org_dashboards
+core.tasks.cache_dashboard   # kwargs: {"fanout": true}
 ```
+
+Point Celery beat at `core.tasks.cache_dashboard` with kwargs `{"fanout": true}`,
+every 15 minutes. It warms the superadmin/all-orgs scope, then queues one
+`cache_dashboard(org_id)` job per organization.
+
+Caches are keyed per organization + role (not per user), since dashboard access
+only depends on the viewer's organization or superadmin status. Cache TTL is
+30 minutes and warmed periods are `1d, 7d, 14d, 30d, 90d, 180d, 365d, all`.
+
 
 ---
 

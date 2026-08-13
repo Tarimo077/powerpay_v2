@@ -257,17 +257,21 @@ def index(request):
     period = request.GET.get("period", "7d")
     org_id = getattr(request, "org_id", None)  # ✅ FIXED
     
-    # -------- CACHE KEY --------
+    # -------- CACHE KEY (per org + role, not per user) --------
+    viewer_org_id = getattr(user, "organization_id", None)
     if is_superadmin:
-        if org_id:
-            cache_key = f"dashboard_context_superadmin_org_{org_id}_{period}"
-        else:
-            cache_key = f"dashboard_context_superadmin_all_{period}"
+        key_scope = "superadmin"
+    elif viewer_org_id:
+        key_scope = f"org_{viewer_org_id}"
     else:
-        if org_id:
-            cache_key = f"dashboard_context_user_{user.id}_org_{org_id}_{period}"
-        else:
-            cache_key = f"dashboard_context_user_{user.id}_all_{period}"
+        # No organization: fall back to a user-scoped key so caches never collide
+        key_scope = f"user_{user.id}"
+
+    if org_id:
+        cache_key = f"dashboard_context_{key_scope}_org_{org_id}_{period}"
+    else:
+        cache_key = f"dashboard_context_{key_scope}_all_{period}"
+
 
     context = cache.get(cache_key)
 
@@ -300,8 +304,9 @@ def index(request):
     # -------- TRIGGER ASYNC CACHE BUILD --------
     if is_superadmin:
         cache_dashboard.delay()
-    else:
-        cache_dashboard.delay(user.id)
+    elif viewer_org_id:
+        cache_dashboard.delay(viewer_org_id)
+
 
     return render(request, "core/index.html", context)
 
