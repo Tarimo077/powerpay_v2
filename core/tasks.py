@@ -331,12 +331,14 @@ DASHBOARD_PERIODS = ["1d", "3d", "7d", "14d", "30d", "60d", "90d", "180d", "365d
 
 # -------- DASHBOARD CACHE --------
 @shared_task
-def cache_dashboard(user_id=None):
+def cache_dashboard(user_id=None, fanout=False):
     """
     Warm the dashboard cache.
 
     user_id=None  -> superadmin scope (all organizations)
     user_id given -> that user's accessible organizations
+    fanout=True   -> after the superadmin scope, queue one job per user
+                     (this is what Celery beat should call)
     """
     if user_id is None:
         is_superadmin = True
@@ -360,26 +362,11 @@ def cache_dashboard(user_id=None):
             context = build_dashboard_context(is_superadmin, user, period, org_id)
             cache.set(f"{key_prefix}_org_{org_id}_{period}", context, CACHE_TIMEOUT)
 
+    if fanout:
+        User = get_user_model()
+        for uid in User.objects.values_list("id", flat=True):
+            cache_dashboard.delay(uid)
 
-# -------- BACKWARDS-COMPATIBLE ALIASES --------
-@shared_task
-def cache_dashboard_for_user(user_id):
-    return cache_dashboard(user_id)
-
-
-@shared_task
-def cache_dashboard_superadmin():
-    return cache_dashboard(None)
-
-
-@shared_task
-def cache_all_users_dashboards():
-    User = get_user_model()
-
-    users = User.objects.all()
-
-    for user in users:
-        cache_dashboard.delay(user.id)
 
 def build_transaction_context(user=None, is_superadmin=False, organization=None):
     """
