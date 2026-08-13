@@ -19,6 +19,7 @@ from organizations.models import Organization
 from devices.models import DeviceInfo
 from transactions.models import Transaction
 from .tasks import run_due_saas_billing_rules
+from core.form_actions import resolve_post_save_redirect
 
 
 # ==========================================
@@ -143,7 +144,14 @@ def create_hardware(request):
             #hardware_upfront=hardware_upfront
         )
 
-        return redirect("billing:invoice_list")
+        return resolve_post_save_redirect(
+            request,
+            invoice,
+            default_url="billing:invoice_list",
+            create_url="billing:invoice_create_hardware",
+            label="Invoice",
+        )
+
 
     return render(request, "billing/invoice_form.html", {"form": form})
 
@@ -189,7 +197,14 @@ def create_saas(request):
             #saas_tax=saas_tax
         )
 
-        return redirect("billing:invoice_list")
+        return resolve_post_save_redirect(
+            request,
+            invoice,
+            default_url="billing:invoice_list",
+            create_url="billing:invoice_create_saas",
+            label="Invoice",
+        )
+
 
     return render(request, "billing/invoice_form.html", {
         "form": form,
@@ -309,10 +324,15 @@ def invoice_edit(request, pk):
         # Recalculate totals
         recalculate(invoice)
 
-        return redirect(
-            "billing:invoice_detail",
-            pk=invoice.pk
+        return resolve_post_save_redirect(
+            request,
+            invoice,
+            default_url="billing:invoice_detail",
+            default_kwargs={"pk": invoice.pk},
+            edit_url_name="billing:invoice_edit",
+            label="Invoice",
         )
+
 
     return render(
         request,
@@ -519,7 +539,14 @@ def saas_rule_create(request):
         rule.created_by = request.user
         rule.save()
         messages.success(request, "SaaS billing rule created successfully.")
-        return redirect("billing:saas_rule_list")
+        return resolve_post_save_redirect(
+            request,
+            rule,
+            default_url="billing:saas_rule_list",
+            create_url="billing:saas_rule_create",
+            edit_url_name="billing:saas_rule_edit",
+            label="Billing rule",
+        )
 
     return render(request, "billing/saas_rule_form.html", {"form": form, "title": "Create SaaS Billing Rule"})
 
@@ -535,7 +562,15 @@ def saas_rule_edit(request, pk):
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, "SaaS billing rule updated successfully.")
-        return redirect("billing:saas_rule_list")
+        return resolve_post_save_redirect(
+            request,
+            rule,
+            default_url="billing:saas_rule_list",
+            create_url="billing:saas_rule_create",
+            edit_url_name="billing:saas_rule_edit",
+            label="Billing rule",
+        )
+
 
     return render(request, "billing/saas_rule_form.html", {"form": form, "title": "Edit SaaS Billing Rule", "rule": rule})
 

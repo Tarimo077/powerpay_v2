@@ -18,7 +18,7 @@ from notifications.utils import notify
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib import messages
 from .services.device_api import call_change_status_api
 from organizations.models import Organization
@@ -47,6 +47,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 from django.conf import settings
 from core.tasks import CO2_PER_KWH
+from core.form_actions import (
+    resolve_post_save_redirect,
+    get_form_action,
+    ACTION_ADD_ANOTHER,
+    ACTION_CONTINUE,
+)
+
 
 COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
 
@@ -1214,7 +1221,16 @@ def device_admin_required(view_func):
             return view_func(request, *args, **kwargs)
 
         messages.error(request, "You do not have permission to manage devices.")
-        return redirect("devices:device_list")
+        return resolve_post_save_redirect(
+            request,
+            device,
+            default_url="devices:device_list",
+            create_url="devices:device_create",
+            edit_url_name="devices:device_edit",
+            edit_kwargs={"deviceid": device.deviceid},
+            label="Device",
+        )
+
 
     return _wrapped_view
 
@@ -1290,7 +1306,16 @@ def device_edit(request, deviceid):
                     serial_number=device.deviceid
                 ).delete()
 
-        return redirect("devices:device_list")
+        return resolve_post_save_redirect(
+            request,
+            device,
+            default_url="devices:device_list",
+            create_url="devices:device_create",
+            edit_url_name="devices:device_edit",
+            edit_kwargs={"deviceid": device.deviceid},
+            label="Device",
+        )
+
 
     if request.method == "GET" and inventory:
         form.initial.update({
@@ -1638,7 +1663,25 @@ class DeviceScheduleListView(LoginRequiredMixin, ListView):
         return context
 
 
-class DeviceScheduleCreateView(LoginRequiredMixin, CreateView):
+class DeviceScheduleActionRedirectMixin:
+    """Support the Save / Save & add another / Save & continue editing buttons."""
+
+    def get_success_url(self):
+        action = get_form_action(self.request)
+
+        if action == ACTION_ADD_ANOTHER:
+            messages.success(self.request, "Schedule saved. You can add another one.")
+            return reverse("devices:device_schedule_add")
+
+        if action == ACTION_CONTINUE and getattr(self.object, "pk", None):
+            messages.success(self.request, "Schedule saved. You are still editing it.")
+            return reverse("devices:device_schedule_edit", kwargs={"pk": self.object.pk})
+
+        return str(self.success_url)
+
+
+class DeviceScheduleCreateView(DeviceScheduleActionRedirectMixin, LoginRequiredMixin, CreateView):
+
     model = DeviceCommandSchedule
     form_class = DeviceCommandScheduleForm
     template_name = "devices/device_schedule_form.html"
@@ -1689,7 +1732,7 @@ class DeviceScheduleCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class DeviceScheduleUpdateView(LoginRequiredMixin, UpdateView):
+class DeviceScheduleUpdateView(DeviceScheduleActionRedirectMixin, LoginRequiredMixin, UpdateView):
     model = DeviceCommandSchedule
     form_class = DeviceCommandScheduleForm
     template_name = "devices/device_schedule_form.html"

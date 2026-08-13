@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from .models import Organization
 from .forms import OrganizationForm
 from notifications.utils import notify
+from core.form_actions import resolve_post_save_redirect
 
 
 def is_admin_user(user):
@@ -56,9 +57,16 @@ def organization_create(request):
     if request.method == "POST":
         form = OrganizationForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            org = form.save()
             notify(request.user, "New Organization", f"{form.cleaned_data['name']} organization has been created.", "success")
-            return redirect("organizations:organizations_page")
+            return resolve_post_save_redirect(
+                request,
+                org,
+                default_url="organizations:organizations_page",
+                create_url="organizations:organization_create",
+                edit_url_name="organizations:organization_update",
+                label="Organization",
+            )
     else:
         form = OrganizationForm()
 
@@ -78,7 +86,15 @@ def organization_update(request, pk):
         if form.is_valid():
             form.save()
             notify(request.user, "Organization Updated", f"{org.name} organization has been updated.", "info")
-            return redirect("organizations:organizations_page")
+            return resolve_post_save_redirect(
+                request,
+                org,
+                default_url="organizations:organizations_page",
+                create_url="organizations:organization_create",
+                edit_url_name="organizations:organization_update",
+                label="Organization",
+            )
+
     else:
         form = OrganizationForm(instance=org)
 

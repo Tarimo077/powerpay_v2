@@ -13,6 +13,8 @@ from django.views.decorators.http import require_POST
 from notifications.utils import notify
 from organizations.models import Organization
 from core.org_utils import get_user_orgs, get_user_org_ids
+from core.form_actions import resolve_post_save_redirect
+
 
 
 def _user_is_superadmin(user):
@@ -330,9 +332,16 @@ def customer_create(request):
     if request.method == "POST":
         form = CustomerForm(request.POST, user=request.user)
         if form.is_valid():
-            form.save()
+            customer = form.save()
             notify(request.user, "New Customer", f"{form.cleaned_data['name']} has been added as a customer.", "info")
-            return redirect("customers:customers_page")
+            return resolve_post_save_redirect(
+                request,
+                customer,
+                default_url="customers:customers_page",
+                create_url="customers:customer_create",
+                edit_url_name="customers:customer_update",
+                label="Customer",
+            )
     else:
         form = CustomerForm(user=request.user)
 
@@ -351,7 +360,16 @@ def customer_update(request, pk):
     if form.is_valid():
         form.save()
         notify(request.user, "Customer Update", f"{customer.name}'s details have been updated.", "info")
-        return redirect("customers:customer_detail", pk=pk)
+        return resolve_post_save_redirect(
+            request,
+            customer,
+            default_url="customers:customer_detail",
+            default_kwargs={"pk": pk},
+            create_url="customers:customer_create",
+            edit_url_name="customers:customer_update",
+            label="Customer",
+        )
+
 
     return render(request, "customers/customer_form.html", {
         "form": form,

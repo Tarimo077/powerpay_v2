@@ -85,13 +85,13 @@
                     <span class="text-sm">Schedule active</span>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-4">
-                    <a href="{% url 'reports:schedule_list' %}" class="btn btn-ghost">Cancel</a>
-                    <button type="submit" class="btn btn-success text-white flex items-center gap-1">
-                        <i class="fa-solid fa-floppy-disk"></i>
-                        {% if mode == 'edit' %}Save changes{% else %}Create schedule{% endif %}
-                    </button>
-                </div>
+                {% url 'reports:schedule_list' as cancel_url %}
+                {% if mode == 'edit' %}
+                    {% include "partials/form_actions.html" with cancel_url=cancel_url is_edit=1 save_label="Save changes" %}
+                {% else %}
+                    {% include "partials/form_actions.html" with cancel_url=cancel_url save_label="Create schedule" %}
+                {% endif %}
+
             </form>
 
         </div>

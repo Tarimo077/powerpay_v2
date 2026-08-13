@@ -18,6 +18,7 @@ from xhtml2pdf import pisa
 from io import BytesIO
 from django.conf import settings
 import os
+from core.form_actions import resolve_post_save_redirect
 
 
 def _user_is_superadmin(user):
@@ -308,9 +309,16 @@ def sale_create(request):
     if request.method == "POST":
         form = SaleForm(request.POST, user=request.user)
         if form.is_valid():
-            form.save()
+            sale = form.save()
             notify(request.user, "New Sale", f"{form.cleaned_data['product_serial_number']}({form.cleaned_data['product_name']}) sale has been created.", "success")
-            return redirect("sales:sales_page")
+            return resolve_post_save_redirect(
+                request,
+                sale,
+                default_url="sales:sales_page",
+                create_url="sales:sale_create",
+                edit_url_name="sales:sale_update",
+                label="Sale",
+            )
     else:
         form = SaleForm(user=request.user)
 
@@ -328,7 +336,15 @@ def sale_update(request, pk):
         if form.is_valid():
             form.save()
             notify(request.user, "Sale Updated", f"{sale.product_serial_number}({sale.product_name}) has been updated.", "info")
-            return redirect("sales:sales_page")
+            return resolve_post_save_redirect(
+                request,
+                sale,
+                default_url="sales:sales_page",
+                create_url="sales:sale_create",
+                edit_url_name="sales:sale_update",
+                label="Sale",
+            )
+
     else:
         form = SaleForm(instance=sale, user=request.user)
 

@@ -1,0 +1,35 @@
+{% comment %}
+Shared save/cancel action row for data-entry forms.
+
+Usage:
+  {% include "partials/form_actions.html" with cancel_url=some_url is_edit=form.instance.pk save_label="Save Customer" %}
+
+Optional context:
+  cancel_url        - href for the Cancel link (required)
+  is_edit           - truthy on edit forms (shows "Save & continue editing")
+  hide_add_another  - truthy to hide the "Save & add another" button
+  save_label        - label of the primary save button (default "Save")
+{% endcomment %}
+<div class="flex flex-wrap justify-end items-center gap-2 mt-6">
+    <a href="{{ cancel_url }}" class="btn btn-error text-white">
+        <i class="fa-solid fa-ban"></i> Cancel
+    </a>
+
+    {% if is_edit %}
+        <button type="submit" name="_action" value="save_continue"
+                class="btn btn-outline btn-success">
+            <i class="fa-solid fa-pen-to-square"></i> Save &amp; continue editing
+        </button>
+    {% endif %}
+
+    {% if not hide_add_another %}
+        <button type="submit" name="_action" value="save_add_another"
+                class="btn btn-outline btn-success">
+            <i class="fa-solid fa-plus"></i> Save &amp; add another
+        </button>
+    {% endif %}
+
+    <button type="submit" name="_action" value="save" class="btn btn-success text-white">
+        <i class="fa-solid fa-floppy-disk"></i> {{ save_label|default:"Save" }}
+    </button>
+</div>

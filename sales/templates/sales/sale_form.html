@@ -151,16 +151,9 @@
                 </div>
 
                 <!-- ACTIONS -->
-                <div class="flex justify-end gap-2 mt-6">
-                    <a href="{% url 'sales:sales_page' %}"
-                       class="btn btn-error text-white">
-                        <i class="fa-solid fa-ban"></i> Cancel
-                    </a>
-                    <button type="submit"
-                            class="btn btn-success text-white">
-                        <i class="fa-solid fa-floppy-disk"></i> Save Sale
-                    </button>
-                </div>
+                {% url 'sales:sales_page' as cancel_url %}
+                {% include "partials/form_actions.html" with cancel_url=cancel_url is_edit=form.instance.pk save_label="Save Sale" %}
+
             </form>
         </div>
 

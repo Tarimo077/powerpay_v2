@@ -108,18 +108,9 @@
                 </div>
 
                 <!-- ACTIONS -->
-                <div class="flex justify-end gap-2 mt-6">
+                {% url 'devices:device_list' as cancel_url %}
+                {% include "partials/form_actions.html" with cancel_url=cancel_url is_edit=form.instance.pk save_label="Save Device" %}
 
-                    <a href="{% url 'devices:device_list' %}"
-                       class="btn btn-error text-white">
-                        <i class="fa-solid fa-ban"></i> Cancel
-                    </a>
-
-                    <button class="btn btn-success text-white">
-                        <i class="fa-solid fa-floppy-disk"></i> Save Device
-                    </button>
-
-                </div>
 
             </form>
 

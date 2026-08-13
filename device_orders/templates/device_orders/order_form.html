@@ -52,17 +52,9 @@ Powerpay Africa | {{ title }}
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-2 mt-6">
-                    <a href="{% url 'device_orders:order_list' %}" class="btn btn-error text-white">
-                        <i class="fa-solid fa-ban"></i>
-                        Cancel
-                    </a>
+                {% url 'device_orders:order_list' as cancel_url %}
+                {% include "partials/form_actions.html" with cancel_url=cancel_url save_label="Submit Order" %}
 
-                    <button class="btn btn-success text-white">
-                        <i class="fa-solid fa-floppy-disk"></i>
-                        Submit Order
-                    </button>
-                </div>
             </form>
         </div>
     </div>

@@ -41,18 +41,13 @@
                     {{ form.organization|add_class:"select select-bordered w-full" }}
                 </div>
 
-                <div class="flex justify-between mt-6">
-                    <a href="{% url 'inventory:warehouses_page' %}" class="btn btn-error text-white">
-                        Cancel
-                    </a>
-                    <button type="submit" class="btn btn-success text-white">
-                        {% if form.instance.pk %}
-                            Update Warehouse
-                        {% else %}
-                            Create Warehouse
-                        {% endif %}
-                    </button>
-                </div>
+                {% url 'inventory:warehouses_page' as cancel_url %}
+                {% if form.instance.pk %}
+                    {% include "partials/form_actions.html" with cancel_url=cancel_url is_edit=1 save_label="Update Warehouse" %}
+                {% else %}
+                    {% include "partials/form_actions.html" with cancel_url=cancel_url save_label="Create Warehouse" %}
+                {% endif %}
+
 
             </form>
 

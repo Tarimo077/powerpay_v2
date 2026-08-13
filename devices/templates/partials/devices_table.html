@@ -22,18 +22,11 @@
                  class="flex flex-wrap items-center gap-2">
 
                 <input
-                    id="device-search"
                     type="text"
                     name="q"
                     value="{{ search_query }}"
                     placeholder="Search device ID..."
                     class="input input-success min-w-48"
-                    hx-get="{% url 'devices:device_list' %}"
-                    hx-trigger="keydown[key=='Enter']"
-                    hx-target="#devices-table"
-                    hx-push-url="true"
-                    hx-indicator="#htmx-loading"
-                    hx-include="#device-filter-controls"
                 />
 
                 <input type="hidden" name="sort" value="{{ current_sort }}">
@@ -67,7 +60,6 @@
 
                 <!-- FILTER BUTTONS -->
                 <button
-                    id="device-filter-btn"
                     type="button"
                     class="btn btn-success text-white"
                     hx-get="{% url 'devices:device_list' %}"

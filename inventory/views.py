@@ -41,6 +41,8 @@ from maintenance.services import (
     create_records_for_movements,
     is_maintenance_warehouse,
 )
+from core.form_actions import resolve_post_save_redirect
+
 
 
 
@@ -379,7 +381,15 @@ def warehouse_create(request):
                 "success",
             )
 
-            return redirect("inventory:warehouses_page")
+            return resolve_post_save_redirect(
+                request,
+                form.instance,
+                default_url="inventory:warehouses_page",
+                create_url="inventory:warehouse_create",
+                edit_url_name="inventory:warehouse_update",
+                label="Warehouse",
+            )
+
     else:
         form = WarehouseForm()
 
@@ -406,7 +416,15 @@ def warehouse_update(request, pk):
                 "info",
             )
 
-            return redirect("inventory:warehouses_page")
+            return resolve_post_save_redirect(
+                request,
+                warehouse,
+                default_url="inventory:warehouses_page",
+                create_url="inventory:warehouse_create",
+                edit_url_name="inventory:warehouse_update",
+                label="Warehouse",
+            )
+
     else:
         form = WarehouseForm(instance=warehouse)
 
@@ -495,7 +513,15 @@ def item_create(request):
                 "success",
             )
 
-            return redirect("inventory:inventory_page")
+            return resolve_post_save_redirect(
+                request,
+                item,
+                default_url="inventory:inventory_page",
+                create_url="inventory:item_create",
+                edit_url_name="inventory:item_update",
+                label="Item",
+            )
+
     else:
         form = InventoryItemForm(
             initial={
@@ -644,7 +670,15 @@ def item_update(request, pk):
                 "info",
             )
 
-            return redirect("inventory:inventory_page")
+            return resolve_post_save_redirect(
+                request,
+                item,
+                default_url="inventory:inventory_page",
+                create_url="inventory:item_create",
+                edit_url_name="inventory:item_update",
+                label="Item",
+            )
+
     else:
         form = InventoryItemForm(instance=item)
         form.fields["current_warehouse"].queryset = get_allowed_warehouses(request.user)

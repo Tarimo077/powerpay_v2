@@ -1,9 +1,4 @@
 <div class="flex items-center justify-center gap-2" id="power-{{ device.deviceid }}">
-
-    <span class="badge text-white justify-self-start {% if device.active %}badge-success{% else %}badge-error{% endif %}">
-            {{ device.active|yesno:"ACTIVE, INACTIVE" }}
-    </span>
-    
     <input
         type="checkbox"
         class="toggle toggle-sm status-switch {% if device.active %}toggle-success{% else %}toggle-error{% endif %}"

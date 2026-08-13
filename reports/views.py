@@ -15,6 +15,7 @@ from .services import (
     resolve_period,
 )
 from .tasks import generate_manual_report, run_report_schedule_now
+from core.form_actions import resolve_post_save_redirect
 
 
 def _queue_report(request, start, end, sections, organization=None):
@@ -171,7 +172,14 @@ def schedule_create(request):
         schedule.user = request.user
         schedule.save()
         messages.success(request, f"Schedule '{schedule.name}' was created.")
-        return redirect("reports:schedule_list")
+        return resolve_post_save_redirect(
+            request,
+            schedule,
+            default_url="reports:schedule_list",
+            create_url="reports:schedule_create",
+            edit_url_name="reports:schedule_edit",
+            label="Schedule",
+        )
 
     return render(
         request,
@@ -188,7 +196,15 @@ def schedule_edit(request, pk):
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, f"Schedule '{schedule.name}' was updated.")
-        return redirect("reports:schedule_list")
+        return resolve_post_save_redirect(
+            request,
+            schedule,
+            default_url="reports:schedule_list",
+            create_url="reports:schedule_create",
+            edit_url_name="reports:schedule_edit",
+            label="Schedule",
+        )
+
 
     return render(
         request,

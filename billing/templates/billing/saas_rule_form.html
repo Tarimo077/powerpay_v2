@@ -84,10 +84,9 @@
                     This rule generates <strong>SaaS invoices only</strong>. Hardware invoices are still created manually.
                 </div>
 
-                <div class="flex justify-end gap-2 pt-4">
-                    <a href="{% url 'billing:saas_rule_list' %}" class="btn btn-error text-white">Cancel</a>
-                    <button type="submit" class="btn btn-success text-white">Save Rule</button>
-                </div>
+                {% url 'billing:saas_rule_list' as cancel_url %}
+                {% include "partials/form_actions.html" with cancel_url=cancel_url is_edit=form.instance.pk save_label="Save Rule" %}
+
             </form>
         </div>
     </div>

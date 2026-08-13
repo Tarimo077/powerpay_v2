@@ -11,6 +11,7 @@ from notifications.utils import notify
 
 from .models import DeviceOrder
 from .forms import DeviceOrderForm, DeviceOrderRejectForm, DeviceOrderFulfillForm
+from core.form_actions import resolve_post_save_redirect
 
 
 def can_manage_orders(user):
@@ -109,7 +110,15 @@ def order_create(request):
                 f"Your order for {order.quantity} {order.product_type}(s) has been submitted.",
                 "success",
             )
-            return redirect("device_orders:order_detail", pk=order.pk)
+            return resolve_post_save_redirect(
+                request,
+                order,
+                default_url="device_orders:order_detail",
+                default_kwargs={"pk": order.pk},
+                create_url="device_orders:order_create",
+                label="Order",
+            )
+
     else:
         form = DeviceOrderForm(user=request.user)
 

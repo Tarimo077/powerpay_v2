@@ -131,21 +131,13 @@ Powerpay Africa | {% if invoice %}Edit Invoice{% else %}Create Invoice{% endif %
 
                 </div>
 
-                <div class="flex justify-end gap-2 mt-6">
-                    <a href="{% url 'billing:invoice_list' %}"
-                       class="btn btn-error text-white">
-                        Cancel
-                    </a>
+                {% url 'billing:invoice_list' as cancel_url %}
+                {% if invoice %}
+                    {% include "partials/form_actions.html" with cancel_url=cancel_url is_edit=1 hide_add_another=1 save_label="Update Invoice" %}
+                {% else %}
+                    {% include "partials/form_actions.html" with cancel_url=cancel_url save_label="Generate Invoice" %}
+                {% endif %}
 
-                    <button type="submit"
-                            class="btn btn-success text-white">
-                        {% if invoice %}
-                            Update Invoice
-                        {% else %}
-                            Generate Invoice
-                        {% endif %}
-                    </button>
-                </div>
 
             </form>
 
