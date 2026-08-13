@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block title %}
-  Powerpay Africa | Support 
+  Powerpay Africa | Support
 {% endblock %}
 {% block content %}
+{% load humanize %}
 
 {% include "partials/navbar.html" %}
 
@@ -12,70 +13,126 @@
     <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
             lg:ml-64 ml-0 space-y-6" id="page-content">
 
-        <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-                 My Tickets
-        </h2>
-        <div class="bg-base-100 shadow-lg rounded-xl p-6 w-full">
-
-            <div class="flex justify-end mb-4">
-                <a href="{% url 'support:create_ticket' %}" 
-                class="btn bg-success text-white font-bold p-2 rounded-lg shadow-lg transition">
-                    <i class="fa-solid fa-ticket"></i> New Support Ticket
-                </a>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h2 class="text-2xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-life-ring text-success"></i> My Tickets
+                </h2>
+                <p class="text-sm text-base-content/60 mt-1">Track your support requests and chat with the team.</p>
             </div>
+            <a href="{% url 'support:create_ticket' %}" class="btn bg-success text-white border-0 rounded-xl shadow-sm">
+                <i class="fa-solid fa-ticket mr-2"></i> New Ticket
+            </a>
+        </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full table-auto border-collapse rounded-lg overflow-hidden"> <!-- FORCE FULL WIDTH -->
-                    <thead class="bg-green-600 text-white">
+        <!-- Summary cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {% include "support/_stat_card.html" with label="Total Tickets" value=stats.total icon="fa-ticket" tone="text-success" tip="Total number of support tickets you have submitted." %}
+            {% include "support/_stat_card.html" with label="Open" value=stats.open icon="fa-envelope-open-text" tone="text-warning" tip="Tickets awaiting a first response from the support team." %}
+            {% include "support/_stat_card.html" with label="In Progress" value=stats.in_progress icon="fa-hourglass-half" tone="text-info" tip="Tickets the support team is actively working on." %}
+            {% include "support/_stat_card.html" with label="Closed" value=stats.closed icon="fa-circle-check" tone="text-success" tip="Tickets that have been resolved and closed." %}
+        </div>
+
+        <div class="bg-base-100 shadow-sm border border-base-200 rounded-2xl p-5 w-full">
+
+            <!-- Filters -->
+            <form method="get" class="flex flex-wrap items-end gap-3 mb-5">
+                <div class="flex-1 min-w-[200px]">
+                    <label class="text-[11px] uppercase tracking-wide font-semibold text-base-content/50">Search</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-base-content/40"></i>
+                        <input type="text" name="q" value="{{ q }}" placeholder="Search your tickets..."
+                               class="w-full rounded-xl border border-base-300 bg-base-100 pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-success">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[11px] uppercase tracking-wide font-semibold text-base-content/50">Status</label>
+                    <select name="status" class="rounded-xl border border-base-300 bg-base-100 px-3 py-2 text-sm">
+                        <option value="">All</option>
+                        {% for key, value in status_choices %}
+                        <option value="{{ key }}" {% if status == key %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[11px] uppercase tracking-wide font-semibold text-base-content/50">Priority</label>
+                    <select name="priority" class="rounded-xl border border-base-300 bg-base-100 px-3 py-2 text-sm">
+                        <option value="">All</option>
+                        {% for key, value in priority_choices %}
+                        <option value="{{ key }}" {% if priority == key %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <input type="hidden" name="per_page" value="{{ per_page }}">
+                <button type="submit" class="btn bg-success text-white border-0 rounded-xl">
+                    <i class="fa-solid fa-filter mr-2"></i> Apply
+                </button>
+                {% if q or status or priority %}
+                <a href="{% url 'support:support_ticket_list' %}" class="btn btn-ghost rounded-xl">Reset</a>
+                {% endif %}
+            </form>
+
+            <div class="overflow-x-auto rounded-xl border border-base-200">
+                <table class="w-full table-auto border-collapse">
+                    <thead class="bg-success text-white">
                         <tr>
-                            <th class="px-6 py-4 text-left text-lg">Subject</th>
-                            <th class="px-6 py-4 text-left text-lg">Status</th>
-                            <th class="px-6 py-4 text-left text-lg">Priority</th>
-                            <th class="px-6 py-4 text-left text-lg">Created</th>
-                            <th class="px-6 py-4 text-left text-lg">Actions</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold">#</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold">Subject</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold">Status</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold">Priority</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold">Created</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold">Last Activity</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold">Actions</th>
                         </tr>
                     </thead>
-
                     <tbody>
                         {% for ticket in tickets %}
-                        <tr class="border-b transition">
-
-                            <td class="px-6 py-4 font-semibold text-gray-700">
-                                {{ ticket.get_subject_display }}
+                        <tr class="border-b border-base-200 hover:bg-base-200/50 transition">
+                            <td class="px-5 py-3 text-sm font-semibold text-base-content/60">#{{ ticket.id }}</td>
+                            <td class="px-5 py-3">
+                                <p class="font-semibold text-sm">{{ ticket.get_subject_display }}</p>
+                                <p class="text-xs text-base-content/50 truncate max-w-xs">{{ ticket.description|truncatechars:60 }}</p>
                             </td>
-
-                            <td class="px-6 py-4">
-                                <span class="px-3 py-1 text-white rounded-md text-sm font-semibold
-                                    {% if ticket.status == 'open' %} bg-yellow-500
-                                    {% elif ticket.status == 'in_progress' %} bg-blue-500
-                                    {% else %} bg-success {% endif %}">
+                            <td class="px-5 py-3">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold
+                                    {% if ticket.status == 'open' %} bg-amber-50 text-amber-700
+                                    {% elif ticket.status == 'in_progress' %} bg-sky-50 text-sky-700
+                                    {% else %} bg-emerald-50 text-emerald-700 {% endif %}">
+                                    <span class="w-1.5 h-1.5 rounded-full
+                                        {% if ticket.status == 'open' %} bg-amber-500
+                                        {% elif ticket.status == 'in_progress' %} bg-sky-500
+                                        {% else %} bg-emerald-500 {% endif %}"></span>
                                     {{ ticket.get_status_display }}
                                 </span>
                             </td>
-
-                            <td class="px-6 py-4 font-semibold 
-                                {% if ticket.priority == 'low' %} text-success
-                                {% elif ticket.priority == 'medium' %} text-warning
-                                {% else %} text-error {% endif %}
-                            ">
-                                {{ ticket.get_priority_display }}
+                            <td class="px-5 py-3">
+                                <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold
+                                    {% if ticket.priority == 'low' %} bg-emerald-50 text-emerald-700
+                                    {% elif ticket.priority == 'medium' %} bg-amber-50 text-amber-700
+                                    {% else %} bg-red-50 text-red-700 {% endif %}">
+                                    {{ ticket.get_priority_display }}
+                                </span>
                             </td>
-
-                            <td class="px-6 py-4">
-                                {{ ticket.created_at|date:"M d, Y H:i" }}
+                            <td class="px-5 py-3 text-sm">{{ ticket.created_at|date:"M d, Y H:i" }}</td>
+                            <td class="px-5 py-3 text-sm text-base-content/60">
+                                {% if ticket.last_activity %}{{ ticket.last_activity|naturaltime }}{% else %}—{% endif %}
                             </td>
-
-                            <td class="px-6 py-4">
-                                <a href="{% url 'support:ticket_detail' ticket.id %}" class="btn rounded-lg text-white text-sm bg-info p-2">
-                                    Details
+                            <td class="px-5 py-3">
+                                <a href="{% url 'support:ticket_detail' ticket.id %}"
+                                   class="btn btn-sm bg-base-200 hover:bg-base-300 border-0 rounded-lg text-xs">
+                                    <i class="fa-solid fa-comments mr-1"></i> Open
                                 </a>
                             </td>
-
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="px-6 py-6 text-center text-lg">
-                                No tickets yet.
+                            <td colspan="7" class="px-5 py-12 text-center">
+                                <i class="fa-solid fa-life-ring text-3xl text-base-content/20 mb-3"></i>
+                                <p class="font-semibold">No tickets yet</p>
+                                <p class="text-sm text-base-content/50 mb-4">Need a hand? Raise a ticket and our team will respond.</p>
+                                <a href="{% url 'support:create_ticket' %}" class="btn bg-success text-white border-0 rounded-xl">
+                                    <i class="fa-solid fa-ticket mr-2"></i> New Ticket
+                                </a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -83,75 +140,9 @@
                 </table>
             </div>
 
+            {% include "support/_ticket_pagination.html" %}
         </div>
-
-        <form method="get" class="mt-4 mb-4 flex justify-end">
-            <label class="mr-2 mt-2 font-semibold">Items per page:</label>
-            <select name="per_page" onchange="this.form.submit()" class="border-success rounded-lg">
-                <option value="5" {% if per_page == 5 %}selected{% endif %}>5</option>
-                <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
-                <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
-            </select>
-        </form>
-
-        {% if tickets.has_other_pages %}
-        <div class="flex justify-center mt-6 mb-6">
-            <div class="flex items-center gap-2">
-
-                <!-- Prev Button -->
-                {% if tickets.has_previous %}
-                <a 
-                    href="?page={{ tickets.previous_page_number }}&per_page={{ per_page }}"
-                    class="px-4 py-2 rounded-full cursor-pointer bg-white shadow hover:bg-green-600 hover:text-white transition">
-                    <i class="fa-solid fa-backward m-1"></i> Prev
-                </a>
-                {% else %}
-                <button class="px-4 py-2 rounded-full bg-gray-200 text-gray-400 cursor-not-allowed shadow">
-                    <i class="fa-solid fa-backward m-1"></i> Prev
-                </button>
-                {% endif %}
-
-                <!-- Page Numbers -->
-                <div class="flex gap-2">
-                    {% for num in tickets.paginator.page_range %}
-                        {% if num == tickets.number %}
-                        <span class="px-4 py-2 rounded-full bg-green-600 text-white shadow font-semibold">
-                            {{ num }}
-                        </span>
-                        {% else %}
-                        <a 
-                            href="?page={{ num }}&per_page={{ per_page }}"
-                            class="px-4 py-2 rounded-full bg-white shadow hover:bg-orange-500 hover:text-white transition cursor-pointer">
-                            {{ num }}
-                        </a>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-
-                <!-- Next Button -->
-                {% if tickets.has_next %}
-                <a 
-                    href="?page={{ tickets.next_page_number }}&per_page={{ per_page }}"
-                    class="px-4 py-2 rounded-full bg-white shadow hover:bg-green-600 hover:text-white transition cursor-pointer">
-                    Next <i class="fa-solid fa-forward m-1"></i>
-                </a>
-                {% else %}
-                <button class="px-4 py-2 rounded-full bg-gray-200 text-gray-400 cursor-not-allowed shadow">
-                    Next <i class="fa-solid fa-forward m-1"></i>
-                </button>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Page Info -->
-        <p class="text-gray-600 font-medium mb-6 text-center">
-            Page <span class="text-green-600 font-semibold">{{ tickets.number }}</span>
-            of <span class="text-green-600 font-semibold">{{ tickets.paginator.num_pages }}</span>
-        </p>
-        {% endif %}
-
     </div>
-
 </div>
 
 {% endblock %}

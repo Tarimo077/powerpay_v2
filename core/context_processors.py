@@ -43,7 +43,9 @@ def user_roles(request):
             "can_manage_support": False,
             "user_org": None,
             "user_role": None,
+            "open_ticket_count": 0,
         }
+
 
     role = getattr(user, "role", None)
 
@@ -114,4 +116,16 @@ def user_roles(request):
 
         "user_org": getattr(user, "organization", None),
         "user_role": role,
+
+        # Badge for the sidebar support queue.
+        "open_ticket_count": _open_ticket_count() if can_manage_support else 0,
     }
+
+
+def _open_ticket_count():
+    try:
+        from support.models import Ticket
+
+        return Ticket.objects.filter(status="open").count()
+    except Exception:
+        return 0

@@ -101,6 +101,11 @@
                 <li><a href="{% url 'support:support_ticket_list' %}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm hover:bg-base-200/80 transition-all text-base-content/70 hover:text-base-content">
                     <i class="fas fa-life-ring w-5 text-center text-base-content/40"></i> Support Center
                 </a></li>
+                {% if request.user.role == "superadmin" %}
+                <li><a href="{% url 'support:admin_ticket_list' %}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm hover:bg-base-200/80 transition-all text-base-content/70 hover:text-base-content">
+                    <i class="fas fa-life-ring w-5 text-center text-base-content/40"></i> Support Admin
+                </a></li>
+                {% endif %}
                 {% if request.user.role == "superadmin" or request.user.role == "admin" %}
                 <li><a href="{% url 'accounts:invite_user' %}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm hover:bg-base-200/80 transition-all text-base-content/70 hover:text-base-content">
                     <i class="fas fa-user-plus w-5 text-center text-base-content/40"></i> Invite User

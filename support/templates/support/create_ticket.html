@@ -11,12 +11,67 @@
 
     <div class="px-4 py-2 w-full overflow-x-auto transition-all duration-300
             lg:ml-64 ml-0 space-y-6" id="page-content">
-    <h2 class="text-2xl font-bold mb-6">Create Support Ticket</h2>
-    <form method="POST" class="flex flex-col gap-4">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="bg-success text-white px-4 py-2 rounded mt-4"><i class="fa-solid fa-ticket mr-2"></i>Submit Ticket</button>
-    </form>
+
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h2 class="text-2xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-ticket text-success"></i> Create Support Ticket
+                </h2>
+                <p class="text-sm text-base-content/60 mt-1">Tell us what's wrong and our team will get back to you.</p>
+            </div>
+            <a href="{% url 'support:support_ticket_list' %}" class="btn btn-ghost rounded-xl">
+                <i class="fa-solid fa-arrow-left mr-2"></i> My tickets
+            </a>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-6">
+            <form method="POST" class="lg:col-span-2 bg-base-100 border border-base-200 rounded-2xl p-6 shadow-sm space-y-5">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="rounded-xl bg-red-50 text-red-700 text-sm px-4 py-3">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                {% for field in form %}
+                <div>
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-semibold mb-1.5">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <p class="text-xs text-base-content/50 mt-1.5">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}
+                    <p class="text-xs text-red-600 mt-1.5">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="btn bg-success text-white border-0 rounded-xl">
+                        <i class="fa-solid fa-paper-plane mr-2"></i> Submit Ticket
+                    </button>
+                </div>
+            </form>
+
+            <div class="bg-base-100 border border-base-200 rounded-2xl p-6 shadow-sm h-fit space-y-4">
+                <p class="font-semibold flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb text-success"></i> Tips for a fast response
+                </p>
+                <ul class="space-y-3 text-sm text-base-content/70">
+                    <li class="flex gap-2"><i class="fa-solid fa-check text-success mt-0.5"></i> Include the device ID or customer name affected.</li>
+                    <li class="flex gap-2"><i class="fa-solid fa-check text-success mt-0.5"></i> Add the exact error message you saw.</li>
+                    <li class="flex gap-2"><i class="fa-solid fa-check text-success mt-0.5"></i> Describe the steps that led to the issue.</li>
+                    <li class="flex gap-2"><i class="fa-solid fa-check text-success mt-0.5"></i> Use high priority only for blocking issues.</li>
+                </ul>
+                <div class="rounded-xl bg-base-200/60 p-4 text-xs text-base-content/60">
+                    Once submitted you can chat with the support team directly on the ticket page.
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 {% endblock %}

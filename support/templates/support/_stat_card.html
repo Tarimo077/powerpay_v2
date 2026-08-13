@@ -1,0 +1,12 @@
+<div class="stat-card bg-base-100 rounded-2xl p-5 border border-base-200 shadow-sm">
+    <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-circle-info cursor-pointer text-success text-sm" title="{{ tip }}"></i>
+            <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ label }}</span>
+        </div>
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-base-200/60">
+            <i class="fa-solid {{ icon }} {{ tone }} text-sm"></i>
+        </div>
+    </div>
+    <p class="text-2xl font-bold text-base-content">{{ value|default:0 }}</p>
+</div>
