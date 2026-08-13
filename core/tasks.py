@@ -13,7 +13,7 @@ from core.org_checker import get_accessible_organizations
 
 
 
-CACHE_TIMEOUT = 60 * 20  # 20 minutes
+CACHE_TIMEOUT = 60 * 30  # 30 minutes
 CO2_PER_KWH = 0.139972  # kg CO2 per kWh (adjust if needed) ~0.4999(grid emmission factor) x 0.28 (efficiency deficit of cookers)
 COOKING_GAP_SECONDS = 20 * 60  # 20 minutes
 
@@ -326,41 +326,50 @@ def build_dashboard_context(is_superadmin=False, user=None, period="7d", org_id=
 
     return context
 
-# -------- USER CACHE --------
+DASHBOARD_PERIODS = ["1d", "3d", "7d", "14d", "30d", "60d", "90d", "180d", "365d", "all"]
+
+
+# -------- DASHBOARD CACHE --------
 @shared_task
-def cache_dashboard_for_user(user_id):
-    User = get_user_model()
+def cache_dashboard(user_id=None):
+    """
+    Warm the dashboard cache.
 
-    user = User.objects.get(id=user_id)
+    user_id=None  -> superadmin scope (all organizations)
+    user_id given -> that user's accessible organizations
+    """
+    if user_id is None:
+        is_superadmin = True
+        user = None
+        key_prefix = "dashboard_context_superadmin"
+        org_ids = list(Organization.objects.values_list("id", flat=True))
+    else:
+        is_superadmin = False
+        User = get_user_model()
+        user = User.objects.get(id=user_id)
+        key_prefix = f"dashboard_context_user_{user.id}"
+        org_ids = list(get_accessible_organizations(user).values_list("id", flat=True))
 
-    for period in ["1d","3d","7d","14d","30d","60d","90d","180d","365d","all"]:
-
+    for period in DASHBOARD_PERIODS:
         # ALL ORGS
-        context = build_dashboard_context(False, user, period, None)
-        cache.set(f"dashboard_context_user_{user.id}_all_{period}", context, CACHE_TIMEOUT)
+        context = build_dashboard_context(is_superadmin, user, period, None)
+        cache.set(f"{key_prefix}_all_{period}", context, CACHE_TIMEOUT)
 
         # EACH ORG
-        accessible_orgs = get_accessible_organizations(user)
-        for org_id in accessible_orgs.values_list("id", flat=True):
-            context = build_dashboard_context(False, user, period, org_id)
-            cache.set(f"dashboard_context_user_{user.id}_org_{org_id}_{period}", context, CACHE_TIMEOUT)
+        for org_id in org_ids:
+            context = build_dashboard_context(is_superadmin, user, period, org_id)
+            cache.set(f"{key_prefix}_org_{org_id}_{period}", context, CACHE_TIMEOUT)
 
 
-# -------- SUPERADMIN CACHE --------
+# -------- BACKWARDS-COMPATIBLE ALIASES --------
+@shared_task
+def cache_dashboard_for_user(user_id):
+    return cache_dashboard(user_id)
+
+
 @shared_task
 def cache_dashboard_superadmin():
-    org_ids = list(Organization.objects.values_list("id", flat=True))
-
-    for period in ["1d","3d","7d","14d","30d","60d","90d","180d","365d","all"]:
-
-        # ALL
-        context = build_dashboard_context(True, None, period)
-        cache.set(f"dashboard_context_superadmin_all_{period}", context, CACHE_TIMEOUT)
-
-        # PER ORG
-        for org_id in org_ids:
-            context = build_dashboard_context(True, None, period, org_id)
-            cache.set(f"dashboard_context_superadmin_org_{org_id}_{period}", context, CACHE_TIMEOUT)
+    return cache_dashboard(None)
 
 
 @shared_task
@@ -370,7 +379,7 @@ def cache_all_users_dashboards():
     users = User.objects.all()
 
     for user in users:
-        cache_dashboard_for_user.delay(user.id)
+        cache_dashboard.delay(user.id)
 
 def build_transaction_context(user=None, is_superadmin=False, organization=None):
     """

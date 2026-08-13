@@ -30,8 +30,7 @@ from notifications.utils import notify
 from django.core.cache import cache
 from .tasks import (
     CACHE_TIMEOUT,
-    cache_dashboard_for_user,
-    cache_dashboard_superadmin,
+    cache_dashboard,
     build_dashboard_context,
 )
 from core.org_checker import get_accessible_organizations
@@ -300,9 +299,9 @@ def index(request):
 
     # -------- TRIGGER ASYNC CACHE BUILD --------
     if is_superadmin:
-        cache_dashboard_superadmin.delay()
+        cache_dashboard.delay()
     else:
-        cache_dashboard_for_user.delay(user.id)
+        cache_dashboard.delay(user.id)
 
     return render(request, "core/index.html", context)
 
