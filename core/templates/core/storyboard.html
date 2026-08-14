@@ -59,9 +59,11 @@
     .mock-table-row,
     .mock-form-field,
     .mock-tab,
+    .mock-topbar-btn,
     .mock-extra {
         transition: all .28s ease;
     }
+
 
     .spotlight {
         position: relative;
@@ -161,6 +163,8 @@
                 <div class="mt-5 flex flex-wrap gap-2">
                     <a href="#tour" class="btn btn-success text-white"><i class="fa-solid fa-play"></i> Start tour</a>
                     <a href="#toc" class="btn btn-outline btn-success hover:text-white"><i class="fa-solid fa-list"></i> Table of contents</a>
+                    <a href="#nav-map" class="btn btn-outline btn-success hover:text-white"><i class="fa-solid fa-signs-post"></i> Where does it live?</a>
+
                 </div>
 
                 <div class="mt-6">
@@ -186,7 +190,33 @@
             <p class="hidden text-sm text-base-content/60 mt-4" id="toc-empty">No walkthrough matches that search.</p>
         </section>
 
+        <section id="nav-map" class="glass-card rounded-3xl p-4 sm:p-6">
+            <div class="mb-5">
+                <h2 class="text-2xl font-bold">Where does it live?</h2>
+                <p class="text-sm text-base-content/60">The portal has two menus: the left sidebar for day-to-day modules, and the profile dropdown in the top navbar for account and admin shortcuts. A few links appear in both.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="rounded-3xl border border-base-300 bg-base-100 overflow-hidden">
+                    <div class="bg-success text-white px-4 py-2.5 text-sm font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-bars"></i> Sidebar menu
+                    </div>
+                    <div id="map-sidebar" class="divide-y divide-base-200"></div>
+                </div>
+
+                <div class="rounded-3xl border border-base-300 bg-base-100 overflow-hidden">
+                    <div class="bg-success text-white px-4 py-2.5 text-sm font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-circle-user"></i> Navbar profile dropdown
+                    </div>
+                    <div id="map-navbar" class="divide-y divide-base-200"></div>
+                </div>
+            </div>
+
+            
+        </section>
+
         <div class="disclaimer-box uppercase">
+
             <strong class="text-warning text-xl"><i class="fa-solid fa-triangle-exclamation"></i> Disclaimer</strong><br><br>
             <span class="text-base">The window below is a simplified illustration. Real pages may vary slightly with your browser, screen size, role and organization permissions.</span>
         </div>
@@ -223,8 +253,65 @@
                             <div class="space-y-1" id="mock-sidebar"></div>
                         </aside>
 
-                        <div class="col-span-12 md:col-span-8 lg:col-span-9 p-3 sm:p-5 space-y-4">
+                        <div class="col-span-12 md:col-span-8 lg:col-span-9 flex flex-col">
+
+                            <!-- Mock top navbar (mirrors partials/navbar.html) -->
+                            <div class="flex items-center justify-between gap-2 px-3 sm:px-5 h-14 border-b border-base-300 bg-base-100/90">
+                                <div class="text-sm font-semibold truncate" id="mock-topbar-title">Dashboard</div>
+
+                                <div class="flex items-center gap-1 sm:gap-2">
+                                    <!-- Theme controller -->
+                                    <button type="button" id="mock-theme" data-highlight="topbar-theme"
+                                            class="mock-topbar-btn btn btn-ghost btn-sm btn-circle" title="Theme controller">
+                                        <i class="fa-solid fa-sun text-yellow-500" id="mock-theme-icon"></i>
+                                    </button>
+
+                                    <!-- Notifications -->
+                                    <div class="relative">
+                                        <button type="button" id="mock-bell" data-highlight="topbar-notifications"
+                                                class="mock-topbar-btn btn btn-ghost btn-sm btn-circle text-orange-500 relative" title="Notifications">
+                                            <i class="fa-solid fa-bell"></i>
+                                            <span class="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white px-1">3</span>
+                                        </button>
+                                        <div id="mock-notif-dropdown"
+                                             class="hidden absolute right-0 mt-2 w-64 sm:w-72 z-20 rounded-2xl bg-base-100 border border-base-300 shadow-2xl p-2">
+                                            <div class="flex items-center justify-between px-2 py-1.5 border-b border-success mb-2">
+                                                <span class="text-xs font-bold text-success">Notifications</span>
+                                                <span class="text-[10px] text-info" data-highlight="topbar-notif-readall">Mark all as read</span>
+                                            </div>
+                                            <div class="space-y-1.5" id="mock-notif-items"></div>
+                                            <div class="text-center pt-2">
+                                                <span class="text-xs font-medium text-success">See all</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- User chip + dropdown -->
+                                    <div class="relative">
+                                        <button type="button" id="mock-user" data-highlight="topbar-user"
+                                                class="mock-topbar-btn flex items-center gap-2 pl-1.5 pr-2 py-1 rounded-full border border-transparent hover:bg-base-200">
+                                            <span class="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-[10px] font-bold text-white">AK</span>
+                                            <span class="hidden sm:block text-left leading-tight">
+                                                <span class="block text-[11px] font-semibold">Amina K.</span>
+                                                <span class="block text-[10px] text-base-content/50">superadmin</span>
+                                            </span>
+                                            <i class="fa-solid fa-chevron-down text-[8px] text-base-content/40"></i>
+                                        </button>
+                                        <div id="mock-user-dropdown"
+                                             class="hidden absolute right-0 mt-2 w-64 z-20 rounded-2xl bg-base-100 border border-base-300 shadow-2xl p-2 space-y-1">
+                                            <div class="px-2 pb-2 mb-1 border-b border-base-200">
+                                                <p class="text-xs font-semibold">Amina Kariuki</p>
+                                                <p class="text-[10px] text-base-content/60">amina@powerpay.africa</p>
+                                            </div>
+                                            <div id="mock-user-menu" class="space-y-1"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-3 sm:p-5 space-y-4">
                             <div class="text-xs text-base-content/50" id="mock-breadcrumb"></div>
+
 
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                 <div>
@@ -246,7 +333,9 @@
                                 <div class="font-bold text-success text-sm">Expected result</div>
                                 <p class="text-sm text-base-content/70" id="expected-result"></p>
                             </div>
+                            </div>
                         </div>
+
                     </div>
                 </div>
 
@@ -333,7 +422,7 @@ document.addEventListener('DOMContentLoaded', function () {
         { key: 'devices', label: 'Devices', icon: 'fa-plug', group: ['Devices', ['devices', 'schedules', 'batches']] },
         { key: 'schedules', label: 'Schedules', icon: 'fa-clock', child: true },
         { key: 'batches', label: 'Testing Batches', icon: 'fa-flask', child: true },
-        { key: 'orders', label: 'Device Orders', icon: 'fa-truck-ramp-box' },
+        //{ key: 'orders', label: 'Device Orders', icon: 'fa-truck-ramp-box' },
         { key: 'meters', label: 'Smart Meters', icon: 'fa-gauge-high' },
         { key: 'customers', label: 'Customers', icon: 'fa-users' },
         { key: 'sales', label: 'All Sales', icon: 'fa-cash-register' },
@@ -347,11 +436,42 @@ document.addEventListener('DOMContentLoaded', function () {
         { key: 'invoices', label: 'Invoices', icon: 'fa-file-invoice-dollar' },
         { key: 'exportData', label: 'Export Data', icon: 'fa-file-export' },
         { key: 'importCenter', label: 'Import Center', icon: 'fa-file-import' },
-        { key: 'support', label: 'Support', icon: 'fa-headset' }
+        //{ key: 'support', label: 'Support', icon: 'fa-headset' }
     ];
 
+    // Profile dropdown of the top navbar, mirroring partials/navbar.html.
+    const NAVBAR_MENU = [
+        { key: 'profile', label: 'Profile', icon: 'fa-user-circle', href: U.profile, role: '' },
+        { key: 'audit', label: 'Audit Logs', icon: 'fa-clipboard-list', href: U.auditLogs, role: 'superadmin' },
+        { key: 'users', label: 'Users', icon: 'fa-users-gear', href: U.users, role: 'superadmin' },
+        { key: 'storyboard', label: 'Storyboard', icon: 'fa-map', href: '{% url "core:storyboard" %}', role: '' },
+        { key: 'orders', label: 'Device Orders', icon: 'fa-box', href: U.orders, role: '', both: false },
+        { key: 'support', label: 'Support Center', icon: 'fa-life-ring', href: U.support, role: '', both: false },
+        { key: 'invite', label: 'Invite User', icon: 'fa-user-plus', href: '{% url "accounts:invite_user" %}', role: 'superadmin / admin' },
+        { key: 'logout', label: 'Logout', icon: 'fa-right-from-bracket', href: null, role: '', danger: true }
+    ];
+
+    const MOCK_NOTIFS = [
+        { title: 'Delivery note received', body: 'DN-2041 confirmed at Nairobi store.', tone: 'success' },
+        { title: 'Report ready', body: 'Monthly device usage emailed to you.', tone: 'info' },
+        { title: 'Ticket answered', body: 'Support replied to #318.', tone: 'warning' }
+    ];
+
+    // Which tour explains each sidebar entry.
+    const NAV_TOUR = {
+        dashboard: 'overview', analytics: 'analytics', organizations: 'organizations',
+        devices: 'devices', schedules: 'schedules', batches: 'batches', orders: 'orders',
+        meters: 'meters', customers: 'customers', sales: 'sales', paygo: 'paygo',
+        inventory: 'inventory', warehouses: 'warehouses', deliveryNotes: 'delivery',
+        maintenance: 'maintenance', transactions: 'transactions', reports: 'reports',
+        invoices: 'billing', exportData: 'importexport', importCenter: 'importexport',
+        support: 'support'
+    };
+
+    const BOTH_MENUS = [];
+
     const GROUPS = [
-        ['Getting started', ['overview', 'analytics', 'account']],
+        ['Getting started', ['overview', 'analytics', 'navbar', 'account']],
         ['Devices', ['devices', 'schedules', 'batches', 'orders', 'meters']],
         ['Commerce', ['customers', 'sales', 'paygo', 'transactions', 'billing']],
         ['Inventory', ['inventory', 'warehouses', 'moves', 'delivery', 'maintenance']],
@@ -359,7 +479,8 @@ document.addEventListener('DOMContentLoaded', function () {
         ['Admin', ['organizations', 'users', 'support', 'api']]
     ];
 
-    const NEW_TOURS = ['maintenance', 'delivery', 'reports', 'analytics', 'batches'];
+    const NEW_TOURS = ['navbar', 'maintenance', 'delivery', 'reports', 'analytics', 'batches'];
+
 
     const c = (label, value, help, tip) => ({ label, value, help, tip });
     const f = (label, value) => ({ label, value });
@@ -403,7 +524,32 @@ document.addEventListener('DOMContentLoaded', function () {
                 ['card-1', 'Compare the metrics', 'Read cooking events next to energy and revenue.', 'You see whether usage and income move together.']
             ]
         },
+        navbar: {
+            icon: 'fa-circle-user', nav: 'dashboard', kicker: 'Top navbar', role: 'Any user',
+            title: 'Navbar, theme and your account menu', tocHint: 'Theme switch, bell, and the profile dropdown links.',
+            summary: 'The sidebar holds the modules; the top navbar holds the theme switch, notifications, and the profile dropdown with account and admin shortcuts.',
+            url: '/dashboard/', realUrl: U.profile, breadcrumb: 'Home / Overview',
+            pageTitle: 'Overview', pageSubtitle: 'The top bar stays visible on every page.',
+            actions: [['Filter', 'ghost'], ['Refresh', 'success']],
+            cards: [c('Unread alerts', '3', 'Bell badge', 'The red badge counts unread notifications'), c('Theme', 'Light', 'Sun / moon toggle', 'Your choice is remembered on this browser'), c('Role', 'Superadmin', 'Menu contents', 'Audit Logs, Users and Invite User only show for admins')],
+            filters: [f('Sidebar menu', 'Modules: devices, sales, inventory, reports, support'), f('Navbar dropdown', 'Profile, audit logs, users, storyboard, orders, support, invite, logout')],
+            table: { headers: ['Item', 'Lives in', 'Who sees it', 'Action'], rows: [['Profile', 'Navbar dropdown', 'Everyone', 'Open'], ['Audit Logs', 'Navbar dropdown', 'Superadmin', 'Open'], ['Device Orders', 'Both menus', 'Everyone', 'Open'], ['Devices', 'Sidebar', 'Everyone', 'Open']] },
+            expected: 'You know exactly which menu holds each link, and how to switch theme, read alerts and reach your account.',
+            related: [['Profile', U.profile], ['Notifications', U.notifications], ['Audit logs', U.auditLogs]],
+            steps: [
+                ['topbar-theme', 'Switch the theme', 'Click the sun / moon control at the top right.', 'The portal flips between light and dark, and remembers your choice on this browser.'],
+                ['topbar-notifications', 'Check notifications', 'The bell shows a red badge with your unread count. Click it for the latest alerts.', 'A dropdown lists recent notifications with a link to the full list.'],
+                ['topbar-notif-readall', 'Clear the alerts', 'Use "Mark all as read", or mark items one by one.', 'The badge clears and the alerts move to the notifications page history.'],
+                ['topbar-user', 'Open your account menu', 'Click your avatar and name to open the profile dropdown.', 'This dropdown holds everything that is not a sidebar module.'],
+                ['topbar-menu-profile', 'Profile', 'Open Profile to update your details and password.', 'Password changes must satisfy the listed rules and match the confirmation field.'],
+                ['topbar-menu-audit', 'Superadmin-only links', 'Audit Logs and Users only appear for superadmins; Invite User appears for superadmins and admins.', 'Your role decides which entries render in the dropdown.'],
+                ['topbar-menu-orders', 'Links in both menus', 'Device Orders and Support Center appear in the sidebar and in this dropdown.', 'Either route opens the same page.'],
+                ['filter-0', 'Sidebar versus navbar', 'The sidebar is for modules; the navbar dropdown is for your account and admin shortcuts.', 'See the "Where does it live?" map above for the full split.'],
+                ['topbar-menu-logout', 'Sign out', 'Logout sits at the bottom of the dropdown.', 'Your session ends and you return to the public landing page.']
+            ]
+        },
         account: {
+
             icon: 'fa-user-gear', nav: 'dashboard', kicker: 'Account', role: 'Any user',
             title: 'Notifications, profile and password', tocHint: 'Alerts, profile details, password rules.',
             summary: 'Keep your profile current, read alerts, and set a password that satisfies the security rules.',
@@ -984,8 +1130,112 @@ document.addEventListener('DOMContentLoaded', function () {
         tocEmpty.classList.toggle('hidden', visible !== 0);
     }
 
+    // ---------- mock top navbar ----------
+
+    const notifDropdown = document.getElementById('mock-notif-dropdown');
+    const userDropdown = document.getElementById('mock-user-dropdown');
+
+    function closeMockDropdowns() {
+        notifDropdown.classList.add('hidden');
+        userDropdown.classList.add('hidden');
+    }
+
+    function renderTopbar(tour) {
+        setText('mock-topbar-title', tour.pageTitle);
+
+        const items = document.getElementById('mock-notif-items');
+        items.innerHTML = '';
+        MOCK_NOTIFS.forEach(n => {
+            const node = el('div', 'rounded-xl border-l-4 border-' + n.tone + ' bg-base-200 px-2.5 py-2');
+            node.innerHTML = '<div class="text-[11px] font-bold text-' + n.tone + ' uppercase">' + esc(n.title) + '</div>' +
+                '<p class="text-[11px] text-base-content/70">' + esc(n.body) + '</p>';
+            items.appendChild(node);
+        });
+
+        const menu = document.getElementById('mock-user-menu');
+        menu.innerHTML = '';
+        NAVBAR_MENU.forEach(item => {
+            const node = el('div', 'mock-nav-item flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-xs border border-transparent ' +
+                (item.danger ? 'text-error' : 'text-base-content/80'));
+            node.dataset.highlight = 'topbar-menu-' + item.key;
+            const badges = (item.role ? '<span class="badge badge-xs badge-outline">' + esc(item.role) + '</span>' : '') +
+                (item.both ? '<span class="badge badge-xs badge-warning">both</span>' : '');
+            node.innerHTML = '<span class="flex items-center gap-2"><i class="fa-solid ' + item.icon + ' w-4 text-center opacity-60"></i>' + esc(item.label) + '</span>' +
+                '<span class="flex items-center gap-1">' + badges + '</span>';
+            menu.appendChild(node);
+        });
+    }
+
+    document.getElementById('mock-theme').addEventListener('click', () => {
+        const icon = document.getElementById('mock-theme-icon');
+        const dark = icon.classList.contains('fa-sun');
+        icon.className = 'fa-solid ' + (dark ? 'fa-moon text-blue-500' : 'fa-sun text-yellow-500');
+    });
+
+    document.getElementById('mock-bell').addEventListener('click', event => {
+        event.stopPropagation();
+        userDropdown.classList.add('hidden');
+        notifDropdown.classList.toggle('hidden');
+    });
+
+    document.getElementById('mock-user').addEventListener('click', event => {
+        event.stopPropagation();
+        notifDropdown.classList.add('hidden');
+        userDropdown.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', event => {
+        if (!event.target.closest('#mock-notif-dropdown, #mock-user-dropdown, #mock-bell, #mock-user')) {
+            closeMockDropdowns();
+        }
+    });
+
+    // ---------- where does it live? map ----------
+    function buildNavMap() {
+        const sideWrap = document.getElementById('map-sidebar');
+        const navWrap = document.getElementById('map-navbar');
+        if (!sideWrap || !navWrap) return;
+
+        const row = (icon, label, href, tourKey, badges, indent) => {
+            const node = el('div', 'flex items-center justify-between gap-3 px-4 py-2.5 text-sm' + (indent ? ' pl-9' : ''));
+            const left = el('div', 'flex items-center gap-2 min-w-0');
+            left.innerHTML = '<i class="fa-solid ' + icon + ' text-success w-4 text-center"></i>' +
+                '<span class="truncate">' + esc(label) + '</span>' + (badges || '');
+            const right = el('div', 'flex items-center gap-1.5 shrink-0');
+            if (tourKey && tours[tourKey]) {
+                const btn = el('button', 'btn btn-xs btn-outline btn-success hover:text-white', 'Tour');
+                btn.type = 'button';
+                btn.addEventListener('click', () => selectTour(tourKey, true));
+                right.appendChild(btn);
+            }
+            if (href) {
+                const link = el('a', 'btn btn-xs btn-ghost');
+                link.setAttribute('href', href);
+                link.innerHTML = '<i class="fa-solid fa-up-right-from-square"></i>';
+                right.appendChild(link);
+            }
+            node.appendChild(left);
+            node.appendChild(right);
+            return node;
+        };
+
+        sideWrap.innerHTML = '';
+        NAV.forEach(item => {
+            const badge = BOTH_MENUS.indexOf(item.key) !== -1 ? '<span class="badge badge-xs badge-warning">both</span>' : '';
+            sideWrap.appendChild(row(item.icon, item.label, U[item.key] || null, NAV_TOUR[item.key], badge, item.child));
+        });
+
+        navWrap.innerHTML = '';
+        NAVBAR_MENU.forEach(item => {
+            const badge = (item.role ? '<span class="badge badge-xs badge-outline">' + esc(item.role) + '</span>' : '') +
+                (item.both ? '<span class="badge badge-xs badge-warning">both</span>' : '');
+            navWrap.appendChild(row(item.icon, item.label, item.href, item.key === 'audit' ? 'audit' : (item.key === 'users' ? 'users' : (item.key === 'orders' ? 'orders' : (item.key === 'support' ? 'support' : (item.key === 'profile' ? 'account' : null)))), badge, false));
+        });
+    }
+
     // ---------- mock window ----------
     function renderSidebar(tour) {
+
         const wrap = document.getElementById('mock-sidebar');
         wrap.innerHTML = '';
         NAV.forEach(item => {
@@ -1186,6 +1436,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('real-page-link').setAttribute('href', tour.realUrl);
 
         renderSidebar(tour);
+        renderTopbar(tour);
         renderActions(tour);
         renderCards(tour);
         renderFilters(tour);
@@ -1196,6 +1447,13 @@ document.addEventListener('DOMContentLoaded', function () {
         renderDots(tour);
 
         clearSpotlight();
+        closeMockDropdowns();
+        // Open the dropdown that holds the target so the spotlight is visible.
+        if (step[0].indexOf('topbar-menu-') === 0 || step[0] === 'topbar-user') {
+            userDropdown.classList.remove('hidden');
+        } else if (step[0].indexOf('topbar-notif') === 0) {
+            notifDropdown.classList.remove('hidden');
+        }
         const target = document.querySelector('[data-highlight="' + step[0] + '"]');
         if (target) {
             target.classList.add('spotlight');
@@ -1203,6 +1461,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' }), 80);
             }
         }
+
 
         setText('step-counter', 'Step ' + (currentStep + 1) + ' of ' + tour.steps.length);
         setText('step-title', step[1]);
@@ -1233,6 +1492,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     buildToc();
+    buildNavMap();
+
     restoreProgress();
     render();
 });
