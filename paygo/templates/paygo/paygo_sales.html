@@ -267,6 +267,8 @@
                         Paid</a></th>
 
                     <th class="px-4 py-3 text-center text-white"><a href="?sort=paygo_balance&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.paygo_balance }}&page_size={{ page_size }}">
+                        <i class="fa-solid fa-circle-info cursor-pointer text-white text-sm mr-1.5"
+                           title="Positive balance means the customer is on track with payments while a negative balance indicates they are behind payments."></i>
                         {% if current_sort == "paygo_balance" %}
                             {% if current_dir == "asc" %}
                                 <i class="fa-solid fa-sort-up"></i>
@@ -274,7 +276,7 @@
                                 <i class="fa-solid fa-sort-down"></i>
                             {% endif %}
                         {% endif %}
-                        Paygo Balance</a></th>
+                           Paygo Balance</a></th>
                     <th class="px-4 py-3 text-center text-white"><a href="?sort=balance&q={{ search_query }}&status={{ status_filter }}&mode={{ mode }}&metered={{ metered_filter }}&dir={{ next_dirs.balance }}&page_size={{ page_size }}">
                         {% if current_sort == "balance" %}
                             {% if current_dir == "asc" %}
@@ -301,7 +303,7 @@
                 <td>
                     <a class="underline hover:text-success"
                     href="{% url 'sales:sale_detail' row.sale.id %}"
-                    title="Click to see the sale details for device {{ row.serial }}">
+                    title="Click to see the sale details for device {{ row.serial }} linked to {{ row.customer }}">
                         {{ row.serial }}
                     </a>
                 </td>
