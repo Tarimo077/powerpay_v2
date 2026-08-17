@@ -12,7 +12,15 @@
          class="px-4 py-4 w-full overflow-x-auto transition-all duration-300
                 lg:ml-64 ml-0 space-y-6">
 
-        <h1 class="text-2xl font-bold mb-6">Users</h1>
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <h1 class="text-2xl font-bold">Users</h1>
+
+            <a href="{% url 'accounts:invite_user' %}" class="btn btn-success text-white">
+                <i class="fa-solid fa-user-plus"></i>
+                Invite User
+            </a>
+        </div>
+
 
         <!-- FILTERS -->
         <form method="get" class="flex flex-wrap gap-4 mb-4 items-end">
@@ -68,10 +76,44 @@
                         <td class="text-center align-middle">{% if user.is_staff %}<span class="badge badge-info text-white">Yes</span>{% else %}<span class="badge badge-error text-white">No</span>{% endif %}</td>
                         <td class="text-center align-middle">{% if user.terms_accepted %}<span class="badge badge-warning text-white">Yes</span>{% else %}<span class="badge badge-error text-white">No</span>{% endif %}</td>
                         <td class="text-center align-middle">
-                            <a href="{% url 'accounts:user_edit' user.id %}" class="btn btn-sm btn-info text-white">
-                                <i class="fa-solid fa-user-pen"></i> Edit
-                            </a>
+                            <div class="flex justify-center gap-2">
+                                <a href="{% url 'accounts:user_edit' user.id %}" class="btn btn-sm btn-info text-white">
+                                    <i class="fa-solid fa-user-pen"></i> Edit
+                                </a>
+
+                                {% if user.id != request.user.id %}
+                                <button type="button" class="btn btn-sm btn-error text-white"
+                                        onclick="document.getElementById('delete-user-{{ user.id }}').showModal()">
+                                    <i class="fa-solid fa-trash"></i> Delete
+                                </button>
+
+                                <dialog id="delete-user-{{ user.id }}" class="modal">
+                                    <div class="modal-box text-left">
+                                        <h3 class="font-bold text-lg">Delete user</h3>
+                                        <p class="py-3 text-sm">
+                                            This will permanently delete <span class="font-semibold">{{ user.email }}</span>. This cannot be undone.
+                                        </p>
+
+                                        <div class="modal-action">
+                                            <button type="button" class="btn btn-ghost"
+                                                    onclick="document.getElementById('delete-user-{{ user.id }}').close()">
+                                                Cancel
+                                            </button>
+
+                                            <form method="post" action="{% url 'accounts:user_delete' user.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-error text-white">
+                                                    <i class="fa-solid fa-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <form method="dialog" class="modal-backdrop"><button>close</button></form>
+                                </dialog>
+                                {% endif %}
+                            </div>
                         </td>
+
                     </tr>
                     {% empty %}
                     <tr>

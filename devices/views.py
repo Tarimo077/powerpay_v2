@@ -24,6 +24,8 @@ from .services.device_api import call_change_status_api
 from organizations.models import Organization
 from core.org_checker import get_accessible_organizations
 from inventory.models import InventoryItem
+from inventory.views import create_delivery_note_for_device_dispatch
+
 from django.db import transaction
 from django.utils import timezone
 from .models import (
@@ -388,6 +390,8 @@ def testing_batch_dispatch(request, pk):
         form = DeviceBatchDispatchForm(request.POST)
 
         if form.is_valid():
+            delivery_note = None
+
             with transaction.atomic():
                 dispatch = form.save(commit=False)
                 dispatch.batch = batch
@@ -397,6 +401,22 @@ def testing_batch_dispatch(request, pk):
                 batch.status = DeviceTestingBatch.STATUS_DISPATCHED
                 batch.save(update_fields=["status", "updated_at"])
 
+                if form.cleaned_data.get("create_delivery_note"):
+                    devices = [
+                        item.device
+                        for item in DeviceTestingBatchItem.objects
+                        .select_related("device")
+                        .filter(batch=batch)
+                        .order_by("device__deviceid")
+                    ]
+
+                    delivery_note = create_delivery_note_for_device_dispatch(
+                        devices=devices,
+                        form=form,
+                        created_by=request.user,
+                        note=dispatch.note,
+                    )
+
             notify(
                 request.user,
                 "Batch Dispatched",
@@ -404,7 +424,14 @@ def testing_batch_dispatch(request, pk):
                 "success",
             )
 
+            if delivery_note:
+                messages.success(
+                    request,
+                    f"Delivery note {delivery_note.delivery_number} created for this dispatch.",
+                )
+
             return redirect("devices:testing_batch_dispatch_detail", pk=batch.pk)
+
     else:
         form = DeviceBatchDispatchForm()
 

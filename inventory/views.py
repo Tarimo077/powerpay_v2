@@ -259,6 +259,65 @@ def create_delivery_note_for_movements(*, movements, form, created_by, note=None
     return delivery_note
 
 
+def create_delivery_note_for_device_dispatch(*, devices, form, created_by, note=None):
+    """Create a delivery note for a dispatched device testing batch.
+
+    `devices` is an iterable of DeviceInfo objects. Where an inventory item
+    exists with a matching serial number, it is linked so the delivery note
+    keeps the real item name / product type.
+    """
+    device_list = list(devices)
+
+    if not device_list:
+        return None
+
+    deviceids = [d.deviceid for d in device_list]
+
+    items_by_serial = {
+        item.serial_number: item
+        for item in InventoryItem.objects.filter(serial_number__in=deviceids)
+    }
+
+    first_item = next(
+        (items_by_serial.get(d.deviceid) for d in device_list if items_by_serial.get(d.deviceid)),
+        None,
+    )
+
+    delivery_note = InventoryDeliveryNote.objects.create(
+        from_warehouse=getattr(first_item, "current_warehouse", None),
+        to_warehouse=None,
+        recipient_name=(form.cleaned_data.get("delivery_recipient_name") or "").strip(),
+        recipient_email=(form.cleaned_data.get("delivery_recipient_email") or "").strip() or None,
+        recipient_phone=(form.cleaned_data.get("delivery_recipient_phone") or "").strip() or None,
+        recipient_organization=(form.cleaned_data.get("delivery_recipient_organization") or "").strip() or None,
+        destination_address=(form.cleaned_data.get("delivery_destination_address") or "").strip() or None,
+        note=note,
+        created_by=created_by,
+    )
+
+    delivery_items = []
+
+    for device in device_list:
+        item = items_by_serial.get(device.deviceid)
+
+        delivery_items.append(
+            InventoryDeliveryNoteItem(
+                delivery_note=delivery_note,
+                movement=None,
+                item=item,
+                item_name=getattr(item, "name", None) or device.deviceid,
+                serial_number=device.deviceid,
+                product_type=getattr(item, "product_type", None) or "Device",
+                quantity=1,
+            )
+        )
+
+    InventoryDeliveryNoteItem.objects.bulk_create(delivery_items)
+    return delivery_note
+
+
+
+
 def user_can_access_delivery_note(user, delivery_note):
     if is_superadmin(user):
         return True

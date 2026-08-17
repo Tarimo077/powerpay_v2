@@ -139,9 +139,9 @@
                         <td>{{ r.timestamp_local|date:"d M Y h:i:s A" }}</td>
                         <td>{{ r.current_a|floatformat:2 }}</td>
                         <td>{{ r.voltage_v|floatformat:1 }}</td>
-                        <td>{{ r.power_kw|multiply:1000|floatformat:3 }}</td>
+                        <td>{{ r.power_kw|multiply:1000|floatformat:3|intcomma }}</td>
                         <td>{{ r.power_factor|floatformat:2 }}</td>
-                        <td>{{ r.energy_kwh|multiply:1000|floatformat:3 }}</td>
+                        <td>{{ r.energy_kwh|multiply:1000|floatformat:3|intcomma }}</td>
                     </tr>
                     {% empty %}
                     <tr><td colspan="6" class="text-center py-6">No readings for this period.</td></tr>

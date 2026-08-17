@@ -334,3 +334,23 @@ def user_edit(request, user_id):
         "user_obj": user_obj
     }
     return render(request, "accounts/user_edit.html", context)
+
+
+@superadmin_required
+def user_delete(request, user_id):
+    user_obj = get_object_or_404(User, pk=user_id)
+
+    if request.method != "POST":
+        return redirect("accounts:user_list")
+
+    if user_obj.pk == request.user.pk:
+        messages.error(request, "You cannot delete your own account.")
+        return redirect("accounts:user_list")
+
+    email = user_obj.email
+    user_obj.delete()
+
+    messages.success(request, f"{email} has been deleted.")
+    notify(request.user, "User Deleted", f"The user {email} was deleted.", "warning")
+
+    return redirect("accounts:user_list")

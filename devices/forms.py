@@ -1,5 +1,7 @@
 from django import forms
 from inventory.models import Warehouse
+from inventory.forms import DeliveryNoteFieldsMixin
+
 from organizations.models import Organization
 from .models import (
     DeviceInfo,
@@ -53,8 +55,9 @@ class DeviceTestingBatchForm(forms.ModelForm):
             self.fields["devices"].queryset = DeviceInfo.objects.none()
 
 
-class DeviceBatchDispatchForm(forms.ModelForm):
+class DeviceBatchDispatchForm(DeliveryNoteFieldsMixin, forms.ModelForm):
     class Meta:
+
         model = DeviceBatchDispatch
         fields = [
             "recipient_name",
@@ -87,6 +90,15 @@ class DeviceBatchDispatchForm(forms.ModelForm):
                 "placeholder": "Optional dispatch note",
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.add_delivery_note_fields()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        return self.clean_delivery_note_fields(cleaned_data)
+
 
 class DeviceForm(forms.ModelForm):
 

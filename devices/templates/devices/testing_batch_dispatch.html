@@ -75,12 +75,69 @@ Powerpay Africa | Dispatch {{ batch.name }}
                     {{ form.note.errors }}
                 </div>
 
+                <!-- Delivery Note Toggle -->
+                <div class="rounded-lg border border-base-300 bg-base-200 p-4">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        {{ form.create_delivery_note }}
+                        <span>
+                            <span class="font-semibold">Create Delivery Note</span>
+                            <span class="block text-xs text-gray-500">
+                                Optional. Creates a downloadable/email-ready delivery note listing every device in this batch, with a receiver confirmation link.
+                            </span>
+                        </span>
+                    </label>
+                    {{ form.create_delivery_note.errors }}
+                </div>
+
+                <div id="delivery-note-fields" class="hidden rounded-lg border border-success bg-base-100 p-4 space-y-4">
+                    <div>
+                        <h3 class="font-bold text-lg">Delivery Note Details</h3>
+                        <p class="text-sm text-gray-500">
+                            Prefilled from the recipient details above. The receiver can later confirm they received the devices in good order and condition using a public link.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="label font-semibold">{{ form.delivery_recipient_name.label }}</label>
+                            {{ form.delivery_recipient_name }}
+                            {{ form.delivery_recipient_name.errors }}
+                        </div>
+
+                        <div>
+                            <label class="label font-semibold">{{ form.delivery_recipient_email.label }}</label>
+                            {{ form.delivery_recipient_email }}
+                            <p class="text-xs text-gray-500 mt-1">{{ form.delivery_recipient_email.help_text }}</p>
+                            {{ form.delivery_recipient_email.errors }}
+                        </div>
+
+                        <div>
+                            <label class="label font-semibold">{{ form.delivery_recipient_phone.label }}</label>
+                            {{ form.delivery_recipient_phone }}
+                            {{ form.delivery_recipient_phone.errors }}
+                        </div>
+
+                        <div>
+                            <label class="label font-semibold">{{ form.delivery_recipient_organization.label }}</label>
+                            {{ form.delivery_recipient_organization }}
+                            {{ form.delivery_recipient_organization.errors }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="label font-semibold">{{ form.delivery_destination_address.label }}</label>
+                        {{ form.delivery_destination_address }}
+                        {{ form.delivery_destination_address.errors }}
+                    </div>
+                </div>
+
                 <div class="rounded-lg bg-base-200 p-4">
                     <p class="text-sm text-gray-500">Dispatched By</p>
                     <p class="font-semibold">
                         {{ request.user }}
                     </p>
                 </div>
+
 
                 <div class="flex justify-between">
                     <a href="{% url 'devices:testing_batch_detail' batch.id %}" class="btn btn-error text-white">
@@ -97,4 +154,37 @@ Powerpay Africa | Dispatch {{ batch.name }}
 
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const checkbox = document.getElementById("id_create_delivery_note");
+    const fields = document.getElementById("delivery-note-fields");
+
+    const map = [
+        ["id_recipient_name", "id_delivery_recipient_name"],
+        ["id_recipient_phone", "id_delivery_recipient_phone"],
+        ["id_recipient_organization", "id_delivery_recipient_organization"],
+        ["id_destination", "id_delivery_destination_address"],
+    ];
+
+    function prefill() {
+        map.forEach(function (pair) {
+            const src = document.getElementById(pair[0]);
+            const dest = document.getElementById(pair[1]);
+            if (src && dest && !dest.value.trim()) {
+                dest.value = src.value;
+            }
+        });
+    }
+
+    function toggle() {
+        if (!checkbox || !fields) return;
+        fields.classList.toggle("hidden", !checkbox.checked);
+        if (checkbox.checked) prefill();
+    }
+
+    checkbox?.addEventListener("change", toggle);
+    toggle();
+});
+</script>
 {% endblock %}
