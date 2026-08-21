@@ -16,6 +16,7 @@ from organizations.models import Organization
 from .forms import (
     MaintenanceCommentForm,
     MaintenancePhotoForm,
+    MaintenanceRecordEditForm,
     MaintenanceRecordForm,
     MaintenanceStatusForm,
 )
@@ -150,7 +151,7 @@ def maintenance_create(request):
         if form.is_valid():
             item = form.cleaned_data["item"]
 
-            existing = open_record_for_item(item)
+            existing = open_record_for_item(item) if item else None
 
             if existing:
                 form.add_error(
@@ -160,18 +161,24 @@ def maintenance_create(request):
             else:
                 try:
                     with transaction.atomic():
-                        record = send_item_to_maintenance(
-                            item=item,
-                            user=request.user,
-                            reported_fault=form.cleaned_data.get("reported_fault"),
-                            priority=form.cleaned_data.get("priority"),
-                        )
+                        if item:
+                            record = send_item_to_maintenance(
+                                item=item, user=request.user,
+                                reported_fault=form.cleaned_data.get("reported_fault"),
+                                priority=form.cleaned_data.get("priority"),
+                            )
+                        else:
+                            record = form.save(commit=False)
+                            record.created_by = request.user
+                            record.status = MaintenanceRecord.STATUS_RECEIVED
+                            record.save()
+                            log_status_change(record, record.status, "External device received for maintenance.", request.user)
 
                     notify(
                         request.user,
                         "Maintenance Record Created",
                         (
-                            f"{record.serial_number} ({record.item_name}) was moved to "
+                            f"{record.serial_number} ({record.item_name}) was added to "
                             f"maintenance as {record.reference}."
                         ),
                         "info",
@@ -195,6 +202,28 @@ def maintenance_create(request):
             "maintenance_warehouse_id": MAINTENANCE_WAREHOUSE_ID,
         },
     )
+
+
+@login_required
+def maintenance_edit(request, pk):
+    if not _superadmin_required(request.user):
+        return HttpResponseForbidden("Only superadmins can edit maintenance records.")
+
+    record = get_object_or_404(MaintenanceRecord, pk=pk)
+    previous_status = record.status
+    form = MaintenanceRecordEditForm(request.POST or None, instance=record)
+
+    if request.method == "POST" and form.is_valid():
+        with transaction.atomic():
+            record = form.save()
+            if record.status != previous_status:
+                record.closed_at = timezone.now() if record.status in record.CLOSED_STATUSES else None
+                record.save(update_fields=["closed_at", "updated_at"])
+                log_status_change(record, record.status, "Maintenance record edited.", request.user)
+        messages.success(request, f"{record.reference} was updated.")
+        return redirect("maintenance:maintenance_detail", pk=record.pk)
+
+    return render(request, "maintenance/maintenance_edit_form.html", {"form": form, "record": record})
 
 
 @login_required

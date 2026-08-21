@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load static %}
+{% block extra_head %}<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script><script src="{% static 'vendor/chartjs/chartjs-plugin-datalabels.min.js' %}"></script>{% endblock %}
 
 {% block title %}
   Powerpay Africa | Inventory List
@@ -341,8 +343,6 @@ RES-102:1</code></pre>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
 <script>
 Chart.defaults.font.family = "'Saira', sans-serif";

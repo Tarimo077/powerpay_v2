@@ -8,6 +8,7 @@ urlpatterns = [
     path("", views.maintenance_list, name="maintenance_list"),
     path("create/", views.maintenance_create, name="maintenance_create"),
     path("<int:pk>/", views.maintenance_detail, name="maintenance_detail"),
+    path("<int:pk>/edit/", views.maintenance_edit, name="maintenance_edit"),
     path("<int:pk>/status/", views.maintenance_status_update, name="maintenance_status_update"),
     path("<int:pk>/comment/", views.maintenance_comment_add, name="maintenance_comment_add"),
     path("<int:pk>/photo/", views.maintenance_photo_add, name="maintenance_photo_add"),

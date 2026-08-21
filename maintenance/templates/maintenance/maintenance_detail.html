@@ -26,6 +26,7 @@
                     <span class="badge {{ record.status_badge_class }} text-white badge-lg">
                         {{ record.get_status_display }}
                     </span>
+                    {% if is_superadmin %}<a href="{% url 'maintenance:maintenance_edit' record.pk %}" class="btn btn-warning btn-sm text-white"><i class="fa-solid fa-pen"></i> Edit</a>{% endif %}
                     <a href="{% url 'maintenance:maintenance_list' %}" class="btn btn-ghost btn-accent hover:text-white">
                         <i class="fa-solid fa-backward-step"></i>
                         Back
@@ -44,7 +45,7 @@
                 </div>
                 <div class="rounded-lg bg-base-200 p-4">
                     <p class="text-sm text-gray-500">Currently In</p>
-                    <p class="font-semibold">{{ record.item.current_warehouse.name|default:"-" }}</p>
+                    <p class="font-semibold">{% if record.item %}{{ record.item.current_warehouse.name|default:"-" }}{% else %}External device{% endif %}</p>
                 </div>
                 <div class="rounded-lg bg-base-200 p-4">
                     <p class="text-sm text-gray-500">Priority</p>

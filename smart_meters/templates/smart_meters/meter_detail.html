@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load static %}
+{% block extra_head %}<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script><script src="{% static 'vendor/chartjs/chartjs-adapter-date-fns.bundle.min.js' %}"></script>{% endblock %}
 {% load math_filters %}
 {% load humanize %}
 
@@ -201,7 +203,6 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
 
 <script>
 function plotChart(chartElId, labels, data, labelText, color, tooltipUnit='') {

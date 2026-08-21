@@ -19,9 +19,9 @@ def devices_for_billing_org(org):
     )
 
 
-def recalculate(invoice):
+def recalculate(invoice, tax=None):
     subtotal = sum(i.total_price for i in invoice.items.all())
-    tax = subtotal * Decimal("0.16")
+    tax = subtotal * Decimal("0.16") if tax is None else Decimal(tax)
 
     invoice.subtotal = subtotal
     invoice.tax = tax
@@ -29,32 +29,37 @@ def recalculate(invoice):
     invoice.save()
 
 
-def create_hardware_invoice(user, devices, unit_price, due_date):
+def create_hardware_invoice(
+    user, organization, inventory_items, unit_price, due_date,
+    custom_product=None, custom_quantity=1,
+):
 
-    if not devices:
-        raise ValidationError("No devices selected")
-
-    orgs = set(d.organization_id for d in devices)
-    if len(orgs) != 1:
-        raise ValidationError("All devices must belong to the same organization")
-
-    org = devices.first().organization
+    if not inventory_items and not custom_product:
+        raise ValidationError("Select an inventory item or enter a custom product")
 
     invoice = Invoice.objects.create(
         invoice_number=generate_invoice_number(),
-        organization=org,
+        organization=organization,
         invoice_type="HARDWARE",
         due_date=due_date,
         created_by=user
     )
 
-    for device in devices:
+    for item in inventory_items:
         InvoiceItem.objects.create(
             invoice=invoice,
-            device=device,
-            description=f"IoT Device: {device.deviceid}",
+            inventory_item=item,
+            description=f"{item.name} ({item.serial_number})",
             quantity=1,
             unit_price=Decimal(unit_price)
+        )
+
+    if custom_product:
+        InvoiceItem.objects.create(
+            invoice=invoice,
+            description=custom_product.strip(),
+            quantity=custom_quantity or 1,
+            unit_price=Decimal(unit_price),
         )
 
     recalculate(invoice)

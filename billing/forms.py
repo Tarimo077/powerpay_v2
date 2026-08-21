@@ -1,7 +1,8 @@
 from django import forms
 from devices.models import DeviceInfo
+from inventory.models import InventoryItem
 from organizations.models import Organization
-from .models import SaaSBillingRule
+from .models import Invoice, InvoiceItem, SaaSBillingRule
 
 
 class HardwareInvoiceForm(forms.Form):
@@ -9,10 +10,21 @@ class HardwareInvoiceForm(forms.Form):
         queryset=Organization.objects.all(),
         widget=forms.Select(attrs={"class": "select select-success w-full"})
     )
-    devices = forms.ModelMultipleChoiceField(
-        queryset=DeviceInfo.objects.none(),
+    inventory_items = forms.ModelMultipleChoiceField(
+        label="Available inventory",
+        queryset=InventoryItem.objects.none(),
         required=False,
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "device-grid"})
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "inventory-grid"}),
+        help_text="Select one or more in-stock items, or enter a custom product below.",
+    )
+    custom_product = forms.CharField(
+        required=False,
+        label="Custom product",
+        widget=forms.TextInput(attrs={"class": "input input-success w-full", "placeholder": "Product not in inventory"}),
+    )
+    custom_quantity = forms.IntegerField(
+        required=False, initial=1, min_value=1,
+        widget=forms.NumberInput(attrs={"class": "input input-success w-full", "min": "1"}),
     )
     unit_price = forms.DecimalField(
         widget=forms.NumberInput(attrs={"class": "input input-success w-full"})
@@ -42,16 +54,22 @@ class HardwareInvoiceForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["inventory_items"].queryset = (
+            InventoryItem.objects.filter(quantity__gt=0)
+            .select_related("current_warehouse", "current_warehouse__organization")
+            .order_by("name", "serial_number")
+        )
+
+    def clean(self):
+        cleaned = super().clean()
+        if not cleaned.get("inventory_items") and not (cleaned.get("custom_product") or "").strip():
+            raise forms.ValidationError("Select an inventory item or enter a custom product.")
+        return cleaned
 
 class SaaSInvoiceForm(forms.Form):
     organization = forms.ModelChoiceField(
         queryset=Organization.objects.all(),
         widget=forms.Select(attrs={"class": "select select-success w-full"})
-    )
-    devices = forms.ModelMultipleChoiceField(
-        queryset=DeviceInfo.objects.none(),
-        required=False,
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "device-grid"})
     )
     unit_price = forms.DecimalField(
         widget=forms.NumberInput(attrs={"class": "input input-success w-full"})
@@ -89,7 +107,71 @@ class SaaSInvoiceForm(forms.Form):
         widget=forms.NumberInput(attrs={"class": "input input-success w-full", "min": "1"})
     )
 
+
     
+
+class CustomInvoiceForm(forms.ModelForm):
+    class Meta:
+        model = Invoice
+        fields = ["invoice_number", "organization", "invoice_type", "status", "issue_date", "due_date", "tax"]
+        widgets = {
+            "invoice_number": forms.TextInput(attrs={"class": "input input-success w-full"}),
+            "organization": forms.Select(attrs={"class": "select select-success w-full"}),
+            "invoice_type": forms.Select(attrs={"class": "select select-success w-full"}),
+            "status": forms.Select(attrs={"class": "select select-success w-full"}),
+            "issue_date": forms.DateInput(attrs={"type": "date", "class": "input input-success w-full"}),
+            "due_date": forms.DateInput(attrs={"type": "date", "class": "input input-success w-full"}),
+            "tax": forms.NumberInput(attrs={"class": "input input-success w-full", "step": "0.01", "min": "0"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["invoice_number"].required = False
+        self.fields["invoice_number"].help_text = "Leave blank to generate an invoice number automatically."
+        self.fields["organization"].queryset = Organization.objects.order_by("name")
+
+
+class CustomInvoiceItemForm(forms.ModelForm):
+    class Meta:
+        model = InvoiceItem
+        fields = ["inventory_item", "description", "quantity", "unit_price"]
+        widgets = {
+            "inventory_item": forms.Select(attrs={"class": "select select-success w-full"}),
+            "description": forms.TextInput(attrs={"class": "input input-success w-full", "placeholder": "Custom product or service description"}),
+            "quantity": forms.NumberInput(attrs={"class": "input input-success w-full", "min": "1"}),
+            "unit_price": forms.NumberInput(attrs={"class": "input input-success w-full", "step": "0.01", "min": "0"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["inventory_item"].required = False
+        self.fields["inventory_item"].empty_label = "Custom product / service"
+        self.fields["inventory_item"].queryset = (
+            InventoryItem.objects.filter(quantity__gt=0)
+            .select_related("current_warehouse")
+            .order_by("name", "serial_number")
+        )
+
+    def clean(self):
+        cleaned = super().clean()
+        item = cleaned.get("inventory_item")
+        description = (cleaned.get("description") or "").strip()
+        if item and not description:
+            cleaned["description"] = f"{item.name} ({item.serial_number})"
+        elif not item and not description:
+            self.add_error("description", "Enter a description for a custom product or service.")
+        return cleaned
+
+
+CustomInvoiceItemFormSet = forms.inlineformset_factory(
+    Invoice,
+    InvoiceItem,
+    form=CustomInvoiceItemForm,
+    extra=1,
+    can_delete=True,
+    min_num=1,
+    validate_min=True,
+)
 
 
 class SaaSBillingRuleForm(forms.ModelForm):

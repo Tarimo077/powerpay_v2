@@ -58,7 +58,9 @@ class MaintenanceRecord(models.Model):
 
     item = models.ForeignKey(
         InventoryItem,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name="maintenance_records",
     )
 

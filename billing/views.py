@@ -1,12 +1,19 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Invoice, InvoiceItem, Receipt, SaaSBillingRule
-from .forms import HardwareInvoiceForm, SaaSInvoiceForm, SaaSBillingRuleForm
+from .forms import (
+    CustomInvoiceForm,
+    CustomInvoiceItemFormSet,
+    HardwareInvoiceForm,
+    SaaSInvoiceForm,
+    SaaSBillingRuleForm,
+)
 from .services import (
     create_hardware_invoice,
     create_saas_invoice,
@@ -121,13 +128,9 @@ def create_hardware(request):
     form = HardwareInvoiceForm(request.POST or None)
     form.fields["organization"].queryset = Organization.objects.all()
 
-    if request.method == "POST":
-        org_id = request.POST.get("organization")
-        if org_id:
-            form.fields["devices"].queryset = billing_org_devices(org_id)
-
     if request.method == "POST" and form.is_valid():
-        devices = form.cleaned_data["devices"]
+        organization = form.cleaned_data["organization"]
+        inventory_items = form.cleaned_data["inventory_items"]
         unit_price = form.cleaned_data["unit_price"]
         due_date = form.cleaned_data["due_date"]
 
@@ -137,9 +140,12 @@ def create_hardware(request):
 
         invoice = create_hardware_invoice(
             request.user,
-            devices,
+            organization,
+            inventory_items,
             unit_price,
             due_date,
+            custom_product=form.cleaned_data.get("custom_product"),
+            custom_quantity=form.cleaned_data.get("custom_quantity") or 1,
             #hardware_tax=hardware_tax,
             #hardware_upfront=hardware_upfront
         )
@@ -153,7 +159,7 @@ def create_hardware(request):
         )
 
 
-    return render(request, "billing/invoice_form.html", {"form": form})
+    return render(request, "billing/invoice_form.html", {"form": form, "invoice_type": "HARDWARE"})
 
 
 # ==========================================
@@ -166,11 +172,6 @@ def create_saas(request):
         return HttpResponseForbidden()
 
     form = SaaSInvoiceForm(request.POST or None)
-
-    if request.method == "POST":
-        org_id = request.POST.get("organization")
-        if org_id:
-            form.fields["devices"].queryset = billing_org_devices(org_id)
 
     if request.method == "POST" and form.is_valid():
         org = form.cleaned_data["organization"]
@@ -212,6 +213,39 @@ def create_saas(request):
     })
 
 
+@login_required
+def create_custom_invoice(request):
+    if not billing_manage_access(request.user):
+        return HttpResponseForbidden()
+
+    invoice = Invoice(created_by=request.user, invoice_type="CUSTOM")
+    form = CustomInvoiceForm(request.POST or None, instance=invoice)
+    formset = CustomInvoiceItemFormSet(request.POST or None, instance=invoice)
+
+    if request.method == "POST" and form.is_valid() and formset.is_valid():
+        with transaction.atomic():
+            invoice = form.save(commit=False)
+            invoice.created_by = request.user
+            if not invoice.invoice_number:
+                from .services import generate_invoice_number
+                invoice.invoice_number = generate_invoice_number()
+            invoice.save()
+            formset.instance = invoice
+            formset.save()
+            recalculate(invoice, tax=form.cleaned_data["tax"])
+
+        return resolve_post_save_redirect(
+            request,
+            invoice,
+            default_url="billing:invoice_detail",
+            default_kwargs={"pk": invoice.pk},
+            create_url="billing:invoice_create_custom",
+            label="Invoice",
+        )
+
+    return render(request, "billing/custom_invoice_form.html", {"form": form, "formset": formset})
+
+
 # ==========================================
 # INVOICE DETAIL
 # Internal billing -> any invoice
@@ -242,87 +276,14 @@ def invoice_edit(request, pk):
 
     invoice = get_object_or_404(Invoice, pk=pk)
 
-    org_id = (
-        request.POST.get("organization")
-        or invoice.organization.id
-    )
+    form = CustomInvoiceForm(request.POST or None, instance=invoice)
+    formset = CustomInvoiceItemFormSet(request.POST or None, instance=invoice)
 
-    selected_devices = invoice.items.exclude(
-        device__isnull=True
-    ).values_list("device_id", flat=True)
-
-    initial_data = {
-        "organization": invoice.organization,
-        "unit_price": (
-            invoice.items.first().unit_price
-            if invoice.items.exists()
-            else 0
-        ),
-        "due_date": invoice.due_date,
-        "devices": selected_devices,
-    }
-
-    # HARDWARE INVOICE
-    if invoice.invoice_type == "HARDWARE":
-
-        form = HardwareInvoiceForm(
-            request.POST or None,
-            initial=initial_data
-        )
-
-        # Dynamic queryset (important for validation)
-        form.fields["devices"].queryset = billing_org_devices(org_id)
-
-    # SAAS INVOICE
-    else:
-
-        form = SaaSInvoiceForm(
-            request.POST or None,
-            initial=initial_data
-        )
-
-        # IMPORTANT:
-        # Set queryset so selected hidden devices validate
-        form.fields["devices"].queryset = billing_org_devices(org_id)
-
-    if request.method == "POST" and form.is_valid():
-
-        invoice.organization = form.cleaned_data["organization"]
-        invoice.due_date = form.cleaned_data["due_date"]
-        invoice.save()
-
-        # HARDWARE → recreate selected items
-        if invoice.invoice_type == "HARDWARE":
-
-            devices = form.cleaned_data["devices"]
-            unit_price = form.cleaned_data["unit_price"]
-
-            invoice.items.all().delete()
-
-            for device in devices:
-                InvoiceItem.objects.create(
-                    invoice=invoice,
-                    device=device,
-                    description=f"IoT Device: {device.deviceid}",
-                    quantity=1,
-                    unit_price=unit_price
-                )
-
-        # SAAS → update pricing + quantity only
-        elif invoice.invoice_type == "SAAS":
-
-            count = devices_for_billing_org(invoice.organization).count()
-
-            item = invoice.items.first()
-
-            if item:
-                item.quantity = count
-                item.unit_price = form.cleaned_data["unit_price"]
-                item.description = "Monthly SaaS subscription"
-                item.save()
-
-        # Recalculate totals
-        recalculate(invoice)
+    if request.method == "POST" and form.is_valid() and formset.is_valid():
+        with transaction.atomic():
+            invoice = form.save()
+            formset.save()
+            recalculate(invoice, tax=form.cleaned_data["tax"])
 
         return resolve_post_save_redirect(
             request,
@@ -334,15 +295,9 @@ def invoice_edit(request, pk):
         )
 
 
-    return render(
-        request,
-        "billing/invoice_form.html",
-        {
-            "form": form,
-            "invoice": invoice,
-            "invoice_type": invoice.invoice_type,  # needed by template JS
-        }
-    )
+    return render(request, "billing/custom_invoice_form.html", {
+        "form": form, "formset": formset, "invoice": invoice,
+    })
 
 
 # ==========================================

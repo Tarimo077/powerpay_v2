@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from organizations.models import Organization
 from devices.models import DeviceInfo
+from inventory.models import InventoryItem
 from accounts.models import User
 from transactions.models import Transaction
 
@@ -9,6 +10,7 @@ class Invoice(models.Model):
     TYPE_CHOICES = [
         ("HARDWARE", "Hardware"),
         ("SAAS", "SaaS"),
+        ("CUSTOM", "Custom"),
     ]
 
     STATUS_CHOICES = [
@@ -39,6 +41,13 @@ class Invoice(models.Model):
 class InvoiceItem(models.Model):
     invoice = models.ForeignKey(Invoice, related_name="items", on_delete=models.CASCADE)
     device = models.ForeignKey(DeviceInfo, null=True, blank=True, on_delete=models.SET_NULL)
+    inventory_item = models.ForeignKey(
+        InventoryItem,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="invoice_items",
+    )
 
     description = models.CharField(max_length=255)
     quantity = models.IntegerField()

@@ -8,6 +8,7 @@ urlpatterns = [
     path("devices/by-org/<int:org_id>/", views.devices_by_org, name="devices_by_org"),
     path("invoices/create/hardware/", views.create_hardware, name="invoice_create_hardware"),
     path("invoices/create/saas/", views.create_saas, name="invoice_create_saas"),
+    path("invoices/create/custom/", views.create_custom_invoice, name="invoice_create_custom"),
     path("invoice/<int:pk>/", views.invoice_detail, name="invoice_detail"),
     path("invoice/<int:pk>/edit/", views.invoice_edit, name="invoice_edit"),
     path("invoice/<int:pk>/delete/", views.invoice_delete, name="invoice_delete"),

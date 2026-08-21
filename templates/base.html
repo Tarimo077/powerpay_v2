@@ -7,26 +7,16 @@
     <title>{% block title %}PowerPay Africa{% endblock %}</title>
     <link rel="icon" href="{% static 'images/pp_no_bgcropped.png' %}">
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-
-    <!-- Icons -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-
-    <!-- DaisyUI + Tailwind -->
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Compiled, local styles: no browser compiler or external font request. -->
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+    <link href="{% static 'vendor/fontawesome/css/all.min.css' %}" rel="stylesheet">
+    <link href="{% static 'vendor/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet">
 
     <!-- Libraries -->
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-    <script src="https://unpkg.com/dom-to-image-more@3.2.0/dist/dom-to-image-more.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="{% static 'vendor/sweetalert2/sweetalert2.all.min.js' %}" defer></script>
+    <script src="{% static 'vendor/alpinejs/collapse.min.js' %}" defer></script>
+    <script src="{% static 'vendor/alpinejs/alpine.min.js' %}" defer></script>
 
     <script>
         // Apply persisted sidebar state before first paint (desktop only)
@@ -274,9 +264,25 @@
         }
     });
 
-    function downloadCard(cardId, fileName) {
+    let domToImageLoader = null;
+    function loadDomToImage() {
+        if (window.domtoimage) return Promise.resolve();
+        if (!domToImageLoader) {
+            domToImageLoader = new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = "{% static 'vendor/dom-to-image/dom-to-image-more.min.js' %}";
+                script.onload = resolve;
+                script.onerror = () => reject(new Error('Could not load image export support.'));
+                document.head.appendChild(script);
+            });
+        }
+        return domToImageLoader;
+    }
+
+    async function downloadCard(cardId, fileName) {
         const card = document.getElementById(cardId);
         if (!card) return;
+        try { await loadDomToImage(); } catch (err) { console.error(err); return; }
 
         const ignored = card.querySelectorAll('[data-ignore-download]');
         ignored.forEach(el => el.style.display = 'none');

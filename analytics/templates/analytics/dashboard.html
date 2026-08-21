@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load static %}
+{% block extra_head %}<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script><script src="{% static 'vendor/chartjs/chartjs-plugin-datalabels.min.js' %}"></script>{% endblock %}
 {% load humanize %}
 {% load math_filters %}
 {% block title %}PowerPay Africa | Analytics{% endblock %}

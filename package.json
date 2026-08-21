@@ -14,6 +14,15 @@
     "tailwindcss": "^4.1.18"
   },
   "dependencies": {
-    "flowbite": "^4.0.1"
+    "@alpinejs/collapse": "^3.16.2",
+    "@fortawesome/fontawesome-free": "^7.3.1",
+    "alpinejs": "^3.16.2",
+    "chart.js": "^4.5.1",
+    "chartjs-adapter-date-fns": "^3.0.0",
+    "chartjs-plugin-datalabels": "^2.2.0",
+    "date-fns": "^4.4.0",
+    "dom-to-image-more": "^3.10.2",
+    "flowbite": "^4.0.1",
+    "sweetalert2": "^11.26.25"
   }
 }
